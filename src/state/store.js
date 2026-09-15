@@ -13,6 +13,7 @@ import {
 } from '../core/sights.js';
 import { simulateVoyage, planPassage } from '../core/voyage.js';
 import { routeById } from '../routes.js';
+import { byId as scenarioById, applyScenario } from '../scenarios.js';
 
 const listeners = new Set();
 
@@ -36,6 +37,8 @@ export const state = {
   useEoT: true,
   globeCenter: { lat: 20, lon: -60 },
   theoryView: { lat: 28, lon: 150 },
+  lesson: null,                    // id of the running lesson, or null
+  lessonStep: 0,
   skyView: 'dome',                 // 'dome' for the geometry, 'sextant' for the instrument
   sextant: { armDeg: 0, roll: false },
   voyage: {
@@ -121,6 +124,9 @@ export function clearSights() {
   state.sights = [];
   render();
 }
+
+/** The state patch a scenario implies, so a lesson step can fold it into its own. */
+export const applyScenarioPatch = (id) => applyScenario(scenarioById(id));
 
 /** Pick a passage: it carries its own departure date, which the watch shares. */
 export function applyRoute(id) {

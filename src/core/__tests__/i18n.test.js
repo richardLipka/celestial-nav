@@ -1,9 +1,11 @@
 import { describe, it, expect, afterAll } from 'vitest';
 
-import { dictionaries, LANGS, t, setLang, getLang, pick, latSuffix, lonSuffix } from '../../i18n.js';
+import { dictionaries, LANGS, LANG_LABEL, t, setLang, getLang, pick, latSuffix, lonSuffix } from '../../i18n.js';
 import { places, GROUPS, findPlace, placeById, applyPlace } from '../../places.js';
 import { fLat, fLon } from '../../ui/format.js';
 import { scenarios } from '../../scenarios.js';
+import { routes } from '../../routes.js';
+import { lessons } from '../../lessons.js';
 import { setDecimalSeparator, fmtLat, fmtLon, dm, fmtNm, fmtNumber } from '../angles.js';
 
 const before = getLang();
@@ -70,6 +72,14 @@ describe('translations', () => {
     expect([t('sky.N'), t('sky.E'), t('sky.S'), t('sky.W')]).toEqual(['S', 'V', 'J', 'Z']);
     setLang('en');
     expect([t('sky.N'), t('sky.E'), t('sky.S'), t('sky.W')]).toEqual(['N', 'E', 'S', 'W']);
+  });
+
+  it('labels the switch CZ and EN, which is not what the codes are', () => {
+    // The language code is 'cs'; the button has to say CZ. Upper-casing the
+    // code gave CS, which a Czech reader does not recognise as their flag.
+    expect(LANG_LABEL).toEqual({ cs: 'CZ', en: 'EN' });
+    for (const code of LANGS) expect(LANG_LABEL[code], code).toBeTruthy();
+    expect(Object.keys(LANG_LABEL).sort()).toEqual([...LANGS].sort());
   });
 
   it('picks the right half of an { en, cs } pair', () => {
@@ -165,6 +175,51 @@ describe('places', () => {
     setLang('cs');
     expect(fmtLat(praha.lat, 1, latSuffix())).toBe('50° 04,5′ s.š.');
     expect(fmtLon(praha.lon, 1, lonSuffix())).toBe('014° 26,3′ v.d.');
+  });
+});
+
+describe('lessons and routes', () => {
+  it('writes every lesson in both languages', () => {
+    expect(lessons.length).toBeGreaterThanOrEqual(4);
+    for (const l of lessons) {
+      for (const lang of LANGS) {
+        expect(l.title[lang], `${l.id}.title.${lang}`).toBeTruthy();
+        expect(l.blurb[lang], `${l.id}.blurb.${lang}`).toBeTruthy();
+      }
+      expect(l.steps.length, l.id).toBeGreaterThan(1);
+      for (const [i, step] of l.steps.entries()) {
+        for (const lang of LANGS) {
+          expect(step.text[lang], `${l.id}[${i}].${lang}`).toBeTruthy();
+          expect(step.text[lang].length, `${l.id}[${i}].${lang}`).toBeGreaterThan(60);
+        }
+      }
+    }
+  });
+
+  it('only points lessons at scenarios, tabs and panels that exist', () => {
+    const ids = new Set(scenarios.map((s) => s.id));
+    const tabs = new Set(['theory', 'simulation', 'voyage']);
+    const views = new Set(['dome', 'sextant']);
+    const panels = new Set(['p-sky', 'p-globe', 'p-log', 'p-workup', null, undefined]);
+    for (const l of lessons) {
+      for (const [i, step] of l.steps.entries()) {
+        if (step.state?.scenario) expect(ids, `${l.id}[${i}]`).toContain(step.state.scenario);
+        if (step.tab) expect(tabs, `${l.id}[${i}]`).toContain(step.tab);
+        if (step.view) expect(views, `${l.id}[${i}]`).toContain(step.view);
+        expect(panels, `${l.id}[${i}] panel`).toContain(step.panel);
+      }
+    }
+  });
+
+  it('names and describes every route in both languages', () => {
+    for (const r of routes) {
+      for (const lang of LANGS) {
+        expect(r.name[lang], `${r.id}.name.${lang}`).toBeTruthy();
+        expect(r.note[lang], `${r.id}.note.${lang}`).toBeTruthy();
+      }
+      expect(Math.abs(r.from.lat)).toBeLessThanOrEqual(90);
+      expect(Math.abs(r.to.lon)).toBeLessThanOrEqual(180);
+    }
   });
 });
 

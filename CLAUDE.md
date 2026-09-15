@@ -1,16 +1,17 @@
 # CLAUDE.md
 
 An interactive, bilingual (Czech/English) demonstration of why latitude falls
-out of a noon sight and longitude cannot be had without a clock. Two tabs:
+out of a noon sight and longitude cannot be had without a clock. Three tabs:
 **Theory** (derivations, MathJax, live figures), **Simulation** (you take and
-log sights yourself, and they feed the equations) and **Voyage** (sail a
-passage and watch the two errors behave completely differently).
+log sights yourself, through a sextant, and they feed the equations) and
+**Voyage** (sail a passage and watch the two errors behave completely
+differently). Four guided lessons walk a newcomer through all three.
 
 ## Commands
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 99 tests
+npm test         # vitest, 115 tests
 npm run test:watch
 ```
 
@@ -120,6 +121,30 @@ Two things that are easy to undo by accident:
 The passage is memoised in the store on its inputs — it is twenty-odd noon
 reductions and would otherwise re-run on every drag of the day scrubber.
 
+## Guided lessons
+
+`src/lessons.js` is content-as-data, like `theory.js`; `views/lessonbar.js`
+renders it. A step is `{ state, tab, view, panel, act, text }`:
+
+- `state` is patched straight into the store, so a lesson can only ever do what
+  the reader could do with the controls. A `scenario` in a step means *set that
+  scenario up*, not *set that field*.
+- `panel` names one panel class to light. `app.js` toggles `.lit`.
+- `act(store)` is for what a patch cannot express — filling the log, pinning a
+  route. It runs *after* the patch, so it can see the day it just set.
+
+Two rules, both learned the hard way:
+
+- **A step must stand on its own.** The reader can walk past the step that
+  asked them to take a sight. Any step that narrates the log or the work-up
+  must guarantee its own content with `act`, or be marked `asks: true` to say
+  it is requesting the sight rather than describing one. `lessons.test.js`
+  walks every lesson and enforces this.
+- **A sentence that quotes a number is an assertion, and needs a test.** Three
+  shipped sentences were simply wrong (ROADMAP has the list). `lessons.test.js`
+  now walks each lesson through the real store and checks the figures its text
+  quotes.
+
 ## Conventions
 
 - **North-positive latitude, east-positive longitude, everywhere in `core/`.**
@@ -203,10 +228,35 @@ figures.
 - Every switch must reach every tab. `useEoT` was hardcoded on inside
   `simulateVoyage`, so turning the almanac off changed the simulation and left
   the passage untouched.
+- A displayed ratio must survive being less than one. `wu.noteRatio` read
+  "the longitude error is {ratio} times the latitude error" and rounded; when
+  equal altitudes did its job *well* the ratio fell below one and a success
+  printed as "0 times". `verdict()` in `workup.js` is pure and tested for this.
+- `LANGS` holds codes, not labels. Czech is `cs`, but the switch has to say
+  **CZ** — `code.toUpperCase()` gave `CS`, which is not what a Czech reader
+  looks for. `LANG_LABEL` keeps the two apart.
+- Reading error is drawn with `Math.random()`, so any test comparing the two
+  longitude methods on one run is flaky — equal altitudes loses outright now
+  and then. Compare medians over tens of runs, which is the honest claim anyway.
+- **A `min-width` on a grid item that spans every column sets the width of the
+  column, and so of every panel in it.** `.tl-left` had `min-width: 280px`;
+  with the timeline at `grid-column: 1 / -1` that put a ~340px floor under the
+  whole page and scrolled it sideways on a small phone.
+- A media query adds **no specificity**. A narrow-width override of a rule
+  declared later in the file silently loses. The `.tabs-btn` padding override
+  must stay below the base rule, and it is commented to that effect.
+- `.topbar-text { min-width: 240px }` is load-bearing: it is what pushes the
+  tabs onto their own line on a phone. Setting it to 0 to "fix" an overflow
+  let the tabs sit alongside and broke the masthead to one word per line.
+- SVG labels need real vertical separation, not four pixels. The gauge had `Az`
+  at y=96 and its note at y=100; the note won and the azimuth was unreadable.
+  When adding a row to a figure, grow the `viewBox` rather than squeezing.
 
 ## Testing
 
-`src/core/__tests__/` only — the core is what is worth pinning.
+All of it lives in `src/core/__tests__/`. The core is what is worth pinning,
+and the one exception — `lessons.test.js` — is there because a claim made in
+prose is worth pinning too.
 
 - `core.test.js` — solar position against `astronomy-engine` over 10 000 random
   sights (max Δ < 0.02°), equation-of-time extremes, dip and refraction,
@@ -214,10 +264,16 @@ figures.
 - `sights.test.js` — the log: pairing, the equation of equal altitudes, the
   flat maximum with and without reading noise, and what a log actually yields.
 - `i18n.test.js` — dictionary parity, placeholders, Czech conventions, places.
+- `lessons.test.js` — walks every lesson through the real store and checks the
+  application against what the step's own text says. The one suite that is
+  allowed to import from `state/` and `views/`, because claims are what it
+  tests; it imports only pure things (`applyStep`, `verdict`).
+- `tex.test.js` — the TeX escaping trap, checked in the source *and* in the
+  built strings.
 
 When changing anything in `core/`, run the suite before touching a view.
 
 ## Roadmap
 
-[ROADMAP.md](ROADMAP.md) has what remains, in order. Phase 2 (chronometer
-*rate* rather than a flat offset) is next and is small.
+[ROADMAP.md](ROADMAP.md) has what remains. Phases 0 to 6 are done; Phase 7
+(lunar distances) is the only item left, and it is a real piece of work.

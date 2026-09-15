@@ -5,10 +5,13 @@ arc and a clear horizon, and why it cannot find its longitude without a clock
 that has kept Greenwich time across an ocean.
 
 Three tabs: **Theory**, which derives both reductions from the navigational
-triangle with the equations typeset by MathJax; **Simulation**, where you take
-and log sights yourself and watch them feed the equations; and **Voyage**,
-where you sail a passage and watch the two errors behave completely
-differently.
+triangle with the equations typeset by MathJax; **Simulation**, where you bring
+the sun down to the horizon through a sextant, log the sight, and watch it feed
+the equations; and **Voyage**, where you sail a passage and watch the two
+errors behave completely differently.
+
+Four **guided lessons** walk through it from the top — pick one in the rail and
+it sets the controls for you, step by step, in either language.
 
 Bilingual: **čeština / English**, switched with the CZ/EN buttons at the top
 right. The choice is remembered between visits.
@@ -41,8 +44,10 @@ The almanac gives the GP in two independent halves:
 
 Latitude comes out of the half that depends on the calendar. Longitude comes
 out of the half that depends on the clock. Four seconds of clock error is a
-nautical mile at the equator; an hour of clock error costs latitude nothing at
-all.
+nautical mile at the equator. An hour of it moves the longitude nine hundred
+miles and the latitude about one and a half — and even that mile and a half is
+only the declination being looked up an hour late, which is the top row of the
+table. Six hundred to one is the whole subject in one number.
 
 The rule that unifies both is one derivative, computed in `core/horizon.js`:
 
@@ -250,10 +255,10 @@ model stops meaning anything.
 
 ## Not built
 
-See [ROADMAP.md](ROADMAP.md) for what remains and in what order. In short:
-voyage mode, a two-body fix (the core already has `intercept()`), the
-first-person sextant view, the degeneracy panel, guided lessons, and lunar
-distances.
+**Lunar distances** — finding Greenwich time from the moon's angular distance
+to a star, which is how a ship without a chronometer was supposed to manage.
+It needs a lunar ephemeris and a clearing formula, and it is the one substantial
+thing left. See [ROADMAP.md](ROADMAP.md).
 
 ## Contributing
 

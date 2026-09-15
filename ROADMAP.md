@@ -4,13 +4,14 @@ What is built, what is not, and the order worth building it in.
 
 ## Where the project stands
 
-Working and tested: the computational core, both tabs, the sight log and its
-two reductions, Czech/English throughout, ten Czech towns and twelve world
-positions, seven scenarios, three passages. 99 tests, 6 400 lines, no build step.
+Working and tested: the computational core, all three tabs, the sight log and
+its two reductions, the first-person sextant, four guided lessons,
+Czech/English throughout, ten Czech towns and twelve world positions, seven
+scenarios, three passages. 115 tests, 7 400 lines, no build step.
 
-The application demonstrates the thesis within one day, and now over a passage
-as well. What is left is mostly about putting the instrument in the user's own
-hands, and about guiding someone who is learning alone.
+The application demonstrates the thesis within one day, over a passage, and
+through the instrument itself. Phases 0 to 6 are done. What remains is Phase 7,
+lunar distances, which is a real piece of work and not a tidy-up.
 
 ---
 
@@ -213,26 +214,33 @@ screen and stops when it is not.
 
 ---
 
-## Phase 6 — Guided lessons
+## Phase 6 — Guided lessons — done
 
-*In the original file layout as `lessons/`; never built. This is what turns a
-sandbox into something a newcomer can learn from.*
+`src/lessons.js` is the script and `src/views/lessonbar.js` drives it: a strip
+under the masthead that narrates, and a picker at the top of the rail. Four
+lessons, 5 / 3 / 4 / 4 steps, bilingual.
 
-Scripted sequences that set the controls, open the right panels, and narrate.
-Four to start, matching the four things the app knows how to show:
+1. Latitude at noon — the equinox on the equator, and an hour of clock error.
+2. Why the sky hides the longitude — the degeneracy, on the theory tab.
+3. Longitude by equal altitudes — take the sights, watch one down.
+4. What a wrong clock costs — the rate, and then the passage twice.
 
-1. Latitude at noon — the equinox on the equator, then anywhere.
-2. The degeneracy — why the sky cannot tell you the longitude.
-3. Longitude by equal altitudes — take the sights yourself.
-4. What a wrong clock costs — the rate slider, and the Longitude Act.
+A step is data: `{ state, tab, view, panel, act, text }`. `state` is patched
+into the store, `panel` lights one panel, and `act` is an escape hatch for the
+things a patch cannot express — filling the log, or pinning the route.
 
-- `src/lessons/*.js` as data: `{ title, steps: [{ text, state, panel }] }`,
-  bilingual like `theory.js`.
-- A step applies a state patch and highlights one panel.
-- Deliberately after Phases 1–5, so there is something worth scripting.
+Two things the build turned up, both of which had shipped:
+
+- **A step must stand on its own.** A reader can walk past the step that asked
+  them to take a sight, and the next step then narrates an empty panel. `act`
+  exists for that, and a test walks every lesson checking that no step points
+  at a log it has not filled. A step that is *asking* for the sight is marked
+  `asks: true` and exempt.
+- **Prose that quotes a number has to be checked against the number.** Two
+  sentences were quietly wrong — see the note below.
 
 **Done when** someone who has never heard of declination can finish lesson 1
-unaided.
+unaided. They can.
 
 ---
 
@@ -293,8 +301,28 @@ Run after Phase 3, over the whole codebase:
   browser: no NaN, no undefined, no unsubstituted placeholder, no stray
   horizontal scroll, no console errors.
 
+## What the lessons turned up
+
+Writing the lessons meant writing sentences that quote figures the simulation
+produces, and three of them did not survive being checked:
+
+- *"Look at the latitude. It has not moved."* — after an hour of clock error it
+  moves 1.4 nm, because declination is looked up at the chronometer's instant.
+  The truthful version is better: longitude 900 nm, latitude 1.4 nm, a ratio of
+  six hundred to one.
+- *"about thirty miles out, which is exactly half a degree"* — the passage
+  takes three weeks, not the six the rate was scaled for, so it arrives at
+  0.30°, not 0.50°. The scenario note claimed the same thing and was also fixed.
+- *"The longitude error is 0 times the latitude error."* — `wu.noteRatio`
+  assumed longitude was the worse of the two. When equal altitudes works
+  properly it is not, the ratio falls below one, and a success printed as a
+  broken sentence. There is now a `wu.noteEven` for it.
+
+All three are now pinned by tests. The lesson here is the one already in
+CLAUDE.md under the README entry, and it keeps recurring: **a number in prose
+is a claim, and claims need tests.**
+
 ## Suggested order
 
-Phases 0 to 4 are done. **Phases 5 and 6 are next** — the first-person sextant
-and the guided lessons — and together they are what would make this usable by
-someone learning alone. Phase 7, lunar distances, remains a real piece of work.
+Phases 0 to 6 are done. Phase 7, lunar distances, remains a real piece of work
+and is the only thing left on this list.

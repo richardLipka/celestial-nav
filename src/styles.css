@@ -501,6 +501,18 @@ input[type='date']:focus-visible {
   .rail { width: 100%; border-right: 0; border-bottom: 1px solid var(--rule); }
   .grid { grid-template-columns: 1fr; }
   .wu-grid { grid-template-columns: 1fr; }
+  /* The timeline spans the whole grid, so its min-content width sets the
+     width of the column -- and therefore of every panel in it. A 280px floor
+     on .tl-left plus padding put that floor above a small phone's viewport,
+     which pushed the entire page sideways. Let it shrink and wrap instead. */
+  .tl-left { min-width: 0; }
+}
+
+@media (max-width: 460px) {
+  /* .tl-right is a fixed 210px that will not shrink, so on a small phone it
+     left .tl-left about 70px and the title broke one word to a line. Give it
+     the full width and let the flex row wrap it onto its own line instead. */
+  .tl-right { width: 100%; }
 }
 
 /* --- tabs ----------------------------------------------------------------- */
@@ -518,6 +530,14 @@ input[type='date']:focus-visible {
 .tabs-btn:first-child { border-radius: 4px 0 0 4px; }
 .tabs-btn:last-child { border-radius: 0 4px 4px 0; border-left-width: 0; }
 .tabs-btn:hover { color: var(--ink); }
+
+@media (max-width: 460px) {
+  /* Three tab names at 20px of side padding come to 295px, wider than a small
+     phone once the gutters are off. The names are what matter, not the
+     padding. This block must stay *after* the base rule: a media query adds no
+     specificity, so source order is all that separates them. */
+  .tabs-btn { padding: 6px 10px; }
+}
 .tabs-btn.active { background: var(--ink); border-color: var(--ink); color: var(--ground); }
 .tabs-btn.active + .tabs-btn { border-left-color: var(--ink); }
 
@@ -862,3 +882,65 @@ svg .voy-dest-text { fill: var(--c-alt); }
 .sx-verdict { margin: 6px 0 0; font-size: 0.82rem; line-height: 1.45; color: var(--accent); }
 .sx-verdict.good { color: var(--good); }
 .log-table tr.byhand td.mono:first-of-type { font-weight: 500; }
+
+/* --- guided lessons ------------------------------------------------------- */
+
+.lesson {
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+  border-left: 4px solid var(--c-dec);
+  padding: 12px clamp(14px, 3vw, 26px) 14px;
+}
+.lesson-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.lesson-title { font-family: Spectral, Georgia, serif; font-weight: 600; font-size: 1.02rem; }
+.lesson-count {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.lesson-quit {
+  margin-left: auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  background: none;
+  border: 1px solid var(--rule-2);
+  color: var(--ink-3);
+  border-radius: 3px;
+  padding: 2px 10px;
+  cursor: pointer;
+}
+.lesson-quit:hover { border-color: var(--accent); color: var(--accent); }
+.lesson-text {
+  margin: 8px 0 0;
+  max-width: 82ch;
+  font-size: 0.94rem;
+  line-height: 1.6;
+  color: var(--ink-2);
+}
+.lesson-nav { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+.lesson-btn {
+  font: inherit;
+  font-size: 0.84rem;
+  padding: 5px 16px;
+  border-radius: 3px;
+  border: 1px solid var(--rule-2);
+  background: var(--panel);
+  color: var(--ink-2);
+  cursor: pointer;
+}
+.lesson-btn:hover:not(:disabled) { border-color: var(--c-dec); color: var(--ink); }
+.lesson-btn:disabled { opacity: 0.4; cursor: default; }
+.lesson-btn.primary { background: var(--c-dec); border-color: var(--c-dec); color: var(--paper); }
+.lesson-btn.primary:hover { filter: brightness(1.08); }
+.lesson-dots { display: flex; gap: 6px; }
+.lesson-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--rule-2);
+}
+.lesson-dot.on { background: var(--c-dec); }
+
+/* The panel a lesson step is pointing at. */
+.panel.lit { border-color: var(--c-dec); box-shadow: 0 0 0 2px color-mix(in srgb, var(--c-dec) 28%, transparent); }
+.panel.lit .panel-hd { background: color-mix(in srgb, var(--c-dec) 10%, var(--panel)); }

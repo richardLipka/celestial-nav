@@ -10,6 +10,11 @@
 import { setDecimalSeparator } from './core/angles.js';
 
 export const LANGS = ['cs', 'en'];
+
+// What the switch says, which is not the same as the code it sets. The ISO
+// code for Czech is 'cs'; the button says CZ, because that is what a Czech
+// reader looks for. Keep them apart -- 'CZ' is not a language code.
+export const LANG_LABEL = { cs: 'CZ', en: 'EN' };
 const STORE_KEY = 'celestial-nav.lang';
 
 const dict = {
@@ -124,6 +129,14 @@ const dict = {
     'sx.low': 'low',
     'log.byHand': 'by hand',
     'aria.sextant': 'The sextant telescope field: the horizon, and the sun brought down to it',
+    'lesson.heading': 'Guided lesson',
+    'lesson.none': '— none —',
+    'lesson.pick': 'Four short walks through the argument. Each one sets the controls for you; you can leave at any point and fiddle.',
+    'lesson.count': '{n} of {of}',
+    'lesson.back': 'Back',
+    'lesson.next': 'Next',
+    'lesson.finish': 'Finish',
+    'lesson.leave': 'Leave',
     'panel.sky': 'Sky',
     'panel.sky.sub': 'what the navigator sees',
     'panel.earth': 'Earth',
@@ -198,6 +211,8 @@ const dict = {
       'The fix is {total} from the ship, and the longitude carries essentially all of it. The small latitude error is only the declination drifting — never the clock.',
     'wu.noteRatio':
       'The fix is {total} from the ship. The longitude error is {ratio} times the latitude error, and the latitude error is only the declination drifting — never the clock.',
+    'wu.noteEven':
+      'The fix is {total} from the ship, and the longitude is now as good as the latitude. That is equal altitudes working exactly as it should — and it is the best this method can do.',
 
     'corr.ie': 'index error',
     'corr.dip': 'dip',
@@ -387,6 +402,14 @@ const dict = {
     'sx.low': 'moc nízko',
     'log.byHand': 'ručně',
     'aria.sextant': 'Zorné pole dalekohledu sextantu: obzor a Slunce stažené k němu',
+    'lesson.heading': 'Průvodce',
+    'lesson.none': '— žádný —',
+    'lesson.pick': 'Čtyři krátké procházky celou úvahou. Každá vám sama nastaví ovládání; kdykoli můžete odejít a hrát si.',
+    'lesson.count': '{n} z {of}',
+    'lesson.back': 'Zpět',
+    'lesson.next': 'Dál',
+    'lesson.finish': 'Hotovo',
+    'lesson.leave': 'Odejít',
     'panel.sky': 'Obloha',
     'panel.sky.sub': 'co vidí navigátor',
     'panel.earth': 'Země',
@@ -461,6 +484,8 @@ const dict = {
       'Určená pozice leží {total} od lodi a prakticky celou tu chybu nese délka. Malá chyba šířky je jen posun deklinace — nikdy ne hodiny.',
     'wu.noteRatio':
       'Určená pozice leží {total} od lodi. Chyba délky je {ratio}× větší než chyba šířky, a ta je jen posunem deklinace — nikdy ne hodinami.',
+    'wu.noteEven':
+      'Určená pozice leží {total} od lodi a délka je teď stejně dobrá jako šířka. Přesně tak má metoda stejných výšek fungovat — a lépe už to neumí.',
 
     'corr.ie': 'indexová chyba',
     'corr.dip': 'deprese obzoru',

@@ -33,6 +33,25 @@ function column(title, tag, rows, result, resultClass) {
   return col;
 }
 
+/**
+ * Which sentence the work-up ends on.
+ *
+ * Pure, and exported, because the interesting case is easy to get wrong: when
+ * equal altitudes works properly the longitude comes out *better* than the
+ * latitude, the ratio drops below one, and "N times the latitude error" reads
+ * as "0 times". A success must not print as a broken sentence.
+ */
+export function verdict({ errLat, errLon, byPeak, hasEqualAlt }) {
+  if (!hasEqualAlt) return { key: 'wu.notePeakOnly' };
+  if (byPeak !== null && byPeak > errLon * 2 + 1) return { key: 'wu.noteMethods' };
+  if (errLat < 1e-9) return { key: 'wu.noteNoLat' };
+  const ratio = errLon / errLat;
+  if (ratio > 1000) return { key: 'wu.noteAll' };
+  // Below about one and a half, rounding makes the multiple meaningless.
+  if (ratio < 1.5) return { key: 'wu.noteEven' };
+  return { key: 'wu.noteRatio', ratio: Math.round(ratio) };
+}
+
 export function createWorkup() {
   const node = h('div', 'workup');
   return { node, update: (d, s) => draw(node, d, s) };
@@ -135,18 +154,14 @@ function draw(node, d, s) {
   }
 
   const note = h('p', 'wu-note');
-  const total = fmtNm(d.logError.totalNm);
-  if (!r.equalAlt) {
-    note.textContent = t('wu.notePeakOnly', { d: fmtNm(errLon) });
-  } else if (showPeak && byPeak > errLon * 2 + 1) {
-    note.textContent = t('wu.noteMethods', { peak: fmtNm(byPeak), equal: fmtNm(errLon) });
-  } else if (errLat < 1e-9) {
-    note.textContent = t('wu.noteNoLat', { d: fmtNm(errLon) });
-  } else {
-    const ratio = errLon / errLat;
-    note.textContent =
-      ratio > 1000 ? t('wu.noteAll', { total }) : t('wu.noteRatio', { total, ratio: Math.round(ratio) });
-  }
+  const v = verdict({ errLat, errLon, byPeak: showPeak ? byPeak : null, hasEqualAlt: !!r.equalAlt });
+  note.textContent = t(v.key, {
+    total: fmtNm(d.logError.totalNm),
+    d: fmtNm(errLon),
+    peak: fmtNm(byPeak),
+    equal: fmtNm(errLon),
+    ratio: v.ratio,
+  });
   bars.append(note);
   node.append(bars);
 

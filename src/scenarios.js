@@ -85,11 +85,12 @@ export const scenarios = [
       en:
         'Half a degree on a voyage to the West Indies was what £20,000 bought. Half a degree is two minutes of ' +
         'time; over a six-week passage that is a rate of under three seconds a day. This clock keeps exactly that ' +
-        'rate, so it arrives exactly on the threshold — thirty miles out, and not a yard better.',
+        'rate — so the longer it stays at sea the closer it creeps to that threshold, and it is the length of ' +
+        'the passage that decides whether it wins.',
       cs:
         'Půl stupně na plavbě do Západní Indie — za to se platilo 20 000 liber. Půl stupně jsou dvě minuty času; ' +
         'na šestitýdenní plavbě to znamená chod necelé tři sekundy denně. Tyhle hodiny jdou přesně tímto chodem, ' +
-        'takže doplují přesně na hranici — třicet mil vedle, ani o stopu lépe.',
+        'takže čím déle jsou na moři, tím blíž se k té hranici dostanou — a o výhře rozhoduje délka plavby.',
     },
   },
   {

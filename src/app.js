@@ -7,9 +7,10 @@ import { createTimeline } from './views/timeline.js';
 import { createSightLog } from './views/sightlog.js';
 import { createTheory } from './views/theory.js';
 import { createVoyage } from './views/voyage.js';
+import { createLessonBar, createLessonPicker } from './views/lessonbar.js';
 import { createRail } from './ui/rail.js';
 import { byId, applyScenario } from './scenarios.js';
-import { t, getLang, setLang, LANGS } from './i18n.js';
+import { t, getLang, setLang, LANGS, LANG_LABEL } from './i18n.js';
 
 const { state, set, subscribe, render, addSight, matchSight, removeSight, clearSights } = store;
 
@@ -54,6 +55,13 @@ function buttonGroup(cls, items, isActive, onPick) {
   return { node: box, sync };
 }
 
+import { lessonById } from './lessons.js';
+
+const lessonPanel = (state) => {
+  const l = lessonById(state.lesson);
+  return l?.steps[Math.min(state.lessonStep, l.steps.length - 1)]?.panel ?? null;
+};
+
 // The whole UI is rebuilt when the language changes. Every label would
 // otherwise need its own updater, and the state lives in the store, so
 // rebuilding costs nothing and cannot drift.
@@ -86,6 +94,8 @@ function mount() {
   const theory = createTheory(rotateGlobe('theoryView'));
   const voyage = createVoyage(store);
   const rail = createRail(store);
+  const lessonBar = createLessonBar(store);
+  const lessonPicker = createLessonPicker(store);
 
   const app = h('div', 'app');
 
@@ -117,7 +127,7 @@ function mount() {
 
   const lang = buttonGroup(
     'lang',
-    LANGS.map((code) => ({ id: code, label: code.toUpperCase(), lang: code })),
+    LANGS.map((code) => ({ id: code, label: LANG_LABEL[code], lang: code })),
     (id) => id === getLang(),
     (id) => {
       if (setLang(id)) mount();
@@ -126,7 +136,7 @@ function mount() {
   lang.node.setAttribute('aria-label', t('app.langLabel'));
 
   top.append(heading, tabs.node, lang.node);
-  app.append(top);
+  app.append(top, lessonBar.node);
 
   // --- the three tabs -----------------------------------------------------
   const sim = h('main', 'grid');
@@ -143,6 +153,8 @@ function mount() {
 
   const voy = h('main', 'voyage-wrap');
   voy.append(voyage.node);
+
+  rail.node.prepend(lessonPicker.node);
 
   const body = h('div', 'body');
   body.append(rail.node, sim, thy, voy);
@@ -163,6 +175,12 @@ function mount() {
     sextant.setLive(tab === 'simulation' && onSextant);
     skyTabs.sync();
     tabs.sync();
+
+    // A lesson step can point at one panel; mark it and nothing else.
+    const want = state.lesson ? lessonPanel(state) : null;
+    for (const p of app.querySelectorAll('.panel')) {
+      p.classList.toggle('lit', !!want && p.classList.contains(want));
+    }
   };
 
   detach = subscribe((d, s) => {
@@ -178,6 +196,8 @@ function mount() {
     theory.update(d, s);
     voyage.update(d, s);
     rail.update(d, s);
+    lessonBar.update(d, s);
+    lessonPicker.update(d, s);
   });
 
   render();

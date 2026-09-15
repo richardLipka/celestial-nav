@@ -45,7 +45,7 @@ export function createTimeline(onScrub, onNoon) {
   for (const hh of ['00', '06', '12', '18', '24']) ticks.append(h('span', null, hh));
 
   const gauge = el('svg', {
-    viewBox: '0 0 210 104',
+    viewBox: '0 0 210 120',
     class: 'gauge',
     role: 'img',
     'aria-label': t('gauge.aria'),
@@ -126,13 +126,16 @@ function drawGauge(svg, d, s) {
       class: 'mn lbl gauge-value', 'text-anchor': 'middle',
     }),
   );
+  // Inside the arc, beneath the value: below the hub it collided with the note.
   svg.append(
-    text(CX, CY + 14, `Az ${fmtBearing(d.sky.Az)}`, {
+    text(CX, CY - 6, `Az ${fmtBearing(d.sky.Az)}`, {
       class: 'tiny lbl muted', 'text-anchor': 'middle',
     }),
   );
+  // And the note gets a line of its own, clear of the two end labels -- it is
+  // a whole sentence and it ran straight through "prime vertical".
   svg.append(
-    text(CX, 100, describe(nmPerSec, d.sky.H), {
+    text(CX, 114, describe(nmPerSec, d.sky.H), {
       class: 'tiny lbl gauge-note', 'text-anchor': 'middle',
     }),
   );
