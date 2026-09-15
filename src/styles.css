@@ -243,6 +243,12 @@ svg .no-clock { fill: var(--c-time); }
 .cop { stroke: var(--c-zen); stroke-width: 1.6; stroke-dasharray: 6 4; }
 .cop.assumed { stroke: var(--c-time); stroke-width: 1.6; stroke-dasharray: 3 3; }
 .lop { stroke: var(--c-alt); stroke-width: 2.6; stroke-linecap: round; }
+.cross-lop { stroke: var(--good); stroke-width: 2.2; stroke-linecap: round; }
+.cross-intercept { stroke: var(--ink-3); stroke-width: 1.4; stroke-dasharray: 3 3; }
+.mark.cross-ap { fill: none; stroke: var(--ink-3); stroke-width: 1.6; }
+.mark.cross-fix { fill: var(--good); }
+svg .cross-ap-text { fill: var(--ink-3); }
+svg .cross-fix-text { fill: var(--good); }
 .gp-shift { stroke: var(--c-time); stroke-width: 3; stroke-linecap: round; }
 .mark { stroke: var(--halo); stroke-width: 1.6; }
 .mark.gp { fill: var(--c-dec); }
@@ -338,6 +344,9 @@ svg .observer-text { fill: var(--ink); }
 .wu-bar-value { font-family: 'IBM Plex Mono', monospace; font-size: 0.76rem; }
 .wu-bar-value.lon { color: var(--c-time); }
 .wu-bar-value.lat { color: var(--c-phi); }
+.wu-cross { padding: 14px 16px 16px; border-top: 1px solid var(--rule); }
+.wu-cross .wu-rows { margin-top: 8px; }
+.wu-note.bad { color: var(--accent); }
 .wu-note { margin: 12px 0 0; font-size: 0.82rem; color: var(--ink-2); line-height: 1.5; }
 
 /* --- timeline and gauge --------------------------------------------------- */

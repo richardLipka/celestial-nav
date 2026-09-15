@@ -339,6 +339,66 @@ export const theory = [
 
   // =====================================================================
   {
+    id: 'crossing',
+    title: { en: 'Crossing two sights', cs: 'Zkřížení dvou měření' },
+    tag: { en: 'a point, not a line', cs: 'bod, ne přímka' },
+    blocks: [
+      {
+        k: 'p',
+        text: {
+          en: 'A noon sight is a special case, and a generous one: it hands you a latitude directly and asks nothing of the clock. The general method asks a different question. Guess where you are — an assumed position, conventionally at a round degree, because that is what made the tables easy — and work out what the altitude *would* be there.',
+          cs: 'Polední měření je zvláštní a velkorysý případ: rovnou vám dá šířku a na hodinách nežádá nic. Obecná metoda se ptá jinak. Odhadněte, kde jste — domnělá pozice, obvykle v celých stupních, protože s tou se dobře počítalo z tabulek — a spočítejte, jaká *by tam* výška byla.',
+        },
+      },
+      { k: 'math', tex: 'p = H_o - H_c', big: true },
+      {
+        k: 'p',
+        text: {
+          en: 'The difference \\(p\\) is the **intercept**, in minutes of arc and therefore in nautical miles. It is how far the ship lies toward the sun from your guess, or away from it, measured along the sun’s bearing \\(Z_n\\). The line of position runs at right angles to that bearing — which is the rule from the very first section, arrived at a second time.',
+          cs: 'Rozdíl \\(p\\) je **intercept**, v úhlových minutách, a tedy v námořních mílích. Udává, o kolik leží loď od vašeho odhadu směrem ke Slunci, nebo od něj, měřeno podél azimutu Slunce \\(Z_n\\). Poziční přímka vede kolmo na tento směr — což je totéž pravidlo jako v první části, jen dosažené podruhé.',
+        },
+      },
+      {
+        k: 'p',
+        text: {
+          en: 'Measure east and north from the assumed position in nautical miles, and a line of position is nothing but',
+          cs: 'Měřte od domnělé pozice na východ a na sever v námořních mílích a poziční přímka není nic jiného než',
+        },
+      },
+      { k: 'math', tex: 'x \\sin Z_n + y \\cos Z_n = p', big: true },
+      {
+        k: 'p',
+        text: {
+          en: 'so crossing two sights is a pair of linear equations, and the determinant is \\(\\sin(Z_{n1} - Z_{n2})\\). Two sights on the same bearing give a determinant of zero and no fix at all: the lines are parallel. A navigator calls that a poor cut, and the remedy is to take the second sight hours away from the first, when the sun has moved round the sky.',
+          cs: 'takže zkřížení dvou měření jsou dvě lineární rovnice a determinant je \\(\\sin(Z_{n1} - Z_{n2})\\). Dvě měření ve stejném směru dají nulový determinant a žádnou pozici: přímky jsou rovnoběžné. Námořník tomu říká špatné protnutí a lékem je změřit druhou výšku o hodiny později, až Slunce obejde oblohu.',
+        },
+      },
+      {
+        k: 'sub',
+        fn: (d) => {
+          const c = d.cross;
+          if (!c || !c.enough || c.poorCut) return null;
+          const [a, b] = c.lines;
+          return `\\det = \\sin(${A(a.zn)} - ${A(b.zn)}) = ${N(sind(a.zn - b.zn), 3)} \\qquad p_1 = ${N(a.p)}\\,\\text{nm} \\qquad p_2 = ${N(b.p)}\\,\\text{nm}`;
+        },
+        empty: {
+          en: 'Take two sights hours apart in the simulation and this line fills in with their intercepts.',
+          cs: 'Změřte v simulaci dvě výšky s odstupem hodin a tato řádka se doplní jejich intercepty.',
+        },
+      },
+      {
+        k: 'note',
+        kind: 'good',
+        text: {
+          en: 'This gives a position from the sun alone, with no noon in it anywhere — and it is still a clock that carries the longitude. Both sights are reduced against a GP whose longitude came from the chronometer, so the crossing inherits the clock error exactly as the noon sight does. Changing the method never changes the arithmetic of the Earth.',
+          cs: 'Tohle dá pozici z pouhého Slunce a bez jakéhokoli poledne — a délku stále nese jedině hodinami. Obě měření se počítají vůči podslunečnímu bodu, jehož délka přišla z chronometru, takže protnutí zdědí chybu hodin úplně stejně jako polední měření. Změna metody nikdy nezmění aritmetiku Země.',
+        },
+      },
+    ],
+  },
+
+  // =====================================================================
+  {
     id: 'sensitivity',
     title: { en: 'Why one is free and the other is not', cs: 'Proč je jedno zadarmo a druhé ne' },
     tag: { en: 'one derivative', cs: 'jedna derivace' },

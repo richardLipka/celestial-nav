@@ -6,7 +6,7 @@ What is built, what is not, and the order worth building it in.
 
 Working and tested: the computational core, both tabs, the sight log and its
 two reductions, Czech/English throughout, ten Czech towns and twelve world
-positions, seven scenarios, three passages. 88 tests, 6 000 lines, no build step.
+positions, seven scenarios, three passages. 99 tests, 6 400 lines, no build step.
 
 The application demonstrates the thesis within one day, and now over a passage
 as well. What is left is mostly about putting the instrument in the user's own
@@ -133,23 +133,50 @@ only free when the sun will oblige.
 
 ---
 
-## Phase 4 — The intercept method and a running fix
+## Phase 4 — The intercept method and a running fix — done
 
-*The core is already written and tested but unused: `intercept()`,
-`destination()`, `initialBearing()` in `fix.js`.*
+A noon sight is a generous special case: it hands you a latitude directly and
+asks nothing of the clock. The general method asks a different question. Guess
+where you are, work out what the altitude *would* be there, and the difference
 
-One sight gives a circle. Marcq St Hilaire compares it against an assumed
-position and steps toward or away from the sun. Two sights hours apart, with
-the run between them advanced along the course, give a **running fix** — a
-point rather than a line, from the sun alone.
+```
+p = Ho − Hc
+```
 
-- Needs the DR run between sights, so it follows Phase 3 naturally.
-- Plot the intercept and both position lines on the existing globe view; the
-  machinery to draw them (`lineOfPosition`, great-circle tracks) is there.
-- Theory: a short section on why a single sight can never be a fix.
+is the intercept — how far the ship lies toward the sun from your guess, along
+its bearing. The line of position runs at right angles to that bearing, which
+is the rule from the very first section arrived at a second time.
 
-**Done when** two sun sights four hours apart, advanced along the course,
-recover the ship to within a mile.
+Measure east and north from the assumed position in nautical miles and a line
+of position is just `x sin Zn + y cos Zn = p`, so crossing two of them is a
+two-by-two solve whose determinant is `sin(Zn1 − Zn2)`. Sights on the same
+bearing give zero and no fix at all — a poor cut, which the panel says rather
+than drawing a point.
+
+`crossSights()` and `runningFix()` in `core/sights.js`, plotted on the globe
+and worked in the noon panel. An entry may carry its own assumed position,
+which is what makes it a *running* fix: reduce each sight from the dead
+reckoning at its own moment and the run between them cancels out of the
+algebra.
+
+Three sights at Jamaica, three hours either side of noon, from an assumed
+position at the round degree 18° N 077° W:
+
+| | |
+|---|---|
+| 14:18:35, bearing 129° | 7.5 nm toward |
+| 20:18:35, bearing 231° | 7.8 nm away |
+| cut | 102° |
+| fix | 18° 00.2′ N 076° 49.7′ W |
+
+1.6 nm from the ship, from two sights and no noon at all — and still carrying
+the scenario's five-second clock error in the longitude, because changing the
+method never changes the arithmetic of the Earth.
+
+One honest limit: the intercept works in the tangent plane, so it is exact only
+for a short intercept. From a round-degree assumed position that is fine; from
+300 nm away it degrades, and a second pass from the first answer recovers it.
+Both are pinned by tests.
 
 ---
 
@@ -256,7 +283,6 @@ Run after Phase 3, over the whole codebase:
 
 ## Suggested order
 
-Phases 0 to 3 are done. **Phase 4 (intercept and a running fix) is next** and
-is cheap: the core is already written and tested, and Phase 3 supplies the DR
-run between sights that a running fix needs. Phases 5 and 6 are what would make
-this usable by someone learning alone.
+Phases 0 to 4 are done. **Phases 5 and 6 are next** — the first-person sextant
+and the guided lessons — and together they are what would make this usable by
+someone learning alone. Phase 7, lunar distances, remains a real piece of work.

@@ -2,7 +2,7 @@
 // own log and nothing else. This is the payoff panel, so it is deliberately
 // the densest one -- the whole argument is in the two columns and the bars.
 
-import { fmtAngle, fmtMin, fmtNm, fmtNumber } from '../core/angles.js';
+import { fmtAngle, fmtMin, fmtNm, fmtNumber, fmtBearing } from '../core/angles.js';
 import { fmtClock } from '../core/time.js';
 import { correctionRows } from '../core/corrections.js';
 import { t } from '../i18n.js';
@@ -149,4 +149,45 @@ function draw(node, d, s) {
   }
   bars.append(note);
   node.append(bars);
+
+  // --- and the other way of doing it -------------------------------------
+  node.append(crossPanel(d, s));
+}
+
+/**
+ * Two sights crossed. A noon sight gives one line at a time; crossing two
+ * sights on different bearings gives a point, from the sun alone.
+ */
+function crossPanel(d, s) {
+  const box = h('div', 'wu-cross');
+  box.append(h('div', 'wu-bars-title', t('wu.crossTitle')));
+  const c = d.cross;
+
+  if (!c || !c.enough) {
+    box.append(h('p', 'wu-note', t('wu.crossNeed')));
+    return box;
+  }
+  if (c.poorCut) {
+    box.append(h('p', 'wu-note bad', t('wu.crossPoor')));
+    return box;
+  }
+
+  const dl = h('dl', 'wu-rows');
+  const row = (k, v, cls) => dl.append(h('dt', cls || null, k), h('dd', cls || null, v));
+  row(t('wu.crossAp'), `${fLat(c.ap.lat, 0)}  ${fLon(c.ap.lon, 0)}`, 'sub');
+  for (const line of c.lines) {
+    row(
+      `${fmtClock(line.sight.tChrono)}  ${fmtBearing(line.zn)}`,
+      `${fmtNm(Math.abs(line.p))} ${t(line.p >= 0 ? 'wu.toward' : 'wu.away')}`,
+      'sub',
+    );
+  }
+  row(t('wu.crossCut'), fmtAngle(c.cutDeg, 0));
+  row(t('wu.crossFix'), `${fLat(c.fix.lat)}  ${fLon(c.fix.lon)}`, 'strong');
+  box.append(dl);
+
+  if (d.crossError) {
+    box.append(h('p', 'wu-note', t('wu.crossOff', { d: fmtNm(d.crossError.totalNm) })));
+  }
+  return box;
 }

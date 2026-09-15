@@ -208,7 +208,7 @@ export function createRail(store) {
   const gShow = group(t('rail.overlays'));
   refs.show = {};
   const showBox = h('div', 'rail-checks');
-  for (const k of ['cop', 'lop', 'equator', 'night', 'belowHorizon']) {
+  for (const k of ['cop', 'lop', 'cross', 'equator', 'night', 'belowHorizon']) {
     const c = check(`show-${k}`, t(`show.${k}`), state.show[k], (v) => setIn('show', { [k]: v }));
     refs.show[k] = c.input;
     showBox.append(c.row);

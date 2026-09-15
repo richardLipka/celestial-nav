@@ -10,7 +10,7 @@ passage and watch the two errors behave completely differently).
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 88 tests
+npm test         # vitest, 99 tests
 npm run test:watch
 ```
 

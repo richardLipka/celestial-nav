@@ -8,7 +8,9 @@ import { solar, subsolar, decRateMinPerHour } from '../core/sun.js';
 import { horizon, sensitivity, culmination, sunEvents, diurnalArc, celestialEquator } from '../core/horizon.js';
 import { correct, uncorrect, defaultOptions } from '../core/corrections.js';
 import { assumedGP, noonWorkUp, circleOfPosition, angularDistance, lineOfPosition } from '../core/fix.js';
-import { observe, reduceLog, matchAltitudeTime, fixError } from '../core/sights.js';
+import {
+  observe, reduceLog, matchAltitudeTime, fixError, runningFix, roundAssumedPosition,
+} from '../core/sights.js';
 import { simulateVoyage, planPassage } from '../core/voyage.js';
 import { routeById } from '../routes.js';
 
@@ -43,7 +45,7 @@ export const state = {
     carryChronometer: true,
     seed: 7,
   },
-  show: { cop: true, lop: true, equator: true, night: true, belowHorizon: true },
+  show: { cop: true, lop: true, cross: true, equator: true, night: true, belowHorizon: true },
   scenario: 'jamaica',
 };
 
@@ -226,6 +228,16 @@ function derive(s) {
   const logErrorByMax =
     logResult.stage === 'none' ? null : fixError({ lat: logResult.lat, lon: logResult.lonByMax }, truth);
 
+  // Two sights crossed. The assumed position is a round figure near whatever
+  // the log itself says -- which is what a navigator would have used, because
+  // it is what made the tables easy.
+  const cross =
+    logResult.stage === 'none'
+      ? { enough: false, count: 0 }
+      : runningFix(observations, roundAssumedPosition({ lat: logResult.lat, lon: logResult.lon }),
+          { useEoT: s.useEoT });
+  const crossError = cross.fix ? fixError(cross.fix, truth) : null;
+
   return {
     opt,
     voyage: runVoyage(s, opt),
@@ -234,6 +246,8 @@ function derive(s) {
     daysOut,
     observations,
     logResult,
+    cross,
+    crossError,
     logError,
     logErrorByMax,
     now,

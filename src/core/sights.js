@@ -16,7 +16,7 @@ import { sind, cosd, tand, norm180, degToNm } from './angles.js';
 import { solar } from './sun.js';
 import { horizon } from './horizon.js';
 import { correct, uncorrect } from './corrections.js';
-import { latitudeFromMeridian, longitudeFromLAN } from './fix.js';
+import { latitudeFromMeridian, longitudeFromLAN, intercept, assumedGP } from './fix.js';
 import { utcHours, addSeconds, MS_HOUR } from './time.js';
 
 // --- the observing half ---------------------------------------------------
@@ -311,3 +311,82 @@ export function fixError(fix, truth) {
   const lonNm = degToNm(dLon) * cosd(truth.lat);
   return { dLat, dLon, latNm, lonNm, totalNm: Math.hypot(latNm, lonNm) };
 }
+
+// --- crossing two sights ---------------------------------------------------
+
+/**
+ * Two sights, crossed.
+ *
+ * A single sight is a circle, never a point. Marcq St Hilaire reduces one
+ * against an assumed position: work out what the altitude *would* be there,
+ * and the difference -- the intercept -- is how far the ship lies toward the
+ * body or away from it, along the body's bearing. The line of position runs at
+ * right angles to that bearing.
+ *
+ * Two such lines cross. Working in nautical miles east and north of the
+ * assumed position, a line of position is simply
+ *
+ *     x sin(Zn) + y cos(Zn) = p
+ *
+ * so crossing a pair is a two-by-two solve whose determinant is
+ * sin(Zn1 - Zn2). Sights on nearly the same bearing therefore give nothing at
+ * all, which a navigator calls a poor cut.
+ *
+ * `ap` is the assumed position -- conventionally a round figure, because that
+ * is what made the tables easy. An entry may carry its own `ap`, which is how
+ * a *running* fix works: reduce each sight from the dead-reckoning position at
+ * its own moment, and the run between them cancels out of the algebra.
+ */
+export function crossSights(a, b, ap, { useEoT = true } = {}) {
+  const line = (e) => {
+    const from = e.ap || ap;
+    const gp = assumedGP(e.tChrono, 0, useEoT); // the GP the navigator computes
+    const r = intercept(from, { lat: gp.lat, lon: gp.lon }, e.Ho);
+    return { p: r.interceptNm, zn: r.az, Hc: r.Hc, sight: e, ap: from };
+  };
+
+  const l1 = line(a);
+  const l2 = line(b);
+  const cutDeg = Math.abs(norm180(l1.zn - l2.zn));
+  const det = sind(l1.zn) * cosd(l2.zn) - cosd(l1.zn) * sind(l2.zn);
+
+  // sin(Zn1 - Zn2) is the determinant. Below about 15 degrees of cut the
+  // crossing is worthless, and saying so is better than drawing a point.
+  if (Math.abs(det) < sind(15)) return { poorCut: true, cutDeg, lines: [l1, l2] };
+
+  const x = (l1.p * cosd(l2.zn) - cosd(l1.zn) * l2.p) / det; // nm east of the AP
+  const y = (sind(l1.zn) * l2.p - l1.p * sind(l2.zn)) / det; // nm north of it
+  const lat = ap.lat + y / 60;
+
+  return {
+    poorCut: false,
+    cutDeg,
+    lines: [l1, l2],
+    ap,
+    offset: { eastNm: x, northNm: y },
+    fix: { lat, lon: norm180(ap.lon + x / 60 / cosd(lat)) },
+  };
+}
+
+/** The best pair of sights in a log to cross, and the fix they give. */
+export function runningFix(entries, ap, opts = {}) {
+  const usable = entries.filter((e) => e.Ho > 5);
+  if (usable.length < 2) return { enough: false, count: usable.length };
+
+  // The nearer the cut is to a right angle, the less a reading error matters.
+  let best = null;
+  for (let i = 0; i < usable.length; i++) {
+    for (let j = i + 1; j < usable.length; j++) {
+      const quality = Math.abs(sind(norm180(usable[i].Az - usable[j].Az)));
+      if (!best || quality > best.quality) best = { a: usable[i], b: usable[j], quality };
+    }
+  }
+
+  return { enough: true, count: usable.length, ...crossSights(best.a, best.b, ap, opts) };
+}
+
+/** Where a navigator would put the assumed position: a round figure nearby. */
+export const roundAssumedPosition = (p) => ({
+  lat: Math.round(p.lat),
+  lon: Math.round(p.lon),
+});

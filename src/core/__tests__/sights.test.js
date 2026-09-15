@@ -5,7 +5,8 @@ import { culmination } from '../horizon.js';
 import { defaultOptions } from '../corrections.js';
 import {
   observe, reduceLog, equalAltitudePairs, equalAltitudeCorrectionSec,
-  matchAltitudeTime, parabolaVertex, fixError,
+  matchAltitudeTime, parabolaVertex, fixError, crossSights, runningFix,
+  roundAssumedPosition,
 } from '../sights.js';
 
 const OPT = defaultOptions();
@@ -292,5 +293,89 @@ describe('pairing', () => {
     const pairs = equalAltitudePairs(entries, 1);
     expect(pairs).toHaveLength(1);
     expect(pairs[0].spanHours).toBeCloseTo(4, 6);
+  });
+});
+
+describe('crossing two sights', () => {
+  // The roadmap's acceptance test: two sun sights hours apart, reduced from a
+  // round assumed position, must recover the ship to within a mile.
+  const cross = (truth, offsets, extra = {}) => {
+    const lan = culmination(truth.date, truth.lon, true);
+    const log = offsets.map((hrs) =>
+      observe(new Date(lan.getTime() + hrs * MS_HOUR), truth, OPT, extra.clockErrorSec ?? 0,
+        extra.jitter ?? 0));
+    const ap = roundAssumedPosition(truth);
+    return { r: runningFix(log, ap), ap, log };
+  };
+
+  it('puts a point where one sight could only give a circle', () => {
+    for (const truth of [JAMAICA, PRAHA, { lat: -33.87, lon: 151.21, date: fromParts(2025, 5, 14) }]) {
+      const { r, ap } = cross(truth, [-3, 3]);
+      expect(r.poorCut, `${truth.lat}`).toBe(false);
+      const e = fixError(r.fix, truth);
+      expect(e.totalNm, `${truth.lat}`).toBeLessThan(1);
+      // The assumed position really was a round figure, and really was wrong.
+      expect(Number.isInteger(ap.lat)).toBe(true);
+      expect(Number.isInteger(ap.lon)).toBe(true);
+      expect(fixError(ap, truth).totalNm).toBeGreaterThan(1);
+    }
+  });
+
+  it('reports the cut rather than pretending sights on one bearing are a fix', () => {
+    // Two sights fifteen minutes either side of noon: both nearly due south.
+    const { r } = cross(JAMAICA, [-0.25, 0.25]);
+    expect(r.poorCut).toBe(true);
+    expect(r.cutDeg).toBeLessThan(15);
+    expect(r.fix).toBeUndefined();
+  });
+
+  it('picks the pair with the squarest cut out of a whole log', () => {
+    const { r } = cross(JAMAICA, [-3.5, -0.2, 0.2, 3.5]);
+    expect(r.poorCut).toBe(false);
+    // The widest pair, not the two near noon.
+    expect(Math.abs(r.cutDeg - 90)).toBeLessThan(Math.abs(20 - 90));
+    expect(fixError(r.fix, JAMAICA).totalNm).toBeLessThan(1);
+  });
+
+  it('carries the clock error into the longitude and leaves the latitude alone', () => {
+    const { r } = cross(JAMAICA, [-3, 3], { clockErrorSec: 120 });
+    const e = fixError(r.fix, JAMAICA);
+    expect(Math.abs(e.latNm)).toBeLessThan(1.5);
+    // 120 s is 30' of longitude, which at 18 N is about 28.5 nm of departure.
+    expect(Math.abs(e.lonNm)).toBeGreaterThan(24);
+    expect(Math.abs(e.lonNm)).toBeLessThan(33);
+  });
+
+  it('says so when there is not enough to cross', () => {
+    expect(runningFix([], { lat: 0, lon: 0 }).enough).toBe(false);
+    const lan = culmination(JAMAICA.date, JAMAICA.lon, true);
+    const one = [observe(lan, JAMAICA, OPT)];
+    expect(runningFix(one, { lat: 18, lon: -77 }).enough).toBe(false);
+  });
+
+  it('gives the same answer from any nearby assumed position', () => {
+    const lan = culmination(JAMAICA.date, JAMAICA.lon, true);
+    const log = [-3, 3].map((hrs) => observe(new Date(lan.getTime() + hrs * MS_HOUR), JAMAICA, OPT));
+    const a = crossSights(log[0], log[1], { lat: 18, lon: -77 });
+    const b = crossSights(log[0], log[1], { lat: 19, lon: -76 });
+    // Different guesses, quite different intercepts, the same answer.
+    expect(Math.abs(a.lines[0].p - b.lines[0].p)).toBeGreaterThan(3);
+    expect(fixError(a.fix, b.fix).totalNm).toBeLessThan(0.7);
+  });
+
+  it('degrades from a distant assumed position, as the method really does', () => {
+    // The intercept method works in the tangent plane, so it is only exact in
+    // the limit of a short intercept. This is why an assumed position is
+    // chosen near the ship -- at the nearest round degree -- and why a large
+    // intercept is worked a second time from the new position.
+    const lan = culmination(JAMAICA.date, JAMAICA.lon, true);
+    const log = [-3, 3].map((hrs) => observe(new Date(lan.getTime() + hrs * MS_HOUR), JAMAICA, OPT));
+    const near = crossSights(log[0], log[1], roundAssumedPosition(JAMAICA));
+    const far = crossSights(log[0], log[1], { lat: 22, lon: -72 }); // 300 nm out
+    expect(fixError(near.fix, JAMAICA).totalNm).toBeLessThan(1);
+    expect(fixError(far.fix, JAMAICA).totalNm).toBeGreaterThan(3);
+    // ...and a second pass from that first answer recovers it.
+    const again = crossSights(log[0], log[1], far.fix);
+    expect(fixError(again.fix, JAMAICA).totalNm).toBeLessThan(1);
   });
 });

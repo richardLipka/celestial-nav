@@ -10,7 +10,7 @@ import { el, g, text, polyline, polygon, clear } from '../svg.js';
 import { sind, cosd, norm180, fmtAngle } from '../core/angles.js';
 import { t } from '../i18n.js';
 import { fLat, fLon } from '../ui/format.js';
-import { angularDistance, greatCircle } from '../core/fix.js';
+import { angularDistance, greatCircle, destination, lineOfPosition } from '../core/fix.js';
 
 const W = 424;
 const H = 412;
@@ -184,6 +184,20 @@ function draw(svg, d, s) {
   if (s.show.cop) track(svg, d.cop, proj, { class: 'cop' });
   if (s.show.cop && d.copAssumed) track(svg, d.copAssumed, proj, { class: 'cop assumed' });
   if (s.show.lop) track(svg, d.lop, proj, { class: 'lop' });
+
+  // --- two sights crossed ------------------------------------------------
+  if (s.show.cross && d.cross && d.cross.fix) {
+    for (const line of d.cross.lines) {
+      // The line of position runs at right angles to the body's bearing,
+      // through the point the intercept steps you to.
+      const on = destination(line.ap, line.p >= 0 ? line.zn : line.zn + 180,
+        Math.abs(line.p) / 60);
+      track(svg, lineOfPosition(on, line.zn, 7), proj, { class: 'cross-lop' });
+      track(svg, greatCircle(line.ap, on, 24), proj, { class: 'cross-intercept' });
+    }
+    mark(svg, proj(d.cross.ap.lat, d.cross.ap.lon), 'cross-ap', t('globe.ap'), 3.5);
+    mark(svg, proj(d.cross.fix.lat, d.cross.fix.lon), 'cross-fix', t('globe.crossFix'), 5);
+  }
 
   // The clock error, made physical: the GP displaced along its own parallel.
   if (offset) {
