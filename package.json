@@ -1,0 +1,16 @@
+{
+  "name": "celestial-nav",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "An interactive demonstration of why latitude falls out of a noon sight and longitude cannot be had without a clock.",
+  "scripts": {
+    "start": "node server.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "astronomy-engine": "^2.1.19",
+    "vitest": "^2.1.9"
+  }
+}
