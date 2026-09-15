@@ -2,14 +2,15 @@
 
 An interactive, bilingual (Czech/English) demonstration of why latitude falls
 out of a noon sight and longitude cannot be had without a clock. Two tabs:
-**Theory** (derivations, MathJax, live figures) and **Simulation** (you take
-and log sights yourself, and they feed the equations).
+**Theory** (derivations, MathJax, live figures), **Simulation** (you take and
+log sights yourself, and they feed the equations) and **Voyage** (sail a
+passage and watch the two errors behave completely differently).
 
 ## Commands
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 74 tests
+npm test         # vitest, 87 tests
 npm run test:watch
 ```
 
@@ -99,6 +100,25 @@ rated. The store derives `errorAt(instant)` from `chronometerError()` and uses
 it **per instant** — each logged sight carries the error the watch had at that
 sight. Read `d.clockErrorSec` (effective, now), never `s.clockErrorSec`
 (departure), in any view.
+
+### The passage
+
+`core/voyage.js` runs a day at a time and keeps three positions apart: `truth`,
+`dr`, and the `estimate` the navigator writes down. The navigator resets to the
+estimate at every noon, which is why a chronometer stops the error
+accumulating and why, without one, only the longitude compounds.
+
+Two things that are easy to undo by accident:
+
+- **The daily course is laid off from the estimate, not from the truth and not
+  from a fixed heading.** Hold the course fixed and the current becomes the
+  deciding variable instead of the clock, which buries the whole lesson.
+- **Rhumb lines, not great circles.** `rhumb()` is Mercator sailing; a ship
+  holds one compass course. The chart is Mercator for the same reason, and x
+  and y must share one scale or the angles lie.
+
+The passage is memoised in the store on its inputs — it is twenty-odd noon
+reductions and would otherwise re-run on every drag of the day scrubber.
 
 ## Conventions
 

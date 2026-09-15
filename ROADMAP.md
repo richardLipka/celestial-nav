@@ -6,12 +6,11 @@ What is built, what is not, and the order worth building it in.
 
 Working and tested: the computational core, both tabs, the sight log and its
 two reductions, Czech/English throughout, ten Czech towns and twelve world
-positions, seven scenarios. 74 tests, 5 000 lines, no build step.
+positions, seven scenarios, three passages. 87 tests, 5 700 lines, no build step.
 
-The application currently demonstrates the thesis **within one day**. Almost
-everything below is about demonstrating it the way it actually bit people:
-over a passage, with an instrument in your hands, and with a clock whose error
-is not a constant.
+The application demonstrates the thesis within one day, and now over a passage
+as well. What is left is mostly about putting the instrument in the user's own
+hands, and about guiding someone who is learning alone.
 
 ---
 
@@ -90,36 +89,47 @@ Latitude does not move. That is the whole point.
 
 ---
 
-## Phase 3 — Voyage mode
+## Phase 3 — Voyage mode — done
 
-*The biggest remaining piece, and the one that makes the argument visceral.*
+Sail a passage. Each day the ship runs a course at a speed, the current sets it
+off, and each noon the navigator takes a sight. Three positions are tracked and
+they are not the same thing: where the ship **is**, where the log and compass
+**say** it is, and what the navigator actually **writes in the book** — the
+latitude from today's sight, and the longitude from either the chronometer or,
+failing that, the dead reckoning.
 
-Sail a passage. Each day the ship runs a course at a speed; dead reckoning
-accumulates error from current and steering; each noon the navigator takes a
-sight. Latitude snaps back to truth every single day. Longitude does not,
-unless the chronometer holds.
+The navigator resets to that estimate every noon, as real practice did. With a
+chronometer the error is wiped once a day and never accumulates. Without one,
+only the latitude is wiped and the longitude compounds for the whole passage.
 
-Then run the same passage twice — with a chronometer and without — and lay both
-tracks over the truth.
+`core/voyage.js`, `views/voyage.js`, `routes.js`, third tab. Two decisions
+shaped it:
 
-- New core: `src/core/voyage.js`, pure and testable.
-  ```
-  simulateVoyage({ start, days, courseDeg, speedKts, set, drift,
-                   steeringBiasDeg, clock }) -> { truth[], dr[], fixes[] }
-  ```
-  Truth = rhumb-line run plus current. DR = what the log and compass claim.
-  Fixes = `reduceLog` applied to each day's noon sights.
-- New view: `src/views/chart.js` — a plate-carrée chart with three tracks
-  (truth, DR, fixes), a destination, and the daily error as a sparkline.
-- New tab, or a third mode on the simulation tab.
-- Makes **latitude sailing** playable: switch the chronometer off and the only
-  way to make landfall is to find the destination's parallel and run down it.
+- **The course is laid off from where the navigator believes the ship is.**
+  Steering a fixed course made the current, not the clock, the deciding
+  variable, which buried the lesson. Re-steering daily from the estimate is
+  also what a navigator actually does.
+- **Rhumb lines, and a Mercator chart.** A ship holds one compass course, which
+  traces a rhumb line, and on Mercator that is a straight line — which is what
+  Mercator was for. `rhumb()` does Mercator sailing; the great-circle bearing
+  the first draft used never arrives.
 
-Build order: core + tests first, then the chart, then the controls. Do not
-start the chart before `simulateVoyage` is green.
+Las Palmas to Bridgetown, 2 630 nm, 0.6 kn of current setting west:
 
-**Done when** the no-chronometer track makes landfall in the wrong place, the
-latitude column is right every day, and a test asserts both.
+| clock | days | worst latitude | longitude at the end | outcome |
+|---|---|---|---|---|
+| perfect | 25 | 0.46 nm | 0.0 nm | landfall, 17.6 nm off |
+| H4's rate, 0.081 s/day | 25 | 0.46 nm | 0.5 nm | landfall, 17.7 nm off |
+| the Act's 2.86 s/day | 25 | 0.46 nm | 17.4 nm | landfall, 24 nm off |
+| **none carried** | 36 | 0.46 nm | **538 nm** | never found it |
+
+On the chart, a good chronometer puts the two tracks 0.1 px apart. Without one
+they diverge by 110. The latitude is 0.46 nm in every single row.
+
+The Bergen–Reykjavík route in December is the counter-case: 18 of 21 days with
+the sun below five degrees, no usable sight at all, and the latitude ends 78 nm
+out. The verdict says so rather than repeating the usual line — the latitude is
+only free when the sun will oblige.
 
 ---
 
@@ -219,8 +229,7 @@ plainly how much arithmetic that cost.
 
 ## Suggested order
 
-Phases 0, 1 and 2 are done, and together they close the gap between what the
-original design promised and what exists. **Phase 3 (voyage mode) is next**: it
-is the biggest remaining piece and the one with the most teaching value left in
-it, and the rate model from Phase 2 is exactly what it needs. Phases 5 and 6
-are what would make this usable by someone learning alone.
+Phases 0 to 3 are done. **Phase 4 (intercept and a running fix) is next** and
+is cheap: the core is already written and tested, and Phase 3 supplies the DR
+run between sights that a running fix needs. Phases 5 and 6 are what would make
+this usable by someone learning alone.

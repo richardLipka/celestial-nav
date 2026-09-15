@@ -9,6 +9,8 @@ import { horizon, sensitivity, culmination, sunEvents, diurnalArc, celestialEqua
 import { correct, uncorrect, defaultOptions } from '../core/corrections.js';
 import { assumedGP, noonWorkUp, circleOfPosition, angularDistance, lineOfPosition } from '../core/fix.js';
 import { observe, reduceLog, matchAltitudeTime, fixError } from '../core/sights.js';
+import { simulateVoyage, planPassage } from '../core/voyage.js';
+import { routeById } from '../routes.js';
 
 const listeners = new Set();
 
@@ -32,6 +34,15 @@ export const state = {
   useEoT: true,
   globeCenter: { lat: 20, lon: -60 },
   theoryView: { lat: 28, lon: 150 },
+  voyage: {
+    routeId: 'trades',
+    speedKts: 5,
+    driftKts: 0.6,
+    setDeg: 275,
+    steeringBiasDeg: 2,
+    carryChronometer: true,
+    seed: 7,
+  },
   show: { cop: true, lop: true, equator: true, night: true, belowHorizon: true },
   scenario: 'jamaica',
 };
@@ -91,6 +102,55 @@ export function removeSight(id) {
 export function clearSights() {
   state.sights = [];
   render();
+}
+
+/** Pick a passage: it carries its own departure date, which the watch shares. */
+export function applyRoute(id) {
+  const r = routeById(id);
+  const [y, m, d] = r.departure;
+  state.voyage = {
+    ...state.voyage,
+    routeId: r.id,
+    speedKts: r.speedKts,
+    driftKts: r.driftKts,
+    setDeg: r.setDeg,
+  };
+  state.departureDate = new Date(Date.UTC(y, m - 1, d));
+  render();
+}
+
+// The passage is 20-odd noon reductions, so it is memoised on its inputs:
+// without this it would be recomputed on every drag of the day scrubber.
+let voyageCache = { key: null, value: null };
+
+function runVoyage(s, opt) {
+  const r = routeById(s.voyage.routeId);
+  const v = s.voyage;
+  const key = [
+    v.routeId, v.speedKts, v.driftKts, v.setDeg, v.steeringBiasDeg, v.carryChronometer, v.seed,
+    +s.departureDate, s.clockErrorSec, s.clockRateSecPerDay,
+  ].join('|');
+  if (voyageCache.key === key) return voyageCache.value;
+
+  const plan = planPassage(r.from, r.to, v.speedKts);
+  const value = simulateVoyage({
+    start: r.from,
+    destination: r.to,
+    departureDate: s.departureDate,
+    ...plan,
+    days: plan.days + 14, // room to wander before giving up
+    speedKts: v.speedKts,
+    driftKts: v.driftKts,
+    setDeg: v.setDeg,
+    steeringBiasDeg: v.steeringBiasDeg,
+    carryChronometer: v.carryChronometer,
+    clockErrorSec: s.clockErrorSec,
+    clockRateSecPerDay: s.clockRateSecPerDay,
+    seed: v.seed,
+    corrections: opt,
+  });
+  voyageCache = { key, value };
+  return value;
 }
 
 /** Merge into a nested object without clobbering its siblings. */
@@ -167,6 +227,7 @@ function derive(s) {
 
   return {
     opt,
+    voyage: runVoyage(s, opt),
     clockErrorSec, // the effective error now, not the departure figure
     errorAt,
     daysOut,

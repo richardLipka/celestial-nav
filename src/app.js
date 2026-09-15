@@ -5,6 +5,7 @@ import { createWorkup } from './views/workup.js';
 import { createTimeline } from './views/timeline.js';
 import { createSightLog } from './views/sightlog.js';
 import { createTheory } from './views/theory.js';
+import { createVoyage } from './views/voyage.js';
 import { createRail } from './ui/rail.js';
 import { byId, applyScenario } from './scenarios.js';
 import { t, getLang, setLang, LANGS } from './i18n.js';
@@ -80,6 +81,7 @@ function mount() {
     () => set({ secondOfDay: null }),
   );
   const theory = createTheory(rotateGlobe('theoryView'));
+  const voyage = createVoyage(store);
   const rail = createRail(store);
 
   const app = h('div', 'app');
@@ -94,6 +96,7 @@ function mount() {
     [
       { id: 'theory', label: t('tab.theory') },
       { id: 'simulation', label: t('tab.simulation') },
+      { id: 'voyage', label: t('tab.voyage') },
     ],
     (id) => state.tab === id,
     (id) => set({ tab: id }),
@@ -112,7 +115,7 @@ function mount() {
   top.append(heading, tabs.node, lang.node);
   app.append(top);
 
-  // --- the two tabs -------------------------------------------------------
+  // --- the three tabs -----------------------------------------------------
   const sim = h('main', 'grid');
   sim.append(
     panel(t('panel.sky'), t('panel.sky.sub'), sky.node, 'p-sky'),
@@ -125,30 +128,35 @@ function mount() {
   const thy = h('main', 'theory-wrap');
   thy.append(theory.node);
 
+  const voy = h('main', 'voyage-wrap');
+  voy.append(voyage.node);
+
   const body = h('div', 'body');
-  body.append(rail.node, sim, thy);
+  body.append(rail.node, sim, thy, voy);
   app.append(body);
 
   document.getElementById('root').replaceChildren(app);
 
   const applyTab = () => {
-    const onTheory = state.tab === 'theory';
-    sim.hidden = onTheory;
-    thy.hidden = !onTheory;
-    theory.setVisible(onTheory);
+    const tab = state.tab;
+    sim.hidden = tab !== 'simulation';
+    thy.hidden = tab !== 'theory';
+    voy.hidden = tab !== 'voyage';
+    theory.setVisible(tab === 'theory');
     tabs.sync();
   };
 
   detach = subscribe((d, s) => {
     applyTab();
-    // The simulation panels still update while hidden: they are cheap, and it
-    // keeps the two tabs from ever disagreeing about the same instant.
+    // Panels update even while hidden: they are cheap, and it keeps the tabs
+    // from ever disagreeing about the same instant.
     sky.update(d, s);
     globe.update(d, s);
     log.update(d, s);
     workup.update(d, s);
     timeline.update(d, s);
     theory.update(d, s);
+    voyage.update(d, s);
     rail.update(d, s);
   });
 
