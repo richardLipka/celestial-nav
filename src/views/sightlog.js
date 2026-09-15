@@ -77,12 +77,14 @@ export function createSightLog(actions) {
           e.below ? 'below' : '',
           e.id === peakId ? 'peak' : '',
           pair && pair.am.id === e.id ? 'paired' : '',
+          e.byHand ? 'byhand' : '',
         ].filter(Boolean).join(' '));
+        if (e.byHand) tr.title = t('log.byHand');
 
         tr.append(
           h('td', 'num', String(sorted.indexOf(e) + 1)),
           h('td', 'mono', fmtClock(e.tChrono)),
-          h('td', 'mono', e.below ? '—' : fmtAngle(e.Hs)),
+          h('td', 'mono', `${e.below ? '—' : fmtAngle(e.Hs)}${e.byHand ? ' ✲' : ''}`),
           h('td', 'mono', e.below ? '—' : fmtAngle(e.Ho)),
           h('td', 'mono', e.below ? '—' : fmtBearing(e.Az)),
         );

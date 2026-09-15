@@ -36,6 +36,8 @@ export const state = {
   useEoT: true,
   globeCenter: { lat: 20, lon: -60 },
   theoryView: { lat: 28, lon: 150 },
+  skyView: 'dome',                 // 'dome' for the geometry, 'sextant' for the instrument
+  sextant: { armDeg: 0, roll: false },
   voyage: {
     routeId: 'trades',
     speedKts: 5,
@@ -76,11 +78,25 @@ function drawJitter() {
   return ((Math.random() + Math.random()) - 1) * 0.6;
 }
 
-/** Log a sight at the instant currently on the timeline. */
-export function addSight(at) {
+/**
+ * Log a sight at the instant currently on the timeline.
+ *
+ * Pass `byHand` when the altitude came off the sextant view: the error is then
+ * the user's own, in arcminutes, rather than a draw from the noise model, and
+ * the reading-error switch must leave it alone. Their mistake is not synthetic.
+ */
+export function addSight(at, byHand = null) {
   const t = at ?? derived.now;
   if (state.sights.some((s) => Math.abs(s.t - t) < 1000)) return false;
-  state.sights = [...state.sights, { id: nextSightId++, t: new Date(t), jitterMin: drawJitter() }];
+  state.sights = [
+    ...state.sights,
+    {
+      id: nextSightId++,
+      t: new Date(t),
+      jitterMin: byHand === null ? drawJitter() : byHand,
+      byHand: byHand !== null,
+    },
+  ];
   render();
   return true;
 }
@@ -218,9 +234,13 @@ function derive(s) {
   // the log and the almanac.
   const truth = { lat: s.lat, lon: s.lon };
   const observations = s.sights.map((g) =>
-    Object.assign(observe(g.t, truth, opt, errorAt(g.t), s.sextantNoise ? g.jitterMin : 0), {
-      id: g.id,
-    }),
+    Object.assign(
+      observe(g.t, truth, opt, errorAt(g.t), g.byHand || s.sextantNoise ? g.jitterMin : 0),
+      {
+        id: g.id,
+        byHand: !!g.byHand,
+      },
+    ),
   );
   const logResult = reduceLog(observations, { useEoT: s.useEoT });
   const logFix = logResult.stage === 'none' ? null : { lat: logResult.lat, lon: logResult.lon };

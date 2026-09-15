@@ -1,5 +1,6 @@
 import * as store from './state/store.js';
 import { createSkyDome } from './views/skydome.js';
+import { createSextant } from './views/sextant.js';
 import { createGlobe } from './views/globe.js';
 import { createWorkup } from './views/workup.js';
 import { createTimeline } from './views/timeline.js';
@@ -19,12 +20,13 @@ const h = (tag, cls, txt) => {
   return n;
 };
 
-function panel(title, subtitle, content, cls = '') {
+function panel(title, subtitle, content, cls = '', extra = null) {
   const p = h('section', `panel ${cls}`);
   const hd = h('div', 'panel-hd');
   hd.append(h('h2', null, title), h('span', 'panel-sub', subtitle));
+  if (extra) hd.append(extra);
   const body = h('div', 'panel-body');
-  body.append(content);
+  body.append(...[].concat(content));
   p.append(hd, body);
   return p;
 }
@@ -68,6 +70,7 @@ function mount() {
   };
 
   const sky = createSkyDome();
+  const sextant = createSextant(store);
   const globe = createGlobe(rotateGlobe('globeCenter'));
   const workup = createWorkup();
   const log = createSightLog({
@@ -102,6 +105,16 @@ function mount() {
     (id) => set({ tab: id }),
   );
 
+  const skyTabs = buttonGroup(
+    'sub-tabs',
+    [
+      { id: 'dome', label: t('sky.tab.dome') },
+      { id: 'sextant', label: t('sky.tab.sextant') },
+    ],
+    (id) => state.skyView === id,
+    (id) => set({ skyView: id }),
+  );
+
   const lang = buttonGroup(
     'lang',
     LANGS.map((code) => ({ id: code, label: code.toUpperCase(), lang: code })),
@@ -118,7 +131,7 @@ function mount() {
   // --- the three tabs -----------------------------------------------------
   const sim = h('main', 'grid');
   sim.append(
-    panel(t('panel.sky'), t('panel.sky.sub'), sky.node, 'p-sky'),
+    panel(t('panel.sky'), t('panel.sky.sub'), [sky.node, sextant.node], 'p-sky', skyTabs.node),
     panel(t('panel.earth'), t('panel.earth.sub'), globe.node, 'p-globe'),
     panel(t('panel.log'), t('panel.log.sub'), log.node, 'p-log'),
     panel(t('panel.workup'), t('panel.workup.sub'), workup.node, 'p-workup'),
@@ -143,6 +156,12 @@ function mount() {
     thy.hidden = tab !== 'theory';
     voy.hidden = tab !== 'voyage';
     theory.setVisible(tab === 'theory');
+
+    const onSextant = state.skyView === 'sextant';
+    sky.node.hidden = onSextant;
+    sextant.node.hidden = !onSextant;
+    sextant.setLive(tab === 'simulation' && onSextant);
+    skyTabs.sync();
     tabs.sync();
   };
 
@@ -151,6 +170,7 @@ function mount() {
     // Panels update even while hidden: they are cheap, and it keeps the tabs
     // from ever disagreeing about the same instant.
     sky.update(d, s);
+    sextant.update(d, s);
     globe.update(d, s);
     log.update(d, s);
     workup.update(d, s);

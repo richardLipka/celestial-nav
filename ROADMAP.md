@@ -180,24 +180,36 @@ Both are pinned by tests.
 
 ---
 
-## Phase 5 — The first-person sextant
+## Phase 5 — The first-person sextant — done
 
-*Specified in the original design, never built. The sky panel has the geometry
-view; it was always meant to have a second one for the feel.*
+A second view in the sky panel: the telescope field, with sea and sky through
+the clear half of the horizon glass and the sun brought down into it off the
+index mirror. Swing the arc until the sun swims into the field, then drag
+inside it to work the drum until the lower limb sits on the horizon. The number
+on the arc is the sextant altitude.
 
-A realistic horizon: sea, sky, the sun, and a split-mirror overlay in which you
-bring the sun's lower limb down to the horizon by dragging the index arm, then
-read the vernier. **Take a sight** becomes a physical act rather than a button,
-and the reading error stops being a slider and becomes yours.
+`views/sextant.js`. Three decisions:
 
-- New: `src/views/sextant.js`, a tab within the sky panel.
-- The altitude you set feeds the log directly, replacing `jitterMin` for
-  hand-taken sights (keep the synthetic jitter for the quick button).
-- Rolling-deck mode — a slow sinusoid on the horizon — is what makes a sight at
-  sea hard, and is three lines once the view exists.
+- **The error it logs is yours.** `addSight(at, byHand)` takes the difference
+  between the angle you set and the angle that was there, in arcminutes, and
+  puts it in the log as that sight's reading error. The synthetic-noise switch
+  leaves hand-taken sights alone: your mistake is not a draw from a model.
+- **The error is reported only after the sight.** Shown live it could simply be
+  zeroed, and there would be nothing left to learn. The hints say *above* or
+  *below* the horizon, which is what you can see anyway, and no more.
+- **The arc is coarse and the drum is fine**, as on the instrument: a tenth of
+  a degree on the slider is six minutes of arc, so the last arcminutes have to
+  come from the drum. That is the workflow, not an accident.
 
-**Done when** a user can take a noon sight by hand and land within two
-arcminutes on a steady deck.
+Acceptance: swinging the arc until the sun appeared at 51°, then working the
+drum by drag, settled at 51° 33.5′ — *within a minute of arc*, against a target
+of two.
+
+Rolling-deck mode oscillates the horizon by about a tenth of a degree over a
+seven-second period. Align to the rolling horizon at the wrong moment and the
+error is exactly the roll at that instant, which falls out of the geometry with
+nothing special added. The animation runs only while the sextant view is on
+screen and stops when it is not.
 
 ---
 
