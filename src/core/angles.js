@@ -76,7 +76,14 @@ export const fmtAngle = (deg, places = 1) =>
 export const fmtMin = (min, places = 1) =>
   `${min < 0 ? '−' : '+'}${fixed(Math.abs(min), places)}′`;
 
-export const fmtBearing = (deg) => `${String(Math.round(norm360(deg))).padStart(3, '0')}°`;
+/**
+ * A bearing, as a navigator writes one: three digits, and never 360.
+ *
+ * The wrap has to come *after* the rounding as well as before it. Rounding
+ * 359.6 first gives 360, which is not a bearing -- due north is 000.
+ */
+export const fmtBearing = (deg) =>
+  `${String(Math.round(norm360(deg)) % 360).padStart(3, '0')}°`;
 
 /** A plain decimal, so callers need not know where the separator lives. */
 export const fmtNumber = (v, places = 1) => fixed(v, places);

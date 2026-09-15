@@ -2,11 +2,11 @@ import { describe, it, expect } from 'vitest';
 import * as Astronomy from 'astronomy-engine';
 
 import {
-  norm180, norm360, dm, fmtLat, fmtLon, departureNm, sind, cosd, asind, acosd,
+  norm180, norm360, dm, fmtLat, fmtLon, fmtBearing, departureNm, sind, cosd, asind, acosd,
 } from '../angles.js';
 import { fromParts, utcHours, addSeconds, MS_HOUR, chronometerError, daysBetween } from '../time.js';
 import { solar, subsolar, decRateMinPerHour } from '../sun.js';
-import { horizon, sensitivity, culmination, sunEvents } from '../horizon.js';
+import { horizon, sensitivity, culmination, sunEvents, diurnalArc } from '../horizon.js';
 import { dip, refraction, correct, uncorrect, defaultOptions } from '../corrections.js';
 import {
   angularDistance, destination, circleOfPosition, longitudeFromLAN,
@@ -299,5 +299,110 @@ describe('sun events', () => {
 
   it('reports polar day above the arctic circle at the solstice', () => {
     expect(sunEvents(fromParts(2025, 6, 21), 78, 15).polar).toBe('day');
+  });
+});
+
+describe('sunrise and sunset', () => {
+  it('lands on the -0.833 degree horizon, not near it', () => {
+    // Two things make the obvious version wrong by a minute or more: the
+    // declination moves between noon and the crossing, and the apparent sun's
+    // hour angle does not advance at a flat 15 degrees an hour because the
+    // equation of time drifts underneath it. Both are solved by iterating.
+    let worst = 0;
+    for (const lat of [0, 20, 40, 55, 64]) {
+      for (let doy = 0; doy < 365; doy += 7) {
+        const d = new Date(Date.UTC(2025, 0, 1) + doy * 86400000);
+        const ev = sunEvents(d, lat, 30);
+        if (!ev.rise) continue;
+        for (const t of [ev.rise, ev.set]) {
+          worst = Math.max(worst, Math.abs(horizon(lat, 30, t).H + 0.833) * 60);
+        }
+        expect(+ev.rise, `${lat}N ${d.toISOString()}`).toBeLessThan(+ev.noon);
+        expect(+ev.set, `${lat}N ${d.toISOString()}`).toBeGreaterThan(+ev.noon);
+      }
+    }
+    expect(worst, 'arcminutes off the horizon').toBeLessThan(0.05);
+  });
+
+  it('still calls the polar day and the polar night', () => {
+    expect(sunEvents(new Date(Date.UTC(2025, 5, 21)), 80, 0).polar).toBe('day');
+    expect(sunEvents(new Date(Date.UTC(2025, 11, 21)), 80, 0).polar).toBe('night');
+    expect(sunEvents(new Date(Date.UTC(2025, 5, 21)), 50, 0).rise).toBeTruthy();
+  });
+});
+
+describe('a bearing is three digits and never 360', () => {
+  it('wraps after rounding, not only before it', () => {
+    // 359.6 is due north. Rounding it first gives 360, which is not a bearing
+    // a navigator would write -- and the sun passes through due north often
+    // enough for this to show in the log, the dome, the timeline and the chart.
+    expect(fmtBearing(359.6)).toBe('000°');
+    expect(fmtBearing(359.9)).toBe('000°');
+    expect(fmtBearing(360)).toBe('000°');
+    expect(fmtBearing(-0.4)).toBe('000°');
+    expect(fmtBearing(-1)).toBe('359°');
+    expect(fmtBearing(0.5)).toBe('001°');
+    expect(fmtBearing(180)).toBe('180°');
+    for (let d = -720; d <= 720; d += 0.1) {
+      const s = fmtBearing(d);
+      expect(s, `${d}`).toMatch(/^\d{3}°$/);
+      expect(Number(s.slice(0, 3)), `${d}`).toBeLessThan(360);
+    }
+  });
+});
+
+describe('the sun through the day', () => {
+  it('draws a diurnal arc that agrees with the sky it came from', () => {
+    const lat = 41;
+    const lon = 12;
+    const date = fromParts(2024, 5, 15);
+    const arc = diurnalArc(date, lat, lon, 48);
+    expect(arc.length).toBe(49);
+    for (const p of arc) {
+      const g = horizon(lat, lon, p.t);
+      expect(Math.abs(p.H - g.H)).toBeLessThan(1e-9);
+      expect(Math.abs(norm180(p.Az - g.Az))).toBeLessThan(1e-9);
+    }
+    // It spans a whole day, centred on local apparent noon.
+    const noon = culmination(date, lon, true);
+    expect(Math.abs(+arc[24].t - +noon)).toBeLessThan(1000);
+    expect((+arc[48].t - +arc[0].t) / 3600000).toBeCloseTo(24, 6);
+    // And the highest point of it is the meridian altitude.
+    const peak = arc.reduce((m, p) => (p.H > m.H ? p : m));
+    expect(Math.abs(peak.H - horizon(lat, lon, noon).H)).toBeLessThan(0.02);
+  });
+});
+
+describe('the thesis, stated as an identity', () => {
+  it('turns an hour of clock error into exactly 15 degrees of longitude', () => {
+    // Not "about" 15 degrees, and not "a lot". The longitude a noon sight
+    // yields is a linear function of the assumed time, so an hour of error is
+    // exactly an hour of the Earth's rotation -- every day of the year, from
+    // every latitude. This is the whole project in one assertion.
+    const rnd = mulberry32(2718);
+    let worstLon = 0;
+    let worstLat = 0;
+    let n = 0;
+    for (let i = 0; i < 200; i++) {
+      const truth = {
+        lat: (rnd() * 2 - 1) * 55,
+        lon: (rnd() * 2 - 1) * 170,
+        date: new Date(Date.UTC(2024, 0, 1) + rnd() * 365 * 86400000),
+      };
+      const right = noonWorkUp(truth, { clockErrorSec: 0, useEoT: true });
+      if (right.Ho <= 0) continue;
+      n++;
+      const wrong = noonWorkUp(truth, { clockErrorSec: 3600, useEoT: true });
+      worstLon = Math.max(worstLon, Math.abs(Math.abs(norm180(wrong.fix.lon - right.fix.lon)) - 15));
+
+      // And the latitude moves by exactly the declination the almanac was
+      // misread by -- no more. That residue is the only way a clock touches
+      // a latitude at all.
+      const decShift = Math.abs(wrong.dec - right.dec);
+      worstLat = Math.max(worstLat, Math.abs(Math.abs(wrong.fix.lat - right.fix.lat) - decShift));
+    }
+    expect(n).toBeGreaterThan(100);
+    expect(worstLon, 'degrees away from exactly 15').toBeLessThan(0.01);
+    expect(worstLat, 'degrees of latitude unaccounted for').toBeLessThan(1e-9);
   });
 });

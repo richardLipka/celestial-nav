@@ -249,18 +249,25 @@ export function lunar(date) {
 const tanOf = (deg) => sind(deg) / cosd(deg);
 
 /**
- * Greenwich apparent sidereal time, in degrees. Meeus (12.4), mean sidereal —
- * the equation of the equinoxes is under a second of arc and is left out, as
- * it is everywhere else here.
+ * Greenwich *apparent* sidereal time, in degrees. Meeus (12.4) for the mean
+ * value, plus the equation of the equinoxes.
+ *
+ * The equation of the equinoxes is the nutation in longitude projected on to
+ * the equator, and it has to be here: the right ascension it is subtracted
+ * from is referred to the true equinox of date, because `lunar()` nutates the
+ * longitude. Mean sidereal time against a true right ascension would be
+ * sixteen arcseconds of hour angle out of step with itself — a third of an
+ * arcminute on the moon's place in the sky, which is not a rounding error at
+ * the precision a lunar distance works to.
  */
 export function greenwichSiderealDeg(date) {
   const T = julianCenturies(date);
-  return norm360(
-    280.46061837
-      + 360.98564736629 * (julianDay(date) - J2000)
-      + 0.000387933 * T * T
-      - (T * T * T) / 38710000,
-  );
+  const gmst = 280.46061837
+    + 360.98564736629 * (julianDay(date) - J2000)
+    + 0.000387933 * T * T
+    - (T * T * T) / 38710000;
+  const equationOfTheEquinoxes = nutationInLongitude(date) * cosd(trueObliquity(date));
+  return norm360(gmst + equationOfTheEquinoxes);
 }
 
 /** The point on Earth with the moon directly overhead. */

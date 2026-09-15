@@ -154,6 +154,40 @@ describe('the moon, against an independent ephemeris', () => {
   });
 });
 
+describe("sidereal time and the moon's equatorial place", () => {
+  it('uses apparent sidereal time, not mean', () => {
+    // The moon's right ascension is referred to the true equinox of date,
+    // because `lunar()` nutates the longitude. Subtracting it from *mean*
+    // sidereal time leaves the two sixteen arcseconds out of step -- a third
+    // of an arcminute on the moon, which is a minute of Greenwich time.
+    const rnd = mulberry32(53);
+    let worst = 0;
+    for (let i = 0; i < 300; i++) {
+      const d = span(rnd, 1700, 2060);
+      worst = Math.max(worst, Math.abs(wrap(greenwichSiderealDeg(d) - Astronomy.SiderealTime(d) * 15)) * 3600);
+    }
+    expect(worst, 'arcseconds from an independent sidereal time').toBeLessThan(2);
+  });
+
+  it('places the moon in the equatorial frame the sight log works in', () => {
+    const rnd = mulberry32(59);
+    let wDec = 0;
+    let wGha = 0;
+    for (let i = 0; i < 300; i++) {
+      const d = span(rnd, 1700, 2060);
+      const m = lunar(d);
+      const vec = Astronomy.GeoVector(Astronomy.Body.Moon, d, true);
+      const eq = Astronomy.EquatorFromVector(
+        Astronomy.RotateVector(Astronomy.Rotation_EQJ_EQD(Astronomy.MakeTime(d)), vec),
+      );
+      wDec = Math.max(wDec, Math.abs(m.dec - eq.dec) * 60);
+      wGha = Math.max(wGha, Math.abs(wrap(m.gha - (Astronomy.SiderealTime(d) * 15 - eq.ra * 15))) * 60);
+    }
+    expect(wDec, 'declination, arcmin').toBeLessThan(0.5);
+    expect(wGha, 'Greenwich hour angle, arcmin').toBeLessThan(0.6);
+  });
+});
+
 describe('the precise sun', () => {
   it('is several times better than the readable one', () => {
     const rnd = mulberry32(13);

@@ -59,19 +59,54 @@ export function culmination(date, lon, useEoT = true) {
   return t;
 }
 
-/** Sunrise and sunset, at the conventional -0.833 degrees for refraction and SD. */
+/**
+ * Sunrise and sunset, at the conventional -0.833 degrees: 34.5 arcminutes of
+ * horizontal refraction plus the sun's 16 arcminute semi-diameter, because
+ * what you watch touch the horizon is the upper limb of a lifted image.
+ *
+ * Solved separately for rise and for set, and iterated. The obvious version
+ * takes the declination at noon and uses it for both, but the crossings are
+ * six hours either side and the declination has moved between them -- worth
+ * over a minute at 64 degrees, and asymmetric, which is exactly the sort of
+ * error that looks like a bug in the drawing rather than in the arithmetic.
+ */
 export function sunEvents(date, lat, lon) {
   const noon = culmination(date, lon);
-  const s = solar(noon);
-  const cosH0 = (sind(-0.833) - sind(lat) * sind(s.dec)) / (cosd(lat) * cosd(s.dec));
-  if (cosH0 >= 1) return { noon, polar: 'night' };
-  if (cosH0 <= -1) return { noon, polar: 'day' };
-  const h0 = acosd(cosH0) / 15; // hours either side of noon
-  return {
-    noon,
-    rise: new Date(noon.getTime() - h0 * MS_HOUR),
-    set: new Date(noon.getTime() + h0 * MS_HOUR),
+
+  /** Hours of hour angle from noon to the -0.833 crossing, for the sun at `at`. */
+  const semiArc = (at) => {
+    const s = solar(at);
+    const c = (sind(-0.833) - sind(lat) * sind(s.dec)) / (cosd(lat) * cosd(s.dec));
+    if (c >= 1) return { polar: 'night' };
+    if (c <= -1) return { polar: 'day' };
+    return { h0: acosd(c) / 15 };
   };
+
+  const first = semiArc(noon);
+  if (first.polar) return { noon, polar: first.polar };
+
+  // Solved the same way culmination is, and for the same reason: the apparent
+  // sun's hour angle does not advance at a flat 15 degrees an hour -- the
+  // equation of time drifts underneath it. Stepping `h0` hours from noon
+  // ignores that, and at the equator, where the sun crosses the horizon almost
+  // vertically, it is worth a couple of arcminutes.
+  //
+  //   LHA = 15(UT - 12) + EoT + lon = +/- 15 h0
+  //   =>  UT = 12 + (+/- 15 h0 - EoT - lon) / 15
+  const solve = (sign) => {
+    let t = noon;
+    for (let i = 0; i < 4; i++) {
+      const r = semiArc(t);
+      if (r.polar) return null; // the sun stopped rising or setting mid-solve
+      t = atHours(date, 12 + (sign * r.h0 * 15 - solar(t).eotDeg - lon) / 15);
+    }
+    return t;
+  };
+
+  const rise = solve(-1);
+  const set = solve(1);
+  if (!rise || !set) return { noon, polar: first.polar ?? 'day' };
+  return { noon, rise, set };
 }
 
 /** The sun's whole track for one day, for drawing the diurnal arc. */
