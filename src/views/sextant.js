@@ -19,8 +19,11 @@ const CX = 212;
 const CY = 176;
 const R = 150;
 
-// How much sky the telescope shows, top to bottom. A real glass shows a few
-// degrees; this is tighter so that a tenth of a minute is a visible nudge.
+// How much sky the telescope shows from the centre of the field to its edge --
+// a radius, not the whole height, which is why PX_PER_DEG divides by it rather
+// than by half of it. Top to bottom the glass therefore shows 2.2 degrees. A
+// real one shows a few; this is tighter so a tenth of a minute is a visible
+// nudge on the drum.
 const FIELD_DEG = 1.1;
 const PX_PER_DEG = R / FIELD_DEG;
 const SUN_RADIUS_DEG = 16.0 / 60; // semi-diameter

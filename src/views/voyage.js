@@ -5,7 +5,7 @@
 // about the ship, and on a good chronometer they lie on top of each other.
 
 import { el, text, polyline, clear } from '../svg.js';
-import { D2R, fmtNm, fmtNumber, fmtBearing } from '../core/angles.js';
+import { D2R, fmtNm, fmtNumber, fmtBearing, cosd } from '../core/angles.js';
 import { t, pick } from '../i18n.js';
 import { fLat, fLon } from '../ui/format.js';
 import { fmtDate } from '../core/time.js';
@@ -228,8 +228,13 @@ function drawChart(svg, v, s) {
   // --- the destination, and how close counts as arrived ------------------
   if (v.destination) {
     const [dx, dy] = at(v.destination);
-    // 25 nm at this scale: a degree of latitude is 60 nm.
-    const r = Math.max(4, (25 / 60) * k);
+    // 25 nm, which is what counts as landfall. A degree of latitude is 60 nm,
+    // but on a Mercator chart it is not a fixed number of pixels -- that is the
+    // whole point of the projection. The scale at latitude φ is k·sec(φ), so
+    // leaving the secant out drew the ring 3% small off Barbados and less than
+    // half its true size off Iceland, and a ship that had arrived would have
+    // plotted outside its own arrival circle.
+    const r = Math.max(4, ((25 / 60) * k) / cosd(v.destination.lat));
     svg.append(el('circle', { cx: dx, cy: dy, r, class: 'voy-dest-ring' }));
     svg.append(el('circle', { cx: dx, cy: dy, r: 4, class: 'voy-dest' }));
     svg.append(text(dx + 9, dy + 4, t('voy.dest'), { class: 'lbl tiny voy-dest-text' }));

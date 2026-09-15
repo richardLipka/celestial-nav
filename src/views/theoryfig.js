@@ -144,8 +144,13 @@ function drawTriangle3D(svg, d, s) {
     if (!m.visible) return;
     svg.append(text(m.x, m.y - 6, label, { class: `lbl mn ${cls}`, 'text-anchor': 'middle' }));
   };
-  sideLabel(P, Z, `90°−φ = ${fmtAngle(90 - Math.abs(lat))}`, 'phi-text');
-  sideLabel(P, X, `90°−δ = ${fmtAngle(90 - Math.abs(d.sky.solar.dec))}`, 'dec-text');
+  // P is the elevated pole, so PZ is 90 - |φ| in either hemisphere -- but PX is
+  // 90 - δ only north of the equator. Using |δ| put a label of 67 degrees on an
+  // arc this figure had just drawn at 113, which is the one contradiction a
+  // drawn figure cannot get away with.
+  const decFromPole = d.sky.solar.dec * (north ? 1 : -1);
+  sideLabel(P, Z, `${north ? '90°−φ' : '90°+φ'} = ${fmtAngle(90 - Math.abs(lat))}`, 'phi-text');
+  sideLabel(P, X, `${north ? '90°−δ' : '90°+δ'} = ${fmtAngle(90 - decFromPole)}`, 'dec-text');
   if (H > 0) sideLabel(Z, X, `z = ${fmtAngle(d.z)}`, 'zen-text');
 
   // cardinal points on the horizon
@@ -237,8 +242,16 @@ function drawFlat(svg, d, s) {
     svg.append(text(c[0] + dx, c[1] + dy, main, { class: `lbl mn ${cls}`, 'text-anchor': anchor }));
     svg.append(text(c[0] + dx, c[1] + dy + 13, val, { class: 'lbl tiny muted', 'text-anchor': anchor }));
   };
-  sideLbl(cPZ, '90°−φ', fmtAngle(90 - Math.abs(s.lat)), 'phi-text', -10, 0, 'end');
-  sideLbl(cPX, '90°−δ', fmtAngle(90 - Math.abs(d.sky.solar.dec)), 'dec-text', 10, 0, 'start');
+  // P is the elevated pole -- the one the 3D figure draws, and the one above
+  // your horizon. Measured from it, PZ is 90 - |φ| always, but PX is 90 - δ
+  // only north of the equator: south of it the sign of the declination flips
+  // with the pole. Taking |δ| instead is wrong by up to 47 degrees whenever the
+  // declination is contrary in name to the latitude -- half the year -- and the
+  // 3D figure beside it draws the true arc, so the two would disagree on screen.
+  const south = s.lat < 0;
+  const dec = d.sky.solar.dec * (south ? -1 : 1);
+  sideLbl(cPZ, south ? '90°+φ' : '90°−φ', fmtAngle(90 - Math.abs(s.lat)), 'phi-text', -10, 0, 'end');
+  sideLbl(cPX, south ? '90°+δ' : '90°−δ', fmtAngle(90 - dec), 'dec-text', 10, 0, 'start');
   sideLbl(cZX, 'z = 90°−H', fmtAngle(d.z), 'zen-text', 0, 26, 'middle');
 }
 
@@ -328,7 +341,12 @@ function drawHourAngle(svg, d, s) {
   const rot = arc(PCX, PCY, PR + 22, 158, 200, { class: 'rot-arrow' });
   svg.append(rot);
   const [ax, ay] = onCircle(PCX, PCY, PR + 22, 200);
-  svg.append(arrowhead(ax, ay, north ? 110 : 290, 6, { class: 'rot-head' }));
+  // The arc runs 158 -> 200, so its head sits at 200 and the direction of
+  // travel there is 200 + 90 anticlockwise or 200 - 90 clockwise. The label on
+  // it says "Earth turns": from above the north pole that is anticlockwise,
+  // from above the south pole clockwise. Hour angles run the other way, which
+  // is what `dir` handles, and is what these two were confused with.
+  svg.append(arrowhead(ax, ay, north ? 290 : 110, 6, { class: 'rot-head' }));
   svg.append(text(20, 24, t('fig.rotation'), { class: 'lbl tiny muted' }));
 
   svg.append(text(PW / 2, PH - 10, t('fig.hourAngleNote'),

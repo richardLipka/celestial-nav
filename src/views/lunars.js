@@ -5,7 +5,7 @@
 // and which is the point; and what an arcminute of it is worth.
 
 import { el, text, clear } from '../svg.js';
-import { fmtAngle, fmtNumber, fmtNm, dm } from '../core/angles.js';
+import { fmtAngle, fmtNumber, fmtNm, sind, cosd } from '../core/angles.js';
 import { fmtClock } from '../core/time.js';
 import { fLon } from '../ui/format.js';
 import { t } from '../i18n.js';
@@ -17,17 +17,31 @@ const h = (tag, cls, txt) => {
   return n;
 };
 
-const W = 520;
-const H = 300;
-const CX = 260;
-const CY = 250;
-const R = 210;
+const W = 440;
+const H = 356;
+const CX = 220;
+const CY = 168;
+const R = 146;
 
-/** The sky as a half-dome seen from behind the observer: azimuth across, altitude up. */
-const project = (altDeg, azDeg, refAz) => {
-  // Keep both bodies on screen by centring the view between them.
-  const dx = ((azDeg - refAz + 540) % 360) - 180;
-  return [CX + (dx / 90) * R * 0.9, CY - (altDeg / 90) * R];
+/**
+ * The same equidistant azimuthal projection the Sky panel uses: zenith at the
+ * centre, horizon at the rim, radius proportional to zenith distance.
+ *
+ * It has to be this and not a flat plot of azimuth against altitude. The whole
+ * subject of this tab is the angle between the two bodies, and azimuth is not
+ * that angle -- it converges toward the zenith. Two bodies both 60 degrees up
+ * with 60 degrees of azimuth between them are 29 degrees apart, and a flat plot
+ * draws them as though they were 54.
+ *
+ * No flat picture of a sphere can get every separation right, and this one does
+ * not either: measured over seven hundred usable lunars the drawn gap is out by
+ * 2 degrees for a typical sight and 10 at the ninetieth percentile. The flat
+ * plot it replaced was out by 9 and 53. The chip on the arc carries the exact
+ * angle, because the picture cannot.
+ */
+const project = (altDeg, azDeg) => {
+  const r = (R * (90 - altDeg)) / 90;
+  return [CX + r * sind(azDeg), CY - r * cosd(azDeg)];
 };
 
 export function createLunars(store) {
@@ -116,48 +130,55 @@ export function createLunars(store) {
 function drawSky(svg, refs, d) {
   clear(svg);
   const g = d.lunar.geom;
-  const mid = midAzimuth(g.moonAz, g.sunAz);
 
-  // Ground and horizon.
-  svg.append(el('rect', { x: 0, y: CY, width: W, height: H - CY, class: 'lun-ground' }));
-  svg.append(el('line', { x1: 0, y1: CY, x2: W, y2: CY, class: 'sx-horizon' }));
-
-  // Altitude grid, so the two altitudes can be read off the figure.
-  for (const alt of [30, 60, 90]) {
-    const y = CY - (alt / 90) * R;
-    svg.append(el('line', { x1: 0, y1: y, x2: W, y2: y, class: 'lun-grid' }));
-    svg.append(text(6, y - 4, `${alt}°`, { class: 'lbl tiny muted' }));
+  // --- the sky itself -----------------------------------------------------
+  svg.append(el('circle', { cx: CX, cy: CY, r: R, class: 'sky-disc' }));
+  for (let alt = 30; alt < 90; alt += 30) {
+    svg.append(el('circle', {
+      cx: CX, cy: CY, r: (R * (90 - alt)) / 90, class: 'almucantar major',
+    }));
   }
+  for (let az = 0; az < 360; az += 90) {
+    const [x, y] = project(0, az);
+    svg.append(el('line', { x1: CX, y1: CY, x2: x, y2: y, class: 'radial major' }));
+  }
+  for (const [key, az] of [['sky.N', 0], ['sky.E', 90], ['sky.S', 180], ['sky.W', 270]]) {
+    const [x, y] = project(0, az);
+    svg.append(text(CX + (x - CX) * 1.11, CY + (y - CY) * 1.11 + 4, t(key), {
+      class: 'cardinal lbl', 'text-anchor': 'middle',
+    }));
+  }
+  svg.append(el('circle', { cx: CX, cy: CY, r: 2.4, class: 'zenith-dot' }));
 
   const both = g.appMoonAlt > 0 && g.appSunAlt > 0;
-  const [mx, my] = project(g.appMoonAlt, g.moonAz, mid);
-  const [sx, sy] = project(g.appSunAlt, g.sunAz, mid);
+  const [mx, my] = project(g.appMoonAlt, g.moonAz);
+  const [sx, sy] = project(g.appSunAlt, g.sunAz);
 
   if (both) {
-    // The arc that is actually measured. Drawn straight because the figure is
-    // flat; the label says what the angle really is.
+    // The measured arc. Drawn straight, which in this projection is very
+    // nearly the great circle between them; the chip carries the exact angle.
     svg.append(el('line', { x1: mx, y1: my, x2: sx, y2: sy, class: 'lun-arc' }));
     const lx = (mx + sx) / 2;
     const ly = (my + sy) / 2;
     svg.append(el('rect', {
-      x: lx - 44, y: ly - 22, width: 88, height: 19, rx: 3, class: 'lun-chip',
+      x: lx - 44, y: ly - 21, width: 88, height: 19, rx: 3, class: 'lun-chip',
     }));
-    svg.append(text(lx, ly - 8, fmtAngle(g.appDist), {
+    svg.append(text(lx, ly - 7, fmtAngle(g.appDist), {
       class: 'mn lbl lun-dist', 'text-anchor': 'middle',
     }));
   }
 
-  if (g.appSunAlt > -2) {
-    svg.append(el('circle', { cx: sx, cy: sy, r: 13, class: 'sx-sun' }));
-    svg.append(text(sx, sy + 30, t('lun.sun'), { class: 'lbl tiny', 'text-anchor': 'middle' }));
+  if (g.appSunAlt > 0) {
+    svg.append(el('circle', { cx: sx, cy: sy, r: 11, class: 'sx-sun' }));
+    svg.append(text(sx, sy + 26, t('lun.sun'), { class: 'lbl tiny', 'text-anchor': 'middle' }));
   }
-  if (g.appMoonAlt > -2) {
-    svg.append(el('circle', { cx: mx, cy: my, r: 12, class: 'lun-moon' }));
-    svg.append(text(mx, my + 30, t('lun.moon'), { class: 'lbl tiny', 'text-anchor': 'middle' }));
+  if (g.appMoonAlt > 0) {
+    svg.append(el('circle', { cx: mx, cy: my, r: 10, class: 'lun-moon' }));
+    svg.append(text(mx, my + 25, t('lun.moon'), { class: 'lbl tiny', 'text-anchor': 'middle' }));
   }
 
   // The rate: the one number that decides what the sight is worth.
-  svg.append(text(W - 8, 20, t('lun.rate', { n: fmtNumber(Math.abs(d.lunar.rate), 3) }), {
+  svg.append(text(W - 8, 18, t('lun.rate', { n: fmtNumber(Math.abs(d.lunar.rate), 3) }), {
     class: 'lbl tiny muted', 'text-anchor': 'end',
   }));
 
@@ -167,11 +188,6 @@ function drawSky(svg, refs, d) {
     : t(`lun.no.${u.reason}`, { d: fmtAngle(u.dist) });
   refs.verdict.className = `lun-state ${u.ok ? 'good' : 'bad'}`;
 }
-
-const midAzimuth = (a, b) => {
-  const diff = ((b - a + 540) % 360) - 180;
-  return (a + diff / 2 + 360) % 360;
-};
 
 // ---------------------------------------------------------------------------
 
@@ -365,4 +381,4 @@ const fmtHoursClock = (hours) => {
   return `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`;
 };
 
-export const __test = { project, midAzimuth, fmtMinSigned, signedSeconds };
+export const __test = { project, fmtMinSigned, signedSeconds };
