@@ -6,7 +6,7 @@ What is built, what is not, and the order worth building it in.
 
 Working and tested: the computational core, both tabs, the sight log and its
 two reductions, Czech/English throughout, ten Czech towns and twelve world
-positions, seven scenarios, three passages. 87 tests, 5 700 lines, no build step.
+positions, seven scenarios, three passages. 88 tests, 6 000 lines, no build step.
 
 The application demonstrates the thesis within one day, and now over a passage
 as well. What is left is mostly about putting the instrument in the user's own
@@ -218,14 +218,41 @@ plainly how much arithmetic that cost.
 
 ## Ongoing, not phased
 
-- **Accessibility.** The app is sliders and drag. The globes need a keyboard
-  path, the log table needs proper row semantics, and the SVG figures need
-  better labels than one `aria-label` each.
+- **Accessibility.** Every control now carries a real `<label for>` and every
+  figure an `aria-label`. What is left: the globes are drag-only and need a
+  keyboard path, the log table wants proper row semantics, and the figures
+  deserve better descriptions than one line each.
 - **CI.** Once there is a repository: `npm test` on push, nothing more.
 - **A printable almanac page.** The core can already produce one; it would make
   a good offline exercise and costs almost nothing.
 
 ---
+
+## What the review of phases 0-3 turned up
+
+Run after Phase 3, over the whole codebase:
+
+- **`useEoT` never reached the voyage.** It was hardcoded on inside
+  `simulateVoyage`, so switching the almanac off changed the simulation tab and
+  left the passage alone. Sailing early November, that switch is worth 167 nm.
+  Fixed and pinned by a test.
+- **Thirteen controls had no programmatic label** — visible captions built as
+  `<span>` rather than `<label for>`, so a screen reader announced each as an
+  unnamed slider. Both helpers now wire them; clicking a caption focuses its
+  control as a bonus.
+- **`0.25` nm per second of clock error was a magic number in two files.** Now
+  `NM_PER_CLOCK_SECOND` in `core/horizon.js`.
+- **Six dead exports removed**, and one README figure was stale in the good
+  direction: equal altitudes now gives 0.4 nm where the text claimed 0.6.
+- **The README quoted figures from a one-off session with random noise**, which
+  no reader could reproduce. Replaced with the deterministic pair.
+- Physics re-checked independently: rhumb sailing against a separate Mercator
+  implementation, the Mercator inverse used by the chart grid, the noon
+  reduction at six latitudes across four seasons (worst 0.0002 nm), and the
+  nm-per-second exchange rate. All exact.
+- 35 combinations of scenario, place, route, tab and language swept in the
+  browser: no NaN, no undefined, no unsubstituted placeholder, no stray
+  horizontal scroll, no console errors.
 
 ## Suggested order
 

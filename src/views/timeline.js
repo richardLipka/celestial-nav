@@ -4,6 +4,7 @@
 
 import { el, text, clear, arc, onCircle } from '../svg.js';
 import { fmtBearing, fmtNumber } from '../core/angles.js';
+import { NM_PER_CLOCK_SECOND } from '../core/horizon.js';
 import { fmtClock, fmtHours } from '../core/time.js';
 import { t } from '../i18n.js';
 
@@ -100,7 +101,7 @@ function drawGauge(svg, d, s) {
   const R = 62;
 
   const v = Math.abs(d.sens); // |cos(lat) * sin(Az)|, from 0 to 1
-  const nmPerSec = 0.25 * v; // 60 nm/deg * 15 deg/h / 3600 s
+  const nmPerSec = NM_PER_CLOCK_SECOND * v;
 
   svg.append(arc(CX, CY, R, 180, 0, { class: 'gauge-track' }));
   svg.append(arc(CX, CY, R, 180, 180 - 180 * v, { class: 'gauge-fill' }));

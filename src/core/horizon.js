@@ -38,8 +38,12 @@ export function horizon(lat, lon, date) {
  */
 export const sensitivity = (lat, Az) => cosd(lat) * sind(Az);
 
-/** Degrees of altitude per minute of time, which is what a navigator feels. */
-export const sensitivityPerMinute = (lat, Az) => (sensitivity(lat, Az) * 15) / 60;
+/**
+ * Nautical miles of position error per second of chronometer error, for a
+ * sight on the prime vertical: 60 nm per degree, at 15 degrees per hour,
+ * over 3600 seconds. Four seconds of clock error is a mile at the equator.
+ */
+export const NM_PER_CLOCK_SECOND = 0.25;
 
 /**
  * The instant of local apparent noon on the calendar day of `date`. Solved

@@ -48,7 +48,9 @@ export function createVoyage(store) {
   const field = (label, control, out) => {
     const f = h('div', 'voy-field');
     const top = h('div', 'voy-field-head');
-    top.append(h('span', 'rail-sublabel', label));
+    const cap = h('label', 'rail-sublabel', label);
+    if (control.id) cap.htmlFor = control.id;
+    top.append(cap);
     if (out) top.append(out);
     f.append(top, control);
     return f;

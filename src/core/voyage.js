@@ -87,6 +87,7 @@ export function simulateVoyage(cfg) {
     clockErrorSec = 0,
     clockRateSecPerDay = 0,
     carryChronometer = true,
+    useEoT = true,
     steerToDestination = true,
     arrivalNm = 25,
     sightErrorMin = 0.5,
@@ -122,7 +123,7 @@ export function simulateVoyage(cfg) {
 
     const work = noonWorkUp(
       { lat: truth.lat, lon: truth.lon, date },
-      { ...corrections, clockErrorSec: clockError, useEoT: true },
+      { ...corrections, clockErrorSec: clockError, useEoT },
     );
 
     // A reading error of j arcminutes lands directly on the latitude: the

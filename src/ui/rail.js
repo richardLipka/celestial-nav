@@ -70,6 +70,9 @@ export function createRail(store) {
   const sel = document.createElement('select');
   sel.id = 'scenario';
   sel.className = 'rail-select';
+  // This one sits straight under its group heading rather than going through
+  // labelled(), so it needs its name spelled out.
+  sel.setAttribute('aria-label', t('rail.scenario'));
   for (const sc of scenarios) sel.append(option(sc.id, pick(sc.name)));
   sel.addEventListener('change', () => set(applyScenario(byId(sel.value))));
   refs.scenario = sel;
@@ -270,7 +273,11 @@ function setVal(input, v) {
 function labelled(name, output, control) {
   const row = h('div', 'rail-row');
   const top = h('div', 'rail-row-head');
-  top.append(h('span', 'rail-sublabel', name));
+  // A real <label for>, not a span: otherwise a screen reader announces these
+  // as unnamed sliders, and clicking the caption does nothing.
+  const cap = h('label', 'rail-sublabel', name);
+  if (control.id) cap.htmlFor = control.id;
+  top.append(cap);
   if (output) top.append(output);
   row.append(top, control);
   return row;

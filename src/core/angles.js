@@ -27,14 +27,10 @@ export function norm180(a) {
   return r > 180 ? r - 360 : r;
 }
 
-/** Shortest signed difference b - a, wrapped to (-180, 180]. */
-export const delta180 = (a, b) => norm180(b - a);
-
 // --- Nautical units -------------------------------------------------------
 // One minute of arc on a great circle is one nautical mile, by definition.
 
 export const degToNm = (d) => d * 60;
-export const nmToDeg = (nm) => nm / 60;
 /** East-west distance made good for a change of longitude at a given latitude. */
 export const departureNm = (dLonDeg, latDeg) => dLonDeg * 60 * cosd(latDeg);
 
@@ -50,8 +46,6 @@ let sep = '.';
 export function setDecimalSeparator(s) {
   sep = s === ',' ? ',' : '.';
 }
-
-export const getDecimalSeparator = () => sep;
 
 const fixed = (v, places) => v.toFixed(places).replace('.', sep);
 

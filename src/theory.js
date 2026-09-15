@@ -3,6 +3,7 @@
 // be shown again with the figures from the sight currently on the timeline.
 
 import { fmtAngle, fmtNumber, cosd, sind, degToNm } from './core/angles.js';
+import { NM_PER_CLOCK_SECOND } from './core/horizon.js';
 import { fmtClock, daysBetween } from './core/time.js';
 import { fLon } from './ui/format.js';
 
@@ -376,7 +377,7 @@ export const theory = [
       {
         k: 'sub',
         fn: (d, s) =>
-          `1\\,\\text{s} \\rightarrow ${N(0.25 * cosd(s.lat), 3)}\\,\\text{nm} \\qquad 1\\,\\text{min} \\rightarrow ${N(15 * cosd(s.lat), 1)}\\,\\text{nm} \\qquad 1\\,\\text{h} \\rightarrow ${Math.round(900 * cosd(s.lat))}\\,\\text{nm}`,
+          `1\\,\\text{s} \\rightarrow ${N(NM_PER_CLOCK_SECOND * cosd(s.lat), 3)}\\,\\text{nm} \\qquad 1\\,\\text{min} \\rightarrow ${N(15 * cosd(s.lat), 1)}\\,\\text{nm} \\qquad 1\\,\\text{h} \\rightarrow ${Math.round(900 * cosd(s.lat))}\\,\\text{nm}`,
       },
       {
         k: 'note',

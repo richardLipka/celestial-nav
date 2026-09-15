@@ -10,7 +10,7 @@ passage and watch the two errors behave completely differently).
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 87 tests
+npm test         # vitest, 88 tests
 npm run test:watch
 ```
 
@@ -195,6 +195,14 @@ figures.
 - The dictionary-parity test cannot catch an untranslated **value**, only a
   missing key. Python's `str.replace` hits every occurrence, which is how the
   English `s/day` once landed in the Czech dictionary under the right key.
+- A caption beside a control must be a `<label for>`, not a `<span>`. Thirteen
+  sliders once had visible names and no programmatic ones, so a screen reader
+  announced every one of them as an unnamed slider. `labelled()` in `rail.js`
+  and `field()` in `voyage.js` both wire it; anything appended outside them
+  needs its own `aria-label`.
+- Every switch must reach every tab. `useEoT` was hardcoded on inside
+  `simulateVoyage`, so turning the almanac off changed the simulation and left
+  the passage untouched.
 
 ## Testing
 

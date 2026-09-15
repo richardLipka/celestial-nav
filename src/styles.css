@@ -428,6 +428,7 @@ svg .gauge-note { fill: var(--c-time); }
 .rail-row { display: flex; flex-direction: column; gap: 3px; }
 .rail-row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .rail-sublabel { font-size: 0.74rem; color: var(--ink-3); }
+label.rail-sublabel { cursor: pointer; }
 .rail-value { font-family: 'IBM Plex Mono', monospace; font-size: 0.76rem; color: var(--ink); }
 .rail-value.phi { color: var(--c-phi); }
 .rail-value.clock { color: var(--ink-2); }

@@ -109,13 +109,14 @@ Each sight carries a reading error of a few tenths of a minute of arc, drawn
 once and kept with it (switchable in the rail). This matters more than it
 sounds: with *perfect* readings a parabola finds the vertex of a flat curve
 exactly, and the central problem of the noon sight disappears. With half a
-minute of noise it comes straight back. From a twelve-sight day at Jamaica:
+minute of noise it comes straight back. From the twelve-sight day at Jamaica
+in `sights.test.js`, which fixes the noise so the figures reproduce:
 
 | | error |
 |---|---|
 | latitude, from the fitted peak | 0.28′ |
 | longitude, from the time of the highest sight | **14.2 nm** |
-| longitude, by equal altitudes | 0.6 nm |
+| longitude, by equal altitudes | 0.4 nm |
 
 Same sextant, same sun, same chronometer — only a better way of asking when
 noon was. Both numbers are on screen at once, as two bars.

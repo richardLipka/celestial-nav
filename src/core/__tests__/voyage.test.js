@@ -122,6 +122,19 @@ describe('the passage', () => {
   });
 });
 
+describe('the almanac', () => {
+  it('reaches the passage, like every other switch', () => {
+    // Sailing across early November, when the equation of time is at its worst:
+    // dropping it should cost the passage dearly, and once did not, because the
+    // voyage had it hardcoded on.
+    const november = { departureDate: fromParts(1765, 11, 1) };
+    const on = Math.abs(passage({ ...november, useEoT: true }).error.lonNm);
+    const off = Math.abs(passage({ ...november, useEoT: false }).error.lonNm);
+    expect(on).toBeLessThan(5);
+    expect(off).toBeGreaterThan(100);
+  });
+});
+
 describe('when the sun will not oblige', () => {
   it('falls back to dead reckoning on a day with no usable sight', () => {
     // North of the Arctic circle in December there is no noon sight at all.

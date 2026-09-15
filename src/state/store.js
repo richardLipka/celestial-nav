@@ -128,7 +128,7 @@ function runVoyage(s, opt) {
   const v = s.voyage;
   const key = [
     v.routeId, v.speedKts, v.driftKts, v.setDeg, v.steeringBiasDeg, v.carryChronometer, v.seed,
-    +s.departureDate, s.clockErrorSec, s.clockRateSecPerDay,
+    +s.departureDate, s.clockErrorSec, s.clockRateSecPerDay, s.useEoT,
   ].join('|');
   if (voyageCache.key === key) return voyageCache.value;
 
@@ -144,6 +144,7 @@ function runVoyage(s, opt) {
     setDeg: v.setDeg,
     steeringBiasDeg: v.steeringBiasDeg,
     carryChronometer: v.carryChronometer,
+    useEoT: s.useEoT,
     clockErrorSec: s.clockErrorSec,
     clockRateSecPerDay: s.clockRateSecPerDay,
     seed: v.seed,
@@ -267,5 +268,3 @@ function derive(s) {
   };
 }
 
-/** Seconds-of-day for local apparent noon, for the timeline handle. */
-export const lanSecond = (d) => (d.lan - state.date) / 1000;
