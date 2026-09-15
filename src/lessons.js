@@ -17,6 +17,12 @@ const ensureSights = (store, hours) => {
   for (const hr of hours) store.addSight(new Date(d.lan.getTime() + hr * 3600000));
 };
 
+/** Make sure there is a round of lunars to talk about. */
+const ensureLunars = (store) => {
+  if (store.get().lunar.sights.length) return;
+  if (store.get().lunar.usable.ok) store.addLunarRound();
+};
+
 /** Put the passage on a known footing, so a step can quote a real figure. */
 const ensureVoyage = (store, carryChronometer) => {
   store.applyRoute('trades');
@@ -204,6 +210,50 @@ export const lessons = [
         text: {
           en: 'Without one, the ship never finds the island. Look where it ends up: on very nearly the right parallel, and hundreds of miles along it. The noon sight fixed the latitude every single day of the passage and could do nothing whatever about the longitude. That is the problem, and a clock is the answer to it.',
           cs: 'Bez něj loď ostrov nikdy nenajde. Podívejte, kde skončí: skoro přesně na správné rovnoběžce a stovky mil podél ní. Polední měření určilo šířku každý jediný den plavby a s délkou nezmohlo vůbec nic. To je ten problém — a hodiny jsou odpověď na něj.',
+        },
+      },
+    ],
+  },
+
+  // =====================================================================
+  {
+    id: 'lunars',
+    title: { en: 'The clock in the sky', cs: 'Hodiny na obloze' },
+    blurb: {
+      en: 'The other answer to the longitude — the one that almost worked.',
+      cs: 'Druhá odpověď na problém délky — ta, která skoro fungovala.',
+    },
+    steps: [
+      {
+        state: { scenario: 'jamaica', clockErrorSec: 0, clockRateSecPerDay: 0, lunarSights: [] },
+        tab: 'lunars', panel: 'p-lunsky',
+        text: {
+          en: 'Suppose you have no chronometer at all. There is still a clock overhead: the moon moves its own width against the background every hour, so the angle between the moon and the sun is a function of absolute time — the same function for every ship on Earth. Measure that angle and the almanac tells you the hour at Greenwich.',
+          cs: 'Dejme tomu, že nemáte vůbec žádný chronometr. Přesto máte hodiny nad hlavou: Měsíc se za hodinu posune proti pozadí o svůj vlastní průměr, takže úhel mezi Měsícem a Sluncem je funkcí absolutního času — a je to tatáž funkce pro každou loď na světě. Změřte ten úhel a ročenka vám řekne, kolik je v Greenwichi.',
+        },
+      },
+      {
+        tab: 'lunars', panel: 'p-lunlog',
+        act: (store) => ensureLunars(store),
+        text: {
+          en: 'A round of five has been taken. Each is three readings at once — the moon’s altitude, the sun’s, and the distance between their near limbs — which meant three observers and one voice counting. Look at the spread: the same sky, five answers, a minute apart. That scatter is the observer, and averaging is the only thing to be done about it.',
+          cs: 'Byla změřena série pěti. Každé měření jsou tři odečty naráz — výška Měsíce, výška Slunce a vzdálenost jejich přivrácených okrajů — což znamenalo tři pozorovatele a jeden hlas, který odpočítával. Podívejte se na rozptyl: tatáž obloha, pět odpovědí, minutu od sebe. Ten rozptyl je pozorovatel a jediné, co s ním jde dělat, je průměrovat.',
+        },
+      },
+      {
+        tab: 'lunars', panel: 'p-lunwork',
+        act: (store) => ensureLunars(store),
+        text: {
+          en: 'Now the reduction, and the reason lunars were dreaded. Refraction lifts both bodies; parallax drops the moon by a whole degree. Neither changes the angle at the zenith between them, and that is the hinge the clearing turns on. Notice how far the clearing moves the measured distance — and that every line of it was done in logarithms, by hand, twice.',
+          cs: 'A teď výpočet — a důvod, proč se měsíčních vzdáleností báli. Refrakce zvedá obě tělesa, paralaxa snižuje Měsíc o celý stupeň. Ani jedno nemění úhel u zenitu mezi nimi, a právě o ten se celá oprava opírá. Všimněte si, jak daleko oprava naměřenou vzdálenost posune — a že každý její řádek se počítal v logaritmech, ručně, a pro kontrolu dvakrát.',
+        },
+      },
+      {
+        tab: 'lunars', panel: 'p-luncost',
+        act: (store) => ensureLunars(store),
+        text: {
+          en: 'And here is why it lost. The moon closes on the sun at half a degree an hour, so one arcminute of error in the cleared distance is two minutes of Greenwich time and some thirty miles of longitude. A noon sight turns the same arcminute into one mile. Thirty to one, four hours of arithmetic, and a clear sky with both bodies up — against a watch you simply read.',
+          cs: 'A tady je důvod, proč prohrály. Měsíc se ke Slunci blíží o půl stupně za hodinu, takže jedna úhlová minuta chyby v opravené vzdálenosti znamená dvě minuty greenwichského času a nějakých třicet mil délky. Polední měření z téže úhlové minuty udělá jednu míli. Třicet ku jedné, čtyři hodiny počítání a jasná obloha s oběma tělesy nad obzorem — proti hodinám, na které se prostě podíváte.',
         },
       },
     ],

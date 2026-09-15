@@ -531,12 +531,19 @@ input[type='date']:focus-visible {
 .tabs-btn:last-child { border-radius: 0 4px 4px 0; border-left-width: 0; }
 .tabs-btn:hover { color: var(--ink); }
 
-@media (max-width: 460px) {
-  /* Three tab names at 20px of side padding come to 295px, wider than a small
-     phone once the gutters are off. The names are what matter, not the
-     padding. This block must stay *after* the base rule: a media query adds no
+@media (max-width: 620px) {
+  /* Tab names at 20px of side padding outrun a small phone, and trimming the
+     padding only buys so much -- "Měsíční vzdálenosti" is on its own wider
+     than two English tabs together. So let the row wrap instead, which holds
+     for any label in any language, and square off the corners because a
+     pill-shaped strip that has broken across two lines looks like a mistake.
+     This block must stay *after* the base rule: a media query adds no
      specificity, so source order is all that separates them. */
-  .tabs-btn { padding: 6px 10px; }
+  /* `.tabs` is flex-shrink: 0 by default, so the box keeps its content width
+     and wrapping never fires. It has to be allowed to narrow first. */
+  .tabs { flex-wrap: wrap; justify-content: center; gap: 0; flex-shrink: 1; max-width: 100%; }
+  .tabs-btn { padding: 6px 10px; border-radius: 3px; border-left-width: 1px; }
+  .tabs-btn:first-child, .tabs-btn:last-child { border-radius: 3px; }
 }
 .tabs-btn.active { background: var(--ink); border-color: var(--ink); color: var(--ground); }
 .tabs-btn.active + .tabs-btn { border-left-color: var(--ink); }
@@ -944,3 +951,60 @@ svg .voy-dest-text { fill: var(--c-alt); }
 /* The panel a lesson step is pointing at. */
 .panel.lit { border-color: var(--c-dec); box-shadow: 0 0 0 2px color-mix(in srgb, var(--c-dec) 28%, transparent); }
 .panel.lit .panel-hd { background: color-mix(in srgb, var(--c-dec) 10%, var(--panel)); }
+
+/* --- lunar distances ------------------------------------------------------ */
+
+.lunar-wrap { flex: 1; min-width: 0; padding: 14px; overflow-y: auto; }
+.lun {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  align-content: start;
+  max-width: 1180px;
+}
+.lun .panel { margin: 0; }
+/* The reduction is the long one -- two columns of label-and-value that wrap
+   onto each other if they are given half the width. It gets the full row. */
+.lun .p-lunwork { grid-column: 1 / -1; }
+.lun-svg { width: 100%; height: auto; display: block; }
+
+.lun-ground { fill: var(--sea, #1d3a4d); opacity: 0.22; }
+.lun-grid { stroke: var(--rule-2); stroke-width: 1; stroke-dasharray: 3 5; opacity: 0.7; }
+.lun-arc { stroke: var(--accent); stroke-width: 2; stroke-dasharray: 6 4; }
+.lun-chip { fill: var(--panel); stroke: var(--rule-2); }
+.lun-dist { fill: var(--accent); font-size: 12px; }
+.lun-moon { fill: #d9d3c4; stroke: #8b8374; stroke-width: 1; }
+
+.lun-state { margin: 10px 0 0; font-size: 0.85rem; line-height: 1.5; color: var(--ink-2); }
+.lun-state.good { color: var(--ink-2); }
+.lun-state.bad { color: var(--warn, #a8442a); }
+
+.lun-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.lun-note { margin: 10px 0 0; font-size: 0.85rem; line-height: 1.5; color: var(--ink-3); }
+.lun-table { margin-top: 10px; }
+.lun-log-table { font-size: 0.8rem; }
+.lun-spread {
+  margin: 10px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+  border-left: 3px solid var(--accent);
+  padding-left: 10px;
+}
+
+.lun-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.lun-out { margin-top: 16px; }
+.lun-lede { margin: 0 0 14px; font-size: 0.9rem; line-height: 1.6; }
+.lun-floor {
+  margin: 14px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--ink-3);
+  border-top: 1px solid var(--rule);
+  padding-top: 10px;
+}
+
+@media (max-width: 980px) {
+  .lun { grid-template-columns: 1fr; }
+  .lun-grid-2 { grid-template-columns: 1fr; }
+}

@@ -4,14 +4,15 @@ What is built, what is not, and the order worth building it in.
 
 ## Where the project stands
 
-Working and tested: the computational core, all three tabs, the sight log and
-its two reductions, the first-person sextant, four guided lessons,
-Czech/English throughout, ten Czech towns and twelve world positions, seven
-scenarios, three passages. 115 tests, 7 400 lines, no build step.
+Working and tested: the computational core, all four tabs, the sight log and
+its two reductions, the first-person sextant, lunar distances, five guided
+lessons, Czech/English throughout, ten Czech towns and twelve world positions,
+seven scenarios, three passages. 149 tests, 9 500 lines, no build step.
 
-The application demonstrates the thesis within one day, over a passage, and
-through the instrument itself. Phases 0 to 6 are done. What remains is Phase 7,
-lunar distances, which is a real piece of work and not a tidy-up.
+The application demonstrates the thesis within one day, over a passage, through
+the instrument itself, and against the one method that could have beaten the
+chronometer and did not. **Every phase on this list is done.** What remains is
+under "Ongoing, not phased".
 
 ---
 
@@ -244,22 +245,45 @@ unaided. They can.
 
 ---
 
-## Phase 7 — Lunar distances
+## Phase 7 — Lunar distances — done
 
-*Stretch. Genuinely hard, and honest about why.*
+The obstacle was the ephemeris, as expected, and it took three things rather
+than one:
 
-The moon moves half a degree an hour against the stars, so it is a clock in the
-sky — the one way to get Greenwich time without carrying it. It is also why
-lunars had to be computed to arcseconds to be worth anything, and why they lost
-to Harrison.
+- `core/moon.js` — ELP-2000/82 truncated to Meeus's 60 + 60 terms. Worst error
+  over 1700–2060 is 40 arcseconds in longitude, 8 in latitude.
+- `solarPrecise()` in `sun.js` — the readable `solar()` is half an arcminute,
+  which is seventy seconds of Greenwich time on its own and therefore not good
+  enough. The two functions sitting side by side are themselves part of the
+  explanation.
+- **Delta T**, which was not on the list and should have been. The series runs
+  on dynamical time and the ship on solar time; today they are seventy seconds
+  apart, which is forty arcseconds of moon. Ignoring it is silent and is
+  exactly the size of error the whole method cannot afford.
 
-The obstacle is the ephemeris: the sun's low-precision series is thirty lines,
-the moon's is not. Expect to need a real lunar theory (ELP truncation) or to
-accept degraded accuracy and say so on screen. `corrections.js` already has
-`parallaxInAltitude` with a horizontal-parallax argument, written for this.
+Then `core/lunars.js`: the geocentric distance, the clearing, the inversion of
+the almanac, and the error budget. Plus a fourth tab and a fifth lesson.
 
 **Done when** a lunar distance gives GMT to within a minute and the page says
-plainly how much arithmetic that cost.
+plainly how much arithmetic that cost. Measured, not asserted: one sight has a
+median error of 19 seconds, a round of five 9 seconds, and every round of five
+in the test lands inside the minute. The cost panel gives the thirty-to-one and
+names what the simulation is not modelling.
+
+### What Phase 7 turned up
+
+- **Parallax is two functions.** From the geocentric altitude down to what is
+  observed is `tan p = sin(HP) sin z / (1 − sin(HP) cos z)`; from the observed
+  altitude back up is `sin p = sin(HP) cos h'`. They are exact inverses, and
+  using either in both directions leaks 0.7 arcminutes at 45° — twenty miles
+  through a lunar. The first round-trip test failed by 57 seconds of GMT, which
+  is how this was found.
+- **Refraction has to be inverted too**, because Bennett's formula is written
+  against the altitude you see, not the one the body is really at.
+- **The simulation flatters lunars** and has to say so: the almanac that reduces
+  the sight is the one that placed the moon, so the table's own error cancels.
+  Mayer's tables were good to half an arcminute — two minutes of Greenwich time
+  — and a real lunar could not escape that.
 
 ---
 
@@ -324,5 +348,5 @@ is a claim, and claims need tests.**
 
 ## Suggested order
 
-Phases 0 to 6 are done. Phase 7, lunar distances, remains a real piece of work
-and is the only thing left on this list.
+Nothing left to order: phases 0 to 7 are done. Anything further belongs under
+"Ongoing, not phased" above.

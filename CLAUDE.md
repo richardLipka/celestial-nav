@@ -1,17 +1,18 @@
 # CLAUDE.md
 
 An interactive, bilingual (Czech/English) demonstration of why latitude falls
-out of a noon sight and longitude cannot be had without a clock. Three tabs:
+out of a noon sight and longitude cannot be had without a clock. Four tabs:
 **Theory** (derivations, MathJax, live figures), **Simulation** (you take and
-log sights yourself, through a sextant, and they feed the equations) and
+log sights yourself, through a sextant, and they feed the equations),
 **Voyage** (sail a passage and watch the two errors behave completely
-differently). Four guided lessons walk a newcomer through all three.
+differently) and **Lunars** (the other answer to the longitude, and why it
+lost). Five guided lessons walk a newcomer through all four.
 
 ## Commands
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 115 tests
+npm test         # vitest, 149 tests
 npm run test:watch
 ```
 
@@ -145,6 +146,68 @@ Two rules, both learned the hard way:
   now walks each lesson through the real store and checks the figures its text
   quotes.
 
+## Lunar distances
+
+The moon moves its own width against the background in an hour, so the angle
+between the moon and the sun is a function of absolute time and of nothing
+else. That is a clock, and it is the only one a ship could have without
+carrying one. `core/lunars.js` is the method; the tab is why it lost.
+
+**The ratio the whole tab hangs on.** The moon closes on the sun at about
+0.51 degrees an hour, so one arcminute of error in the cleared distance is two
+minutes of Greenwich time and thirty sea miles of longitude. A noon sight
+turns the same arcminute into one mile. Every other decision here follows from
+that thirty-to-one, and `costOfError()` computes it from the live rate rather
+than quoting the mean.
+
+### Precision, and why it is different here
+
+Nothing else in the program needs better than half an arcminute. This does.
+Three things follow, and none of them may be quietly undone:
+
+- **`core/moon.js`** is ELP-2000/82 truncated to Meeus's 60 + 60 terms. It is
+  long because there is no short lunar theory; the tables *are* the file.
+  Worst error over 1700–2060 is under 40 arcseconds in longitude, 8 in
+  latitude, checked against `astronomy-engine` in `lunars.test.js`.
+- **`solarPrecise()`** in `sun.js` exists beside `solar()`, which stays as the
+  readable half-arcminute version everything else uses. The difference between
+  them is the arithmetic a lunar costs and a noon sight does not, and the test
+  asserts the ratio rather than just the accuracy.
+- **Delta T.** The ephemeris runs on dynamical time, a sextant on solar time,
+  and they are seventy seconds apart today. Seventy seconds of moon is forty
+  arcseconds — a minute of Greenwich time. `time.js` has the Espenak–Meeus
+  fits; `lunar()` converts, and it is the only place that does.
+
+Nutation (`core/nutation.js`) goes on the moon *and* the sun or neither: an
+angle between two bodies is unchanged by turning the frame they are measured
+in, so applying it to one alone would invent an error rather than remove one.
+
+### Clearing the distance
+
+Refraction lifts both bodies toward the zenith; parallax drops the moon away
+from it by a degree. Both act along the vertical circle, so neither changes the
+**angle at the zenith** between the two bodies — and eliminating that common
+angle between the apparent triangle and the true one is the whole method.
+`clearDistance()` is exact; there is no small-angle assumption in it.
+
+**Parallax has two formulas and they are not the same function.** Going down
+from the geocentric altitude needs `parallaxFromGeocentric()`; coming back up
+from what was observed needs `parallaxExact()`. They are exact inverses of each
+other, and using either one in both directions leaks most of an arcminute —
+which is half a minute of Greenwich time. The round-trip test exists precisely
+to catch that: observe with no error at all, reduce, and the instant must come
+back to within a second.
+
+### What a lunar actually yields
+
+Not "the time now" — each sight gives the Greenwich time of the instant it was
+taken. What is constant across a log is the *watch's error*, so that is what
+the store averages. A lunar does not replace the chronometer; it rates it.
+
+And the simulation flatters it: the almanac that reduces the sight is the same
+one that placed the moon, so the table's own error cancels exactly and never
+appears. A real lunar carried it. The cost panel says so, in both languages.
+
 ## Conventions
 
 - **North-positive latitude, east-positive longitude, everywhere in `core/`.**
@@ -251,6 +314,18 @@ figures.
 - SVG labels need real vertical separation, not four pixels. The gauge had `Az`
   at y=96 and its note at y=100; the note won and the azimuth was unreadable.
   When adding a row to a figure, grow the `viewBox` rather than squeezing.
+- An ephemeris wants dynamical time and everything else wants UT. Feeding UT
+  straight in is silent, and for the moon it is forty arcseconds — the exact
+  size that matters. `lunar()` converts; nothing else should.
+- Parallax from the geocentric altitude and parallax from the observed one are
+  different functions. Confusing them is worth 0.7 arcminutes at 45 degrees,
+  which is twenty sea miles through a lunar.
+- `.tabs` is `flex-shrink: 0`, so `flex-wrap` alone will not wrap it — the box
+  keeps its content width and never gets narrow enough. It needs
+  `flex-shrink: 1` first. Czech tab names are long enough to need this.
+- `.wu-row` does not exist. The work-up rows are a `<dl class="wu-rows">` with
+  `dt`/`dd`, which is a two-column grid that keeps a long wrapped label from
+  dragging its value along. Reuse it rather than inventing a parallel one.
 
 ## Testing
 
@@ -270,10 +345,15 @@ prose is worth pinning too.
   tests; it imports only pure things (`applyStep`, `verdict`).
 - `tex.test.js` — the TeX escaping trap, checked in the source *and* in the
   built strings.
+- `lunars.test.js` — the moon, the precise sun and delta T against
+  `astronomy-engine`; the clearing proved by round trip; the thirty-to-one
+  amplification measured rather than asserted; and the claim that a lunar gives
+  the same Greenwich time from five different places on Earth, which is the
+  whole method stated as a test.
 
 When changing anything in `core/`, run the suite before touching a view.
 
 ## Roadmap
 
-[ROADMAP.md](ROADMAP.md) has what remains. Phases 0 to 6 are done; Phase 7
-(lunar distances) is the only item left, and it is a real piece of work.
+[ROADMAP.md](ROADMAP.md) is now a record rather than a plan: phases 0 to 7 are
+all done. What is left is listed there under "Ongoing, not phased".

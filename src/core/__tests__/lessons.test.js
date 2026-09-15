@@ -45,10 +45,16 @@ describe('every lesson step', () => {
       for (const [i, step] of l.steps.entries()) {
         applyStep(store, l.id, i);
         if (step.asks) continue; // this one is asking the reader to fill it
-        if (step.panel !== 'p-log' && step.panel !== 'p-workup') continue;
         const d = store.get();
-        expect(d.observations.length, `${l.id}[${i}] points at an empty log`).toBeGreaterThan(0);
-        expect(d.logResult.stage, `${l.id}[${i}] has nothing worked up`).not.toBe('none');
+        if (step.panel === 'p-log' || step.panel === 'p-workup') {
+          expect(d.observations.length, `${l.id}[${i}] points at an empty log`).toBeGreaterThan(0);
+          expect(d.logResult.stage, `${l.id}[${i}] has nothing worked up`).not.toBe('none');
+        }
+        // The lunar panels are the same promise about a different log.
+        if (step.panel === 'p-lunlog' || step.panel === 'p-lunwork' || step.panel === 'p-luncost') {
+          expect(d.lunar.sights.length, `${l.id}[${i}] points at an empty lunar log`).toBeGreaterThan(0);
+          expect(d.lunar.gmt, `${l.id}[${i}] has no Greenwich time to show`).toBeTruthy();
+        }
       }
     }
   });
@@ -169,5 +175,24 @@ describe('the sentence the work-up ends on', () => {
       }
     }
     for (const k of keys) for (const lang of LANGS) expect(dictionaries[lang][k], `${lang}.${k}`).toBeTruthy();
+  });
+});
+
+describe('the lunars lesson', () => {
+  it('ends up with a Greenwich time good to the minute it promises', () => {
+    const d = walk('lunars');
+    expect(d.lunar.sights.length, 'a round was taken').toBeGreaterThan(1);
+    expect(Math.abs(d.lunar.errorSec), 'seconds of GMT').toBeLessThan(60);
+  });
+
+  it('quotes the thirty-to-one it claims in its last step', () => {
+    const d = walk('lunars');
+    // "one arcminute ... some thirty miles of longitude", against one mile
+    // for a noon sight. The figure moves with the moon's rate, so allow the
+    // range the rate actually spans rather than a single number.
+    expect(Math.abs(d.lunar.cost.nm)).toBeGreaterThan(20);
+    expect(Math.abs(d.lunar.cost.nm)).toBeLessThan(45);
+    expect(d.lunar.cost.minutesOfTime).toBeGreaterThan(1.5);
+    expect(d.lunar.cost.minutesOfTime).toBeLessThan(3);
   });
 });

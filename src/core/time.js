@@ -11,6 +11,58 @@ export const julianDay = (date) => date.getTime() / MS_DAY + 2440587.5;
 
 export const daysFromJ2000 = (date) => julianDay(date) - J2000;
 
+/** Julian centuries of 36525 days from J2000 — the argument every long series wants. */
+export const julianCenturies = (date) => daysFromJ2000(date) / 36525;
+
+/**
+ * Delta T: dynamical time minus universal time, in seconds.
+ *
+ * Two different clocks, and the difference between them is not a constant.
+ * UT is the Earth's rotation, which is irregular and slowing; dynamical time
+ * is the uniform time the equations of motion actually run on. An ephemeris
+ * is a function of the second, a sextant sight of the first.
+ *
+ * It matters here because of the moon. The sun moves 2.5 arcseconds a minute
+ * and a minute of Delta T is invisible; the moon moves 33 arcminutes an hour,
+ * so a minute of it puts the moon half an arcminute out of place — and a
+ * lunar distance is read to a tenth of that.
+ *
+ * Polynomial fits from Espenak and Meeus, covering 1600 to 2150. Nobody
+ * measured Delta T before it was measured; for the eighteenth century these
+ * are reconstructions from eclipse records and are themselves uncertain by
+ * seconds, which is worth knowing when reading a lunar taken in 1765.
+ */
+export function deltaT(date) {
+  const y = date.getUTCFullYear() + (date.getUTCMonth() + 0.5) / 12;
+  const p = (t, ...c) => c.reduce((acc, k, i) => acc + k * t ** i, 0);
+
+  if (y < 1600) {
+    const u = (y - 1820) / 100;
+    return -20 + 32 * u * u;
+  }
+  if (y < 1700) return p(y - 1600, 120, -0.9808, -0.01532, 1 / 7129);
+  if (y < 1800) return p(y - 1700, 8.83, 0.1603, -0.0059285, 0.00013336, -1 / 1174000);
+  if (y < 1860) {
+    return p(y - 1800, 13.72, -0.332447, 0.0068612, 0.0041116, -0.00037436,
+      0.0000121272, -0.0000001699, 0.000000000875);
+  }
+  if (y < 1900) return p(y - 1860, 7.62, 0.5737, -0.251754, 0.01680668, -0.0004473624, 1 / 233174);
+  if (y < 1920) return p(y - 1900, -2.79, 1.494119, -0.0598939, 0.0061966, -0.000197);
+  if (y < 1941) return p(y - 1920, 21.20, 0.84493, -0.076100, 0.0020936);
+  if (y < 1961) return p(y - 1950, 29.07, 0.407, -1 / 233, 1 / 2547);
+  if (y < 1986) return p(y - 1975, 45.45, 1.067, -1 / 260, -1 / 718);
+  if (y < 2005) {
+    return p(y - 2000, 63.86, 0.3345, -0.060374, 0.0017275, 0.000651814, 0.00002373599);
+  }
+  if (y < 2050) return p(y - 2000, 62.92, 0.32217, 0.005589);
+  if (y < 2150) return -20 + 32 * ((y - 1820) / 100) ** 2 - 0.5628 * (2150 - y);
+  const u = (y - 1820) / 100;
+  return -20 + 32 * u * u;
+}
+
+/** The same instant, as the dynamical time an ephemeris wants. */
+export const terrestrialTime = (date) => new Date(date.getTime() + deltaT(date) * 1000);
+
 /** Hours elapsed since UTC midnight, as a real number. */
 export const utcHours = (date) =>
   date.getUTCHours() +

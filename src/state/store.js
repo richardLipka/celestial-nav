@@ -13,6 +13,11 @@ import {
 } from '../core/sights.js';
 import { simulateVoyage, planPassage } from '../core/voyage.js';
 import { routeById } from '../routes.js';
+import {
+  apparentGeometry, observeLunar, reduceLunar, usable as lunarUsable,
+  distanceRate, longitudeFromLunar, costOfError,
+} from '../core/lunars.js';
+import { solarPrecise } from '../core/sun.js';
 import { byId as scenarioById, applyScenario } from '../scenarios.js';
 
 const listeners = new Set();
@@ -39,6 +44,8 @@ export const state = {
   theoryView: { lat: 28, lon: 150 },
   lesson: null,                    // id of the running lesson, or null
   lessonStep: 0,
+  lunarSights: [],                 // { id, t, jitter } -- the lunars taken
+  lunarAverage: true,              // work up the mean of the log, as one would
   skyView: 'dome',                 // 'dome' for the geometry, 'sextant' for the instrument
   sextant: { armDeg: 0, roll: false },
   voyage: {
@@ -69,7 +76,13 @@ export function set(patch) {
     ('lat' in patch && patch.lat !== state.lat) ||
     ('lon' in patch && patch.lon !== state.lon);
   Object.assign(state, patch);
-  if (moved) state.sights = [];
+  if (moved) {
+    state.sights = [];
+    // A lunar records only the instant; its three readings are recomputed from
+    // wherever the ship now is. Keeping the log across a move would silently
+    // rewrite what the navigator saw.
+    state.lunarSights = [];
+  }
   render();
 }
 
@@ -122,6 +135,55 @@ export function removeSight(id) {
 
 export function clearSights() {
   state.sights = [];
+  render();
+}
+
+// --- lunars ----------------------------------------------------------------
+// A lunar is three simultaneous readings, not one, so its reading error is
+// three independent draws. The distance is the one that matters: the other two
+// only enter through the clearing, where they are worth a tenth as much.
+
+let nextLunarId = 1;
+
+export function addLunar(at) {
+  const t = at ?? derived.now;
+  if (state.lunarSights.some((g) => Math.abs(g.t - t) < 1000)) return false;
+  state.lunarSights = [
+    ...state.lunarSights,
+    {
+      id: nextLunarId++,
+      t: new Date(t),
+      jitter: { moonMin: drawJitter(), sunMin: drawJitter(), distMin: drawJitter() },
+    },
+  ];
+  render();
+  return true;
+}
+
+/**
+ * A round of sights: several in quick succession, to be averaged.
+ *
+ * This is not a convenience, it is the practice. One lunar carries the
+ * observer's reading error whole; five carry it divided by the root of five,
+ * and the twenty minutes they take is nothing beside the four hours of
+ * arithmetic waiting at the other end.
+ */
+export function addLunarRound(count = 5, spacingMin = 3) {
+  const start = derived.now.getTime();
+  let added = 0;
+  for (let i = 0; i < count; i++) {
+    if (addLunar(new Date(start + i * spacingMin * 60000))) added++;
+  }
+  return added;
+}
+
+export function removeLunar(id) {
+  state.lunarSights = state.lunarSights.filter((g) => g.id !== id);
+  render();
+}
+
+export function clearLunars() {
+  state.lunarSights = [];
   render();
 }
 
@@ -264,8 +326,63 @@ function derive(s) {
           { useEoT: s.useEoT });
   const crossError = cross.fix ? fixError(cross.fix, truth) : null;
 
+  // --- the lunar distance -------------------------------------------------
+  // Same split as the sight log: the geometry knows where the ship is, the
+  // reduction does not -- and here it does not even need to, which is the
+  // whole point of the method.
+  const lunarGeom = apparentGeometry(now, truth, s.eyeHeightM);
+  const lunarOk = lunarUsable(now, truth);
+  const lunarObs = s.lunarSights.map((g) =>
+    Object.assign(
+      observeLunar(g.t, truth, opt, errorAt(g.t), s.sextantNoise ? g.jitter : {}),
+      { id: g.id },
+    ),
+  );
+  const lunarWorkups = lunarObs.map((o) => ({ sight: o, r: reduceLunar(o) }));
+  const solved = lunarWorkups.filter((w) => w.r.gmt);
+
+  // What a lunar actually yields is not "the time now" -- each sight gives the
+  // Greenwich time of the instant *it* was taken. What is constant across the
+  // log is the watch's error, so that is what gets averaged. A lunar does not
+  // replace the chronometer; it rates it, which is what they were for.
+  const errors = solved.map((w) => w.r.watchErrorSec);
+  const meanWatchError = errors.length
+    ? errors.reduce((a, b) => a + b, 0) / errors.length
+    : null;
+  // Averaging is not a trick, it is the method: the reading error is random
+  // and the ephemeris error is not, so a run of sights beats one sight by the
+  // square root of their number and then stops improving.
+  const usedWatchError = s.lunarAverage ? meanWatchError : errors.length ? errors[errors.length - 1] : null;
+
+  const spreadSec = errors.length > 1 ? Math.max(...errors) - Math.min(...errors) : null;
+
+  // Correct the watch by what the lunar says, and that is Greenwich time.
+  const usedGmt = usedWatchError === null
+    ? null
+    : new Date(now.getTime() + clockErrorSec * 1000 - usedWatchError * 1000);
+
+  // Local apparent time is the other half, and it comes from the sun in the
+  // ordinary way -- the lunar alone is a clock, never a position.
+  const localApparentHours = (utcHours(now) + (solarPrecise(now).eotDeg + s.lon) / 15 + 24) % 24;
+  const lunarLon = usedGmt ? longitudeFromLunar(usedGmt, localApparentHours, s.useEoT) : null;
+
   return {
     opt,
+    lunar: {
+      geom: lunarGeom,
+      usable: lunarOk,
+      rate: distanceRate(now),
+      sights: lunarObs,
+      workups: lunarWorkups,
+      gmt: usedGmt,
+      watchErrorSec: usedWatchError,
+      meanWatchError,
+      spreadSec,
+      errorSec: usedGmt ? (usedGmt - now) / 1000 : null,
+      lon: lunarLon,
+      lonErrorNm: lunarLon === null ? null : norm180(lunarLon - s.lon) * 60 * Math.cos((s.lat * Math.PI) / 180),
+      cost: costOfError(1, now, s.lat),
+    },
     voyage: runVoyage(s, opt),
     clockErrorSec, // the effective error now, not the departure figure
     errorAt,

@@ -4,13 +4,14 @@ An interactive demonstration of why a ship can find its latitude with a brass
 arc and a clear horizon, and why it cannot find its longitude without a clock
 that has kept Greenwich time across an ocean.
 
-Three tabs: **Theory**, which derives both reductions from the navigational
+Four tabs: **Theory**, which derives both reductions from the navigational
 triangle with the equations typeset by MathJax; **Simulation**, where you bring
 the sun down to the horizon through a sextant, log the sight, and watch it feed
-the equations; and **Voyage**, where you sail a passage and watch the two
-errors behave completely differently.
+the equations; **Voyage**, where you sail a passage and watch the two errors
+behave completely differently; and **Lunars**, the other answer to the
+longitude — the moon as a clock in the sky — and a demonstration of why it lost.
 
-Four **guided lessons** walk through it from the top — pick one in the rail and
+Five **guided lessons** walk through it from the top — pick one in the rail and
 it sets the controls for you, step by step, in either language.
 
 Bilingual: **čeština / English**, switched with the CZ/EN buttons at the top
@@ -253,12 +254,35 @@ time extremes, the standard dip and refraction figures, and the two reductions
 themselves. Sights below 5° are flagged, because down there the refraction
 model stops meaning anything.
 
+## The clock in the sky
+
+There was one way to get Greenwich time without carrying it. The moon moves its
+own width against the background every hour, so the angle between the moon and
+the sun is a function of absolute time — the same function for every ship on
+Earth. Measure that angle, clear it of refraction and parallax, look it up, and
+you have the hour at Greenwich.
+
+The **Lunars** tab does exactly that, and shows why nobody was sorry to stop.
+The moon closes on the sun at half a degree an hour:
+
+> One arcminute of error in the cleared distance is two minutes of Greenwich
+> time, and thirty sea miles of longitude.
+
+A noon sight turns the same arcminute into one mile of latitude. Thirty to one,
+four hours of logarithms, three observers reading at once, and a sky with both
+bodies well up — against a watch you simply read. That is the whole argument
+for Harrison, in one ratio.
+
+It needs a much better almanac than anything else here: the moon to tens of
+arcseconds (a 120-term truncation of ELP-2000/82), the sun an order better than
+the readable version the rest of the program uses, and the difference between
+dynamical and universal time, which is seventy seconds today and would be a
+minute of Greenwich time on its own.
+
 ## Not built
 
-**Lunar distances** — finding Greenwich time from the moon's angular distance
-to a star, which is how a ship without a chronometer was supposed to manage.
-It needs a lunar ephemeris and a clearing formula, and it is the one substantial
-thing left. See [ROADMAP.md](ROADMAP.md).
+See [ROADMAP.md](ROADMAP.md). Every phase on it is done; what is left there is
+maintenance and polish rather than new ground.
 
 ## Contributing
 

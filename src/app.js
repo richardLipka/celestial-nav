@@ -7,6 +7,7 @@ import { createTimeline } from './views/timeline.js';
 import { createSightLog } from './views/sightlog.js';
 import { createTheory } from './views/theory.js';
 import { createVoyage } from './views/voyage.js';
+import { createLunars } from './views/lunars.js';
 import { createLessonBar, createLessonPicker } from './views/lessonbar.js';
 import { createRail } from './ui/rail.js';
 import { byId, applyScenario } from './scenarios.js';
@@ -93,6 +94,7 @@ function mount() {
   );
   const theory = createTheory(rotateGlobe('theoryView'));
   const voyage = createVoyage(store);
+  const lunars = createLunars(store);
   const rail = createRail(store);
   const lessonBar = createLessonBar(store);
   const lessonPicker = createLessonPicker(store);
@@ -110,6 +112,7 @@ function mount() {
       { id: 'theory', label: t('tab.theory') },
       { id: 'simulation', label: t('tab.simulation') },
       { id: 'voyage', label: t('tab.voyage') },
+      { id: 'lunars', label: t('tab.lunars') },
     ],
     (id) => state.tab === id,
     (id) => set({ tab: id }),
@@ -154,10 +157,20 @@ function mount() {
   const voy = h('main', 'voyage-wrap');
   voy.append(voyage.node);
 
+  // The lunars tab needs its own hands on the clock. `createTimeline` is a
+  // factory and both instances read the same store, so a second one costs
+  // nothing and keeps the two tabs in step by construction.
+  const lunarTimeline = createTimeline(
+    (sec) => set({ secondOfDay: sec }),
+    () => set({ secondOfDay: null }),
+  );
+  const lun = h('main', 'lunar-wrap');
+  lun.append(lunars.node, lunarTimeline.node);
+
   rail.node.prepend(lessonPicker.node);
 
   const body = h('div', 'body');
-  body.append(rail.node, sim, thy, voy);
+  body.append(rail.node, sim, thy, voy, lun);
   app.append(body);
 
   document.getElementById('root').replaceChildren(app);
@@ -167,6 +180,7 @@ function mount() {
     sim.hidden = tab !== 'simulation';
     thy.hidden = tab !== 'theory';
     voy.hidden = tab !== 'voyage';
+    lun.hidden = tab !== 'lunars';
     theory.setVisible(tab === 'theory');
 
     const onSextant = state.skyView === 'sextant';
@@ -195,6 +209,8 @@ function mount() {
     timeline.update(d, s);
     theory.update(d, s);
     voyage.update(d, s);
+    lunars.update(d, s);
+    lunarTimeline.update(d, s);
     rail.update(d, s);
     lessonBar.update(d, s);
     lessonPicker.update(d, s);

@@ -198,9 +198,13 @@ describe('lessons and routes', () => {
 
   it('only points lessons at scenarios, tabs and panels that exist', () => {
     const ids = new Set(scenarios.map((s) => s.id));
-    const tabs = new Set(['theory', 'simulation', 'voyage']);
+    const tabs = new Set(['theory', 'simulation', 'voyage', 'lunars']);
     const views = new Set(['dome', 'sextant']);
-    const panels = new Set(['p-sky', 'p-globe', 'p-log', 'p-workup', null, undefined]);
+    const panels = new Set([
+      'p-sky', 'p-globe', 'p-log', 'p-workup',
+      'p-lunsky', 'p-lunlog', 'p-lunwork', 'p-luncost',
+      null, undefined,
+    ]);
     for (const l of lessons) {
       for (const [i, step] of l.steps.entries()) {
         if (step.state?.scenario) expect(ids, `${l.id}[${i}]`).toContain(step.state.scenario);
