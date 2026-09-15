@@ -95,7 +95,7 @@ function draw(node, d, s) {
         : t('wu.ignored'),
       s.useEoT ? '' : 'bad',
     ],
-    [t('wu.clockError'), fClockError(s.clockErrorSec), s.clockErrorSec ? 'bad' : 'sub'],
+    [t('wu.clockError'), fClockError(Math.round(d.clockErrorSec)), d.clockErrorSec ? 'bad' : 'sub'],
     [t('wu.times15'), '', 'sub'],
   );
 

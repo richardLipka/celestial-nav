@@ -6,17 +6,21 @@ export const scenarios = [
   {
     id: 'jamaica',
     date: [1762, 1, 19],
+    departure: [1761, 11, 18], // Portsmouth, with HMS Deptford
     lat: 18.0,
     lon: -76.8,
-    clockErrorSec: 5,
+    clockErrorSec: 0,
+    clockRateSecPerDay: 5 / 62, // the five seconds it lost, spread over the passage
     name: { en: 'The Jamaica trial, 1762', cs: 'Zkouška na Jamajku, 1762' },
     note: {
       en:
-        'Harrison’s H4 came home from Jamaica having lost about five seconds in eighty-one days. ' +
-        'Five seconds is what the clock is out by here. Run it up and see how little margin there was.',
+        'Harrison’s H4 lost about five seconds on the passage to Jamaica — not because it kept perfect ' +
+        'time, but because its rate was steady enough to be known and corrected for. Here that residue is a rate ' +
+        'of a twelfth of a second a day, accumulating since Portsmouth. Run it up and see how little margin there was.',
       cs:
-        'Harrisonovy hodiny H4 se vrátily z Jamajky se ztrátou asi pěti sekund za jedenaosmdesát dní. ' +
-        'O pět sekund se tu hodiny mýlí. Zvyšte chybu a uvidíte, jak málo prostoru ve skutečnosti bylo.',
+        'Harrisonovy hodiny H4 ztratily na plavbě na Jamajku asi pět sekund — ne proto, že by šly naprosto přesně, ' +
+        'ale proto, že jejich chod byl dost stálý na to, aby se dal znát a započítat. Tady je ten zbytek chodem ' +
+        'dvanáctiny sekundy denně, který se sčítá od Portsmouthu. Zvyšte ho a uvidíte, jak málo prostoru ve skutečnosti bylo.',
     },
   },
   {
@@ -69,6 +73,26 @@ export const scenarios = [
     },
   },
   {
+    id: 'act',
+    date: [1765, 6, 12],
+    departure: [1765, 5, 1], // six weeks earlier
+    lat: 13.1,
+    lon: -59.6,
+    clockErrorSec: 0,
+    clockRateSecPerDay: 120 / 42, // exactly the prize threshold, spread over the passage
+    name: { en: 'The Longitude Act’s demand', cs: 'Požadavek zákona o délce' },
+    note: {
+      en:
+        'Half a degree on a voyage to the West Indies was what £20,000 bought. Half a degree is two minutes of ' +
+        'time; over a six-week passage that is a rate of under three seconds a day. This clock keeps exactly that ' +
+        'rate, so it arrives exactly on the threshold — thirty miles out, and not a yard better.',
+      cs:
+        'Půl stupně na plavbě do Západní Indie — za to se platilo 20 000 liber. Půl stupně jsou dvě minuty času; ' +
+        'na šestitýdenní plavbě to znamená chod necelé tři sekundy denně. Tyhle hodiny jdou přesně tímto chodem, ' +
+        'takže doplují přesně na hranici — třicet mil vedle, ani o stopu lépe.',
+    },
+  },
+  {
     id: 'latsail',
     date: [1700, 5, 12],
     lat: 25,
@@ -106,9 +130,12 @@ export const byId = (id) => scenarios.find((s) => s.id === id) || scenarios[0];
 
 export function applyScenario(sc) {
   const [y, m, d] = sc.date;
+  const dep = sc.departure ?? sc.date;
   return {
     scenario: sc.id,
     date: new Date(Date.UTC(y, m - 1, d)),
+    departureDate: new Date(Date.UTC(dep[0], dep[1] - 1, dep[2])),
+    clockRateSecPerDay: sc.clockRateSecPerDay ?? 0,
     lat: sc.lat,
     lon: sc.lon,
     clockErrorSec: sc.clockErrorSec ?? 0,

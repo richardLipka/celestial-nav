@@ -47,6 +47,27 @@ export function fmtHours(h) {
   return `${neg ? '−' : ''}${p2(hh)}:${p2(Math.floor(t / 60))}:${p2(t % 60)}`;
 }
 
+/** Days elapsed between two instants, as a real number. */
+export const daysBetween = (a, b) => (b - a) / MS_DAY;
+
+/**
+ * What a chronometer reads, minus the truth, at a given instant.
+ *
+ * A chronometer is not judged by whether it is right. It is judged by whether
+ * its rate is constant: you have it rated ashore, you apply that known rate at
+ * sea, and what is left over is the part of the rate you did not know about.
+ * `rateSecPerDay` is that residue, positive when the watch gains.
+ *
+ *     error(t) = errorAtDeparture + rate * (t - departure)
+ *
+ * Before departure the watch is still on the bench being rated, so the days
+ * are clamped at zero rather than running backwards.
+ */
+export function chronometerError(departure, at, errorAtDepartureSec = 0, rateSecPerDay = 0) {
+  const days = Math.max(0, daysBetween(departure, at));
+  return errorAtDepartureSec + rateSecPerDay * days;
+}
+
 /**
  * A signed clock error, in the way a rate certificate would state it.
  * `words` carries the three localised terms, so this file stays language-free.

@@ -3,7 +3,7 @@
 import { fmtNumber } from '../core/angles.js';
 import { fmtDate } from '../core/time.js';
 import { t, pick } from '../i18n.js';
-import { fLat, fLon, fClockError } from './format.js';
+import { fLat, fLon, fClockError, fRate } from './format.js';
 import { scenarios, byId, applyScenario } from '../scenarios.js';
 import { places, GROUPS, placeById, findPlace, applyPlace } from '../places.js';
 
@@ -54,6 +54,11 @@ function check(id, label, checked, onChange) {
 // whole lesson lives -- get most of the travel.
 const posToSec = (p) => Math.round(Math.sign(p) * (Math.abs(p) / 100) ** 3 * 1800);
 const secToPos = (s) => Math.sign(s) * Math.cbrt(Math.abs(s) / 1800) * 100;
+
+// The rate slider is cubic too, because the interesting range is below one
+// second a day: H4 held a twelfth, and the Longitude Act asked for under three.
+const posToRate = (p) => Math.sign(p) * (Math.abs(p) / 100) ** 3 * 30;
+const rateToPos = (r) => Math.sign(r) * Math.cbrt(Math.abs(r) / 30) * 100;
 
 export function createRail(store) {
   const { state, set, setIn } = store;
@@ -127,12 +132,37 @@ export function createRail(store) {
     onInput: (p) => set({ clockErrorSec: posToSec(p) }),
   });
   refs.clock.classList.add('clock-slider');
+  refs.rateVal = h('output', 'rail-value clock');
+  refs.rate = slider('clock-rate', {
+    min: -100, max: 100, step: 1, value: rateToPos(state.clockRateSecPerDay),
+    onInput: (p) => set({ clockRateSecPerDay: posToRate(p) }),
+  });
+  refs.rate.classList.add('clock-slider');
+
+  const depIn = document.createElement('input');
+  depIn.type = 'date';
+  depIn.id = 'departure';
+  depIn.className = 'rail-date';
+  depIn.addEventListener('change', () => {
+    const [y, m, d] = depIn.value.split('-').map(Number);
+    if (y) set({ departureDate: new Date(Date.UTC(y, m - 1, d)) });
+  });
+  refs.departure = depIn;
+  refs.accum = h('p', 'rail-accum');
+
   const reset = h('button', 'rail-reset', t('rail.setRight'));
   reset.type = 'button';
-  reset.addEventListener('click', () => set({ clockErrorSec: 0 }));
+  reset.addEventListener('click', () => set({ clockErrorSec: 0, clockRateSecPerDay: 0 }));
   const eot = check('use-eot', t('rail.useEot'), state.useEoT, (v) => set({ useEoT: v }));
   refs.eot = eot.input;
-  gClock.append(labelled(t('rail.error'), refs.clockVal, refs.clock), reset, eot.row);
+  gClock.append(
+    labelled(t('rail.error'), refs.clockVal, refs.clock),
+    labelled(t('rail.rate'), refs.rateVal, refs.rate),
+    labelled(t('rail.departure'), null, depIn),
+    refs.accum,
+    reset,
+    eot.row,
+  );
   node.append(gClock);
 
   // --- the sextant --------------------------------------------------------
@@ -201,6 +231,20 @@ export function createRail(store) {
       setVal(refs.clock, secToPos(s.clockErrorSec));
       refs.clockVal.textContent = fClockError(s.clockErrorSec);
       refs.clockVal.classList.toggle('bad', s.clockErrorSec !== 0);
+
+      setVal(refs.rate, rateToPos(s.clockRateSecPerDay));
+      refs.rateVal.textContent = fRate(s.clockRateSecPerDay);
+      refs.rateVal.classList.toggle('bad', s.clockRateSecPerDay !== 0);
+      if (document.activeElement !== refs.departure) {
+        refs.departure.value = fmtDate(s.departureDate);
+      }
+      refs.accum.textContent = t('rail.accum', {
+        // Days elapsed, not days rounded: 62 days and 17 hours is day 62.
+        days: Math.floor(d.daysOut),
+        total: fClockError(Math.round(d.clockErrorSec)),
+      });
+      refs.accum.classList.toggle('bad', Math.abs(d.clockErrorSec) >= 0.5);
+
       refs.eot.checked = s.useEoT;
 
       setVal(refs.eye, s.eyeHeightM);

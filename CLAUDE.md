@@ -9,7 +9,7 @@ and log sights yourself, and they feed the equations).
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 70 tests
+npm test         # vitest, 74 tests
 npm run test:watch
 ```
 
@@ -91,6 +91,15 @@ morning altitude. Either:
 `bestPair()` prefers an observed crossing over an interpolated one, and the
 widest span among equals. The UI labels which kind it used.
 
+### The chronometer has a rate, not an error
+
+`state.clockErrorSec` is the error **on the day it sailed**; `clockRateSecPerDay`
+is the part of its rate nobody knew about; `departureDate` is when it was last
+rated. The store derives `errorAt(instant)` from `chronometerError()` and uses
+it **per instant** — each logged sight carries the error the watch had at that
+sight. Read `d.clockErrorSec` (effective, now), never `s.clockErrorSec`
+(departure), in any view.
+
 ## Conventions
 
 - **North-positive latitude, east-positive longitude, everywhere in `core/`.**
@@ -161,6 +170,11 @@ figures.
   It is `align-items: stretch` in the narrow media query for that reason.
 - Zero belongs to no hemisphere. `fLat`/`fLon` suppress the suffix when the
   value rounds to zero, or the prime meridian reads `000° 00.0′ E`.
+- A `sub` block in the theory tab must *multiply out* at the precision it
+  displays. Rounding 42.67 days to 43 left `2.857 × 43 = 121.9` on screen.
+- The dictionary-parity test cannot catch an untranslated **value**, only a
+  missing key. Python's `str.replace` hits every occurrence, which is how the
+  English `s/day` once landed in the Czech dictionary under the right key.
 
 ## Testing
 

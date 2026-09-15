@@ -3,7 +3,7 @@
 // stay honest with each other.
 
 import { norm180 } from '../core/angles.js';
-import { MS_HOUR, utcHours, addSeconds } from '../core/time.js';
+import { MS_HOUR, utcHours, addSeconds, chronometerError, daysBetween } from '../core/time.js';
 import { solar, subsolar, decRateMinPerHour } from '../core/sun.js';
 import { horizon, sensitivity, culmination, sunEvents, diurnalArc, celestialEquator } from '../core/horizon.js';
 import { correct, uncorrect, defaultOptions } from '../core/corrections.js';
@@ -22,7 +22,9 @@ export const state = {
   lon: -76.8,
   date: new Date(Date.UTC(1762, 0, 19)),
   secondOfDay: null, // null means "snap to local apparent noon"
-  clockErrorSec: 0,
+  clockErrorSec: 0,          // the watch's error on the day it sailed
+  clockRateSecPerDay: 0,     // the part of its rate nobody knew about
+  departureDate: new Date(Date.UTC(1762, 0, 19)),
   eyeHeightM: 3,
   indexErrorMin: 0,
   limb: 'lower',
@@ -126,16 +128,23 @@ function derive(s) {
   const sky = horizon(s.lat, s.lon, now);
   const gpTrue = subsolar(now);
 
+  // The chronometer's error is not a constant: it is whatever it was on the
+  // day of departure plus the rate nobody knew about, accumulated ever since.
+  const errorAt = (when) =>
+    chronometerError(s.departureDate, when, s.clockErrorSec, s.clockRateSecPerDay);
+  const clockErrorSec = errorAt(now);
+  const daysOut = Math.max(0, daysBetween(s.departureDate, now));
+
   // What the navigator reads and reduces.
   const opt = sightOptions(s, sky.solar.sd);
   const Hs = uncorrect(sky.H, opt);
   const sight = correct(Hs, opt);
-  const gpAssumed = assumedGP(now, s.clockErrorSec, s.useEoT);
+  const gpAssumed = assumedGP(now, clockErrorSec, s.useEoT);
 
   const z = 90 - sight.Ho;
   const noon = noonWorkUp(
     { lat: s.lat, lon: s.lon, date: s.date },
-    { ...opt, clockErrorSec: s.clockErrorSec, useEoT: s.useEoT },
+    { ...opt, clockErrorSec: errorAt(lan), useEoT: s.useEoT },
   );
 
   const events = sunEvents(s.date, s.lat, s.lon);
@@ -146,7 +155,7 @@ function derive(s) {
   // the log and the almanac.
   const truth = { lat: s.lat, lon: s.lon };
   const observations = s.sights.map((g) =>
-    Object.assign(observe(g.t, truth, opt, s.clockErrorSec, s.sextantNoise ? g.jitterMin : 0), {
+    Object.assign(observe(g.t, truth, opt, errorAt(g.t), s.sextantNoise ? g.jitterMin : 0), {
       id: g.id,
     }),
   );
@@ -158,6 +167,9 @@ function derive(s) {
 
   return {
     opt,
+    clockErrorSec, // the effective error now, not the departure figure
+    errorAt,
+    daysOut,
     observations,
     logResult,
     logError,
@@ -165,7 +177,7 @@ function derive(s) {
     now,
     lan,
     isNoon: Math.abs(now - lan) < 30000,
-    clockReads: addSeconds(now, s.clockErrorSec),
+    clockReads: addSeconds(now, clockErrorSec),
     apparentTime: (utcHours(now) + (sky.solar.eotDeg + s.lon) / 15 + 24) % 24,
 
     sky,
@@ -181,7 +193,7 @@ function derive(s) {
 
     cop: circleOfPosition(gpTrue, z, 240),
     copAssumed:
-      s.clockErrorSec === 0 ? null : circleOfPosition({ lat: gpAssumed.lat, lon: gpAssumed.lon }, z, 240),
+      clockErrorSec === 0 ? null : circleOfPosition({ lat: gpAssumed.lat, lon: gpAssumed.lon }, z, 240),
     lop: lineOfPosition({ lat: s.lat, lon: s.lon }, sky.Az, 6),
 
     noon,

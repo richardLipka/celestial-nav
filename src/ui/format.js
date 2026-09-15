@@ -2,7 +2,7 @@
 // language-free and take their words as arguments; these are the wrappers the
 // views actually call.
 
-import { fmtLat, fmtLon } from '../core/angles.js';
+import { fmtLat, fmtLon, fmtNumber } from '../core/angles.js';
 import { fmtClockError } from '../core/time.js';
 import { t, latSuffix, lonSuffix } from '../i18n.js';
 
@@ -15,6 +15,13 @@ export const fLat = (deg, places = 1) =>
 
 export const fLon = (deg, places = 1) =>
   fmtLon(deg, places, zeroish(deg, places) ? ['', ''] : lonSuffix()).trimEnd();
+
+/** A chronometer's rate, in the idiom a rate certificate would use. */
+export const fRate = (secPerDay) => {
+  if (Math.abs(secPerDay) < 0.005) return t('clock.steady');
+  const word = secPerDay > 0 ? t('clock.gaining') : t('clock.losing');
+  return `${word} ${fmtNumber(Math.abs(secPerDay), 2)} ${t('unit.secPerDay')}`;
+};
 
 export const fClockError = (sec) =>
   fmtClockError(sec, {

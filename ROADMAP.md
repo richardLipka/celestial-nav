@@ -6,7 +6,7 @@ What is built, what is not, and the order worth building it in.
 
 Working and tested: the computational core, both tabs, the sight log and its
 two reductions, Czech/English throughout, ten Czech towns and twelve world
-positions, six scenarios. 70 tests, 4 900 lines, no build step.
+positions, seven scenarios. 74 tests, 5 000 lines, no build step.
 
 The application currently demonstrates the thesis **within one day**. Almost
 everything below is about demonstrating it the way it actually bit people:
@@ -50,28 +50,43 @@ Two things turned up while building it:
 
 ---
 
-## Phase 2 — Chronometer *rate*, not just error
+## Phase 2 — Chronometer *rate*, not just error — done
 
-*Small, and conceptually central: the Longitude Act was about rate stability,
-never about a clock being right on the day it sailed.*
-
-`clockErrorSec` is currently a fixed offset. A real chronometer has a **rate**
-— seconds gained or lost per day — and the error at sea is
+A chronometer is not judged by whether it is right. It is judged by whether its
+rate is constant: you have it rated ashore, you apply that known rate at sea,
+and what is left to hurt you is only the part of the rate nobody knew about.
 
 ```
-error(day) = errorAtDeparture + rate × daysSinceDeparture
+error(t) = errorAtDeparture + rate × (t − departure)
 ```
 
-- State: add `clockRateSecPerDay` and `departureDate`; derive the effective
-  error instead of reading the slider directly.
-- Rail: a second slider, and a readout in the H4 idiom ("losing 0.3 s/day").
-- Theory: one line in the Longitude section — half a degree over a six-week
-  passage is three seconds a day.
-- Scenarios: the Jamaica preset becomes *rate* 0.06 s/day over 81 days rather
-  than a flat five seconds.
+`chronometerError()` in `core/time.js`; the store derives `errorAt(instant)`
+and uses it **per instant**, so every logged sight carries the error the watch
+actually had when that sight was taken. A linear rate is well behaved under
+equal altitudes — the midpoint of two readings picks up the error at the
+midpoint — so nothing else had to change.
 
-**Done when** moving the rate slider with a departure date set moves the
-longitude and leaves the latitude alone, and `npm test` pins the accumulation.
+The rail gains a rate slider (cubic, because the interesting range is below a
+second a day), a "set and rated on" date, and a running total: *62 days out —
+the watch is now 5s fast*.
+
+Two scenarios carry it:
+
+- **Jamaica 1762** is now a rate of 0.081 s/day accumulating from Portsmouth
+  over the 62-day passage, reaching the five seconds H4 actually lost, instead
+  of a flat five seconds appearing from nowhere.
+- **The Longitude Act's demand** is new: six weeks out at 2.857 s/day, which is
+  120 s, which is half a degree. It lands on 30.0 nm — the prize threshold, to
+  the tenth of a mile.
+
+Acceptance, measured in the browser on one log at Jamaica:
+
+| rate | accumulated | latitude | longitude error |
+|---|---|---|---|
+| 0.081 s/day (H4) | 5 s | 18° 00.2′ N | 1.87 nm |
+| 2.92 s/day | 3m 03s | 18° 00.2′ N | 44.2 nm |
+
+Latitude does not move. That is the whole point.
 
 ---
 
@@ -204,7 +219,8 @@ plainly how much arithmetic that cost.
 
 ## Suggested order
 
-Phases 0 and 1 are done. **Phase 2 (chronometer rate) is next** and is small.
-Phase 3 is the next real investment and the one with the most teaching value
-left in it. Phases 5 and 6 are what would make this usable by someone learning
-alone.
+Phases 0, 1 and 2 are done, and together they close the gap between what the
+original design promised and what exists. **Phase 3 (voyage mode) is next**: it
+is the biggest remaining piece and the one with the most teaching value left in
+it, and the rate model from Phase 2 is exactly what it needs. Phases 5 and 6
+are what would make this usable by someone learning alone.

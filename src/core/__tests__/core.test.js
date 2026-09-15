@@ -4,7 +4,7 @@ import * as Astronomy from 'astronomy-engine';
 import {
   norm180, norm360, dm, fmtLat, fmtLon, departureNm, sind, cosd, asind, acosd,
 } from '../angles.js';
-import { fromParts, utcHours, addSeconds, MS_HOUR } from '../time.js';
+import { fromParts, utcHours, addSeconds, MS_HOUR, chronometerError, daysBetween } from '../time.js';
 import { solar, subsolar, decRateMinPerHour } from '../sun.js';
 import { horizon, sensitivity, culmination, sunEvents } from '../horizon.js';
 import { dip, refraction, correct, uncorrect, defaultOptions } from '../corrections.js';
@@ -253,6 +253,38 @@ describe('the two reductions', () => {
     const without = noonWorkUp(truth, { ...defaultOptions(), useEoT: false });
     expect(Math.abs(withEoT.error.lonNm)).toBeLessThan(0.01);
     expect(Math.abs(without.error.lonNm)).toBeCloseTo(246, -1);
+  });
+});
+
+describe('the chronometer', () => {
+  const portsmouth = fromParts(1761, 11, 18);
+  const jamaica = fromParts(1762, 1, 19);
+
+  it('accumulates the rate it was never known to have', () => {
+    expect(daysBetween(portsmouth, jamaica)).toBe(62);
+    // H4's five seconds, as the rate that produced them.
+    expect(chronometerError(portsmouth, jamaica, 0, 5 / 62)).toBeCloseTo(5, 9);
+    expect(chronometerError(portsmouth, fromParts(1761, 12, 18), 0, 5 / 62)).toBeCloseTo(2.42, 2);
+  });
+
+  it('carries the departure error through unchanged when the rate is zero', () => {
+    expect(chronometerError(portsmouth, jamaica, 12, 0)).toBe(12);
+  });
+
+  it('does not run backwards before the watch has sailed', () => {
+    expect(chronometerError(portsmouth, fromParts(1761, 9, 1), 3, 10)).toBe(3);
+  });
+
+  it('turns the Longitude Act into a rate', () => {
+    // Half a degree is two minutes of time, over a six-week passage.
+    const sailed = fromParts(1765, 5, 1);
+    const landfall = fromParts(1765, 6, 12);
+    expect(daysBetween(sailed, landfall)).toBe(42);
+    const rate = 120 / 42;
+    expect(rate).toBeLessThan(3);
+    expect(chronometerError(sailed, landfall, 0, rate)).toBeCloseTo(120, 9);
+    // ...which is exactly half a degree of longitude.
+    expect((120 * 0.25) / 60).toBeCloseTo(0.5, 9);
   });
 });
 

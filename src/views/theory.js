@@ -94,7 +94,7 @@ export function createTheory(onRotate) {
       for (const f of Object.values(figures)) f.update(d, s);
 
       // Only redo the maths when the numbers have actually moved.
-      const key = `${getLang()}|${d.now.getTime()}|${s.lat}|${s.lon}|${s.clockErrorSec}|${d.logResult.stage}|${d.logResult.count}`;
+      const key = `${getLang()}|${d.now.getTime()}|${s.lat}|${s.lon}|${s.clockErrorSec}|${s.clockRateSecPerDay}|${+s.departureDate}|${d.logResult.stage}|${d.logResult.count}`;
       if (!visible || key === lastKey) return;
       lastKey = key;
 

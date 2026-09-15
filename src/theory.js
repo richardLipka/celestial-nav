@@ -3,7 +3,7 @@
 // be shown again with the figures from the sight currently on the timeline.
 
 import { fmtAngle, fmtNumber, cosd, sind, degToNm } from './core/angles.js';
-import { fmtClock } from './core/time.js';
+import { fmtClock, daysBetween } from './core/time.js';
 import { fLon } from './ui/format.js';
 
 // --- turning formatted values into TeX ------------------------------------
@@ -270,6 +270,35 @@ export const theory = [
         text: {
           en: 'Two things in that line must be told to you, and neither is in the sky: \\(\\mathrm{UT}_{\\text{LAN}}\\), from a chronometer that has held Greenwich time across an ocean, and \\(E\\), from an almanac. The clock was necessary. It was never sufficient.',
           cs: 'Dvě věci v té řádce vám musí někdo sdělit a ani jedna není na obloze: \\(\\mathrm{UT}_{\\text{LAN}}\\) z chronometru, který udržel greenwichský čas přes celý oceán, a \\(E\\) z ročenky. Hodiny byly nutné. Nikdy nebyly dostačující.',
+        },
+      },
+      {
+        k: 'p',
+        text: {
+          en: 'And a chronometer is not judged by whether it is right. It is judged by whether its rate is constant: you have it rated ashore, you apply that known rate at sea, and what is left to hurt you is only the part of the rate nobody knew about.',
+          cs: 'A chronometr se neposuzuje podle toho, jestli jde přesně. Posuzuje se podle toho, jestli má stálý chod: necháte si ho na břehu vyměřit, na moři ten známý chod započítáte, a uškodit vám může jen ta část chodu, o které nikdo nevěděl.',
+        },
+      },
+      { k: 'math', tex: '\\Delta T(t) = \\Delta T_0 + \\dot{r} \\, (t - t_0)' },
+      {
+        k: 'sub',
+        fn: (d, s) => {
+          const days = daysBetween(s.departureDate, d.now);
+          if (days < 0.5) return null;
+          // One decimal on the days, so that the line actually multiplies out:
+          // rounding 42.7 to 43 would leave the arithmetic visibly wrong.
+          return `\\Delta T = ${N(s.clockErrorSec, 1)}\\,\\text{s} + ${N(s.clockRateSecPerDay, 3)}\\,\\text{s/d} \\times ${N(days, 2)}\\,\\text{d} = ${N(d.clockErrorSec, 1)}\\,\\text{s}`;
+        },
+        empty: {
+          en: 'Give the watch a departure date in the rail and this line fills in as the days accumulate.',
+          cs: 'Zadejte v panelu datum vyplutí a tato řádka se doplní, jak budou přibývat dny.',
+        },
+      },
+      {
+        k: 'note',
+        text: {
+          en: 'That is what the £20,000 actually bought. Half a degree on a voyage to the West Indies is two minutes of time; over a six-week passage it is a rate held to under three seconds a day, in a damp cabin swinging through forty degrees of temperature. H4 held a twelfth of a second.',
+          cs: 'Přesně za tohle se platilo těch 20 000 liber. Půl stupně na plavbě do Západní Indie jsou dvě minuty času; na šestitýdenní plavbě to znamená udržet chod pod třemi sekundami denně, ve vlhké kajutě houpající se čtyřiceti stupni teplotních změn. H4 držely dvanáctinu sekundy.',
         },
       },
       {

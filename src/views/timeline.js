@@ -65,7 +65,7 @@ export function createTimeline(onScrub, onNoon) {
       clocks.replaceChildren();
       const items = [
         [t('tl.utc'), fmtClock(d.now), ''],
-        [t('tl.chrono'), fmtClock(d.clockReads), s.clockErrorSec ? 'bad' : ''],
+        [t('tl.chrono'), fmtClock(d.clockReads), d.clockErrorSec ? 'bad' : ''],
         [t('tl.apparent'), fmtHours(d.apparentTime), ''],
       ];
       for (const [k, v, cls] of items) {

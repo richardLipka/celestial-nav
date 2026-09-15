@@ -444,6 +444,14 @@ svg .gauge-note { fill: var(--c-time); }
   border-radius: 3px;
 }
 .rail-date { font-family: 'IBM Plex Mono', monospace; }
+.rail-accum {
+  margin: 2px 0 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  color: var(--ink-3);
+}
+.rail-accum.bad { color: var(--accent); }
 .rail-reset {
   align-self: flex-start;
   font-family: 'IBM Plex Mono', monospace;
