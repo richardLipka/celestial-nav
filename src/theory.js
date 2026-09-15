@@ -210,8 +210,31 @@ export const theory = [
       {
         k: 'p',
         text: {
-          en: 'Longitude has no equator. The prime meridian is a mark painted on a turning body, so nothing in the sky can point at it — it has to be carried with you. What the sky does offer is the sun’s hour angle at Greenwich, which is pure rotation:',
-          cs: 'Zeměpisná délka nemá rovník. Nultý poledník je značka namalovaná na otáčejícím se tělese, takže na něj nic na obloze nemůže ukázat — musíte si ho přivézt s sebou. Co obloha nabízí, je hodinový úhel Slunce vůči Greenwichi, a to je čirá rotace:',
+          en: 'Longitude has no equator. The prime meridian is a mark painted on a turning body, so nothing in the sky can point at it — it has to be carried with you.',
+          cs: 'Zeměpisná délka nemá rovník. Nultý poledník je značka namalovaná na otáčejícím se tělese, takže na něj nic na obloze nemůže ukázat — musíte si ho přivézt s sebou.',
+        },
+      },
+      {
+        k: 'p',
+        text: {
+          en: 'Here is that statement as a picture. Three ships at three longitudes, each at its own local apparent noon, each reading the same altitude off the same instrument. The three panels differ in exactly one thing — where Greenwich is drawn — and Greenwich is the one line on Earth that none of them can see.',
+          cs: 'Tady je totéž tvrzení jako obrázek. Tři lodě na třech zeměpisných délkách, každá ve svém místním pravém poledni, každá naměří tutéž výšku týmž přístrojem. Ty tři panely se liší přesně v jediné věci — v tom, kde je nakreslený Greenwich — a Greenwich je jediná čára na Zemi, kterou žádná z nich nevidí.',
+        },
+      },
+      { k: 'fig', id: 'degeneracy', wide: true },
+      {
+        k: 'note',
+        kind: 'bad',
+        text: {
+          en: 'This is an exact symmetry, not an approximation: turning the Earth while advancing the clock leaves every observable untouched. Only the declination breaks it, and only by creeping a minute of arc an hour — far too little, and far too ambiguous about which side of the solstice you are on, to serve as a clock. That is why the moon was worth the trouble: it moves thirty times faster against the stars.',
+          cs: 'Jde o přesnou symetrii, ne o přiblížení: pootočíte-li Zemí a zároveň posunete hodiny, žádná měřitelná veličina se nezmění. Poruší ji jedině deklinace, a to jen posunem o úhlovou minutu za hodinu — příliš málo a příliš nejednoznačné vzhledem k tomu, na které straně slunovratu jste, než aby to mohlo sloužit jako hodiny. Proto stál Měsíc za tu námahu: vůči hvězdám se pohybuje třicetkrát rychleji.',
+        },
+      },
+      {
+        k: 'p',
+        text: {
+          en: 'What the sky does offer is the sun’s hour angle at Greenwich, which is pure rotation:',
+          cs: 'Co obloha nabízí, je hodinový úhel Slunce vůči Greenwichi, a to je čirá rotace:',
         },
       },
       { k: 'math', tex: '\\mathrm{GHA} = 15^\\circ\\!/\\mathrm{h} \\cdot (\\mathrm{UT} - 12^\\mathrm{h}) + E' },

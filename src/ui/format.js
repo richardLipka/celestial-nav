@@ -6,9 +6,15 @@ import { fmtLat, fmtLon } from '../core/angles.js';
 import { fmtClockError } from '../core/time.js';
 import { t, latSuffix, lonSuffix } from '../i18n.js';
 
-export const fLat = (deg, places = 1) => fmtLat(deg, places, latSuffix());
+// Exactly zero belongs to neither hemisphere: the equator is not north, and
+// the prime meridian is not east. Suppress the suffix rather than pick one.
+const zeroish = (deg, places) => Math.abs(deg) * 60 < 0.5 / 10 ** places;
 
-export const fLon = (deg, places = 1) => fmtLon(deg, places, lonSuffix());
+export const fLat = (deg, places = 1) =>
+  fmtLat(deg, places, zeroish(deg, places) ? ['', ''] : latSuffix()).trimEnd();
+
+export const fLon = (deg, places = 1) =>
+  fmtLon(deg, places, zeroish(deg, places) ? ['', ''] : lonSuffix()).trimEnd();
 
 export const fClockError = (sec) =>
   fmtClockError(sec, {

@@ -70,6 +70,10 @@ const dict = {
     'fig.rotation': 'Earth turns',
     'fig.hourAngleNote': 'looking down on the pole',
 
+    'degen.heading': 'the same sight, three times',
+    'degen.cover': 'Cover the magenta and these are the same picture.',
+    'degen.held': 'declination held still, so that only the rotation varies',
+    'aria.degeneracy': 'Three observers at three longitudes, each at local noon, reading the same altitude',
     'aria.pzx': 'The navigational triangle on the celestial sphere',
     'aria.pzxFlat': 'The navigational triangle with its sides and angles labelled',
     'aria.hourAngle': 'The Earth from above the pole, showing Greenwich hour angle, local hour angle and longitude',
@@ -264,6 +268,10 @@ const dict = {
     'fig.rotation': 'Země se otáčí',
     'fig.hourAngleNote': 'pohled shora na pól',
 
+    'degen.heading': 'totéž měření, třikrát',
+    'degen.cover': 'Zakryjte purpurové a jsou to tytéž obrázky.',
+    'degen.held': 'deklinace držena na místě, aby se měnila jen rotace',
+    'aria.degeneracy': 'Tři pozorovatelé na třech délkách, každý v místním poledni, měří tutéž výšku',
     'aria.pzx': 'Navigační trojúhelník na nebeské sféře',
     'aria.pzxFlat': 'Navigační trojúhelník s popsanými stranami a úhly',
     'aria.hourAngle': 'Země shora od pólu s greenwichským a místním hodinovým úhlem a zeměpisnou délkou',

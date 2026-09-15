@@ -5,6 +5,7 @@
 import { theory } from '../theory.js';
 import { t, pick, getLang } from '../i18n.js';
 import { createTriangle3D, createTriangleFlat, createHourAngle } from './theoryfig.js';
+import { createDegeneracy } from './degeneracy.js';
 import { createMeridian } from './meridian.js';
 
 const h = (tag, cls, txt) => {
@@ -32,6 +33,7 @@ export function createTheory(onRotate) {
     pzxFlat: createTriangleFlat(),
     meridian: createMeridian(),
     hourAngle: createHourAngle(),
+    degeneracy: createDegeneracy(),
   };
 
   const subs = []; // { el, fn, empty }
@@ -66,7 +68,7 @@ export function createTheory(onRotate) {
       } else if (b.k === 'fig') {
         const fig = figures[b.id];
         if (fig) {
-          const f = h('figure', 'th-fig');
+          const f = h('figure', `th-fig ${b.wide ? 'wide' : ''}`);
           f.append(fig.node);
           body.append(f);
         }

@@ -2,6 +2,7 @@ import { describe, it, expect, afterAll } from 'vitest';
 
 import { dictionaries, LANGS, t, setLang, getLang, pick, latSuffix, lonSuffix } from '../../i18n.js';
 import { places, GROUPS, findPlace, placeById, applyPlace } from '../../places.js';
+import { fLat, fLon } from '../../ui/format.js';
 import { scenarios } from '../../scenarios.js';
 import { setDecimalSeparator, fmtLat, fmtLon, dm, fmtNm, fmtNumber } from '../angles.js';
 
@@ -137,6 +138,23 @@ describe('places', () => {
       expect(findPlace(s.lat, s.lon).id).toBe(p.id);
     }
     expect(findPlace(41.2, 3.4)).toBeUndefined();
+  });
+
+  it('gives zero no hemisphere, in either language', () => {
+    // The equator is not north and the prime meridian is not east.
+    for (const lang of LANGS) {
+      setLang(lang);
+      expect(fLat(0), lang).toBe('00° 00.0′'.replace('.', lang === 'cs' ? ',' : '.'));
+      expect(fLon(0), lang).toBe('000° 00.0′'.replace('.', lang === 'cs' ? ',' : '.'));
+      // A value that still rounds to zero gets no suffix either...
+      expect(fLat(0.02 / 60), lang).toMatch(/′$/);
+      // ...but one that does not keeps it.
+      expect(fLat(0.4 / 60), lang).not.toMatch(/′$/);
+      expect(fLon(-30), lang).not.toMatch(/′$/);
+    }
+    setLang('en');
+    expect(fLat(-0.5)).toBe('00° 30.0′ S');
+    expect(fLon(30)).toBe('030° 00.0′ E');
   });
 
   it('formats a Czech town correctly in each language', () => {

@@ -9,7 +9,7 @@ and log sights yourself, and they feed the equations).
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 69 tests
+npm test         # vitest, 70 tests
 npm run test:watch
 ```
 
@@ -126,9 +126,10 @@ letter — Czech `S` means *north* and an English reader would take it for
 ## Theory tab
 
 `src/theory.js` is content-as-data: an array of sections of typed blocks
-(`p`, `math`, `sub`, `note`, `fig`). `sub` blocks are functions of the derived
-state returning a TeX string, or `null` to show their `empty` prompt — that is
-how the equations fill with the navigator's own figures.
+(`p`, `math`, `sub`, `note`, `fig`; a `fig` may set `wide: true`). `sub` blocks
+are functions of the derived state returning a TeX string, or `null` to show
+their `empty` prompt — that is how the equations fill with the navigator's own
+figures.
 
 - Static equations are typeset once at build; `sub` blocks are re-typeset on a
   **`setTimeout`, not `requestAnimationFrame`**. A frame never arrives while
@@ -154,6 +155,12 @@ how the equations fill with the navigator's own figures.
   error rather than machine precision.
 - Do not name a local variable `t` in a view: it shadows the imported
   translator and the TDZ makes earlier calls throw.
+- A flex container with `align-items: flex-start` sizes children to their
+  *content* on the cross axis. Once `.body` turns into a column at narrow
+  widths that is the width, so one wide figure dragged the whole page sideways.
+  It is `align-items: stretch` in the narrow media query for that reason.
+- Zero belongs to no hemisphere. `fLat`/`fLon` suppress the suffix when the
+  value rounds to zero, or the prime meridian reads `000° 00.0′ E`.
 
 ## Testing
 
@@ -168,7 +175,7 @@ how the equations fill with the navigator's own figures.
 
 When changing anything in `core/`, run the suite before touching a view.
 
-## Not under version control
+## Roadmap
 
-There is no git repository here yet. `git init` before any substantial further
-work.
+[ROADMAP.md](ROADMAP.md) has what remains, in order. Phase 2 (chronometer
+*rate* rather than a flat offset) is next and is small.

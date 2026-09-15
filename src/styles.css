@@ -476,7 +476,10 @@ input[type='date']:focus-visible {
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 
 @media (max-width: 820px) {
-  .body { flex-direction: column; }
+  /* align-items: flex-start sizes children to their content on the cross
+     axis, which once the body is a column means the width -- so a wide figure
+     dragged the whole page sideways. Stretch them to the container instead. */
+  .body { flex-direction: column; align-items: stretch; }
   .rail { width: 100%; border-right: 0; border-bottom: 1px solid var(--rule); }
   .grid { grid-template-columns: 1fr; }
   .wu-grid { grid-template-columns: 1fr; }
@@ -657,7 +660,14 @@ input[type='date']:focus-visible {
   padding: 10px;
   max-width: 520px;
 }
+.th-fig.wide { max-width: 760px; overflow-x: auto; }
+/* Three panels side by side stop being readable much below this, so on a
+   narrow screen the figure scrolls in its own box rather than shrinking. */
+.th-fig.wide svg { min-width: 560px; }
 .th-fig svg { width: 100%; height: auto; display: block; }
+svg .degen-read { font-size: 12px; fill: var(--ink); }
+svg .degen-eq { font-size: 17px; fill: var(--ink-3); }
+svg .degen-cover { font-size: 12px; fill: var(--ink-2); }
 mjx-container[display='true'] { margin: 0.6em 0 !important; }
 mjx-container svg { color: inherit; }
 

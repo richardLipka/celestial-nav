@@ -6,7 +6,7 @@ What is built, what is not, and the order worth building it in.
 
 Working and tested: the computational core, both tabs, the sight log and its
 two reductions, Czech/English throughout, ten Czech towns and twelve world
-positions, six scenarios. 69 tests, 4 800 lines, no build step.
+positions, six scenarios. 70 tests, 4 900 lines, no build step.
 
 The application currently demonstrates the thesis **within one day**. Almost
 everything below is about demonstrating it the way it actually bit people:
@@ -15,43 +15,38 @@ is not a constant.
 
 ---
 
-## Phase 0 — Put it under version control
+## Phase 0 — Put it under version control — done
 
-There is no git repository. Everything so far exists in exactly one copy.
-
-```bash
-git init
-printf 'node_modules/\n' > .gitignore
-git add -A && git commit -m "Celestial navigation simulator"
-```
-
-**Done when** `git log` has one commit and `node_modules` is ignored.
-Everything after this assumes it.
+`git init`, a `.gitignore` for `node_modules`, and one initial commit of 37
+files. Everything after this assumes a repository exists.
 
 ---
 
-## Phase 1 — The degeneracy panel
+## Phase 1 — The degeneracy panel — done
 
-*Small. The one piece of the original design that never got built, and the
-clearest single statement of why longitude is impossible.*
+The one piece of the original design that never got built, and the clearest
+single statement of why longitude is impossible.
 
-Three views of the Earth from above the pole, side by side: three observers at
-0°, 30°W and 60°W, at 12:00, 14:00 and 16:00 UTC. All three stand at local
-noon. All three read the same altitude. **The pictures differ only in where
-Greenwich is drawn.** Cover the prime meridian and they are the same picture.
+Three views of the Earth from above the pole, side by side: observers at 0°,
+30 W and 60 W, each at its own local apparent noon. All three read
+`Ho 51° 45.7′` — the same altitude off the same instrument — at 12:11:24,
+14:11:24 and 16:11:24 UTC. The panels differ in exactly one thing, where
+Greenwich is drawn, and Greenwich is the one line on Earth none of them can
+see. *Cover the magenta and these are the same picture.*
 
-This is exact, not approximate: rotating the Earth while advancing the clock is
-a symmetry of the observation. That is the whole reason a clock has to be
-carried rather than deduced.
+Built as `src/views/degeneracy.js`, in the theory tab's Longitude section.
+The declination is held still across the panels, which isolates the rotation;
+the note beside the figure says what the real drift would do — a minute of arc
+an hour, far too little and far too ambiguous to serve as a clock — and why
+that made the moon worth the trouble.
 
-- New: `src/views/degeneracy.js`, reusing the polar projection already in
-  `theoryfig.js` (`createHourAngle` draws this geometry).
-- Goes in the **theory tab**, in the Longitude section, as a `fig` block.
-- Drive the three panels off the current latitude so it stays consistent.
-- No new core maths.
+Two things turned up while building it:
 
-**Done when** the three sextant readings render identical to the tenth of a
-minute and the only thing that differs between panels is magenta.
+- `fLat`/`fLon` gave zero a hemisphere, so the prime meridian read
+  `000° 00.0′ E`. Zero belongs to neither; the suffix is now suppressed.
+- `.body` had `align-items: flex-start`, so once it became a column at narrow
+  widths its children sized to content instead of the container and a wide
+  figure dragged the whole page sideways. Pre-existing, found by this figure.
 
 ---
 
@@ -209,7 +204,7 @@ plainly how much arithmetic that cost.
 
 ## Suggested order
 
-Phases 0 → 1 → 2 first: together they are perhaps a day's work and they close
-the gap between what the original design promised and what exists. Phase 3 is
-the next real investment and the one with the most teaching value left in it.
-Phases 5 and 6 are what would make this usable by someone learning alone.
+Phases 0 and 1 are done. **Phase 2 (chronometer rate) is next** and is small.
+Phase 3 is the next real investment and the one with the most teaching value
+left in it. Phases 5 and 6 are what would make this usable by someone learning
+alone.
