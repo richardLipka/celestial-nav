@@ -4,9 +4,11 @@ An interactive demonstration of why a ship can find its latitude with a brass
 arc and a clear horizon, and why it cannot find its longitude without a clock
 that has kept Greenwich time across an ocean.
 
-Two tabs: **Theory**, which derives both reductions from the navigational
-triangle with the equations typeset by MathJax, and **Simulation**, where you
-take and log sights yourself and watch them feed the equations.
+Three tabs: **Theory**, which derives both reductions from the navigational
+triangle with the equations typeset by MathJax; **Simulation**, where you take
+and log sights yourself and watch them feed the equations; and **Voyage**,
+where you sail a passage and watch the two errors behave completely
+differently.
 
 Bilingual: **čeština / English**, switched with the CZ/EN buttons at the top
 right. The choice is remembered between visits.
