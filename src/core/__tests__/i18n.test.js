@@ -3,7 +3,8 @@ import { describe, it, expect, afterAll } from 'vitest';
 import { dictionaries, LANGS, LANG_LABEL, t, setLang, getLang, pick, latSuffix, lonSuffix } from '../../i18n.js';
 import { places, GROUPS, findPlace, placeById, applyPlace } from '../../places.js';
 import { fLat, fLon } from '../../ui/format.js';
-import { scenarios } from '../../scenarios.js';
+import { scenarios, applyScenario, byId } from '../../scenarios.js';
+import { noonWorkUp } from '../fix.js';
 import { routes } from '../../routes.js';
 import { lessons } from '../../lessons.js';
 import { setDecimalSeparator, fmtLat, fmtLon, dm, fmtNm, fmtNumber } from '../angles.js';
@@ -179,6 +180,16 @@ describe('places', () => {
 });
 
 describe('lessons and routes', () => {
+  it('counts the lessons the way the picker says it does', () => {
+    // The picker's blurb names the number in words, and Czech inflects the
+    // noun after it, so a {n} placeholder would produce bad grammar. A
+    // tripwire instead: add a lesson and this fails, pointing at the string
+    // that has to change with it.
+    expect(lessons.length, 'if this changes, update `lesson.pick` in BOTH languages').toBe(5);
+    expect(dictionaries.en['lesson.pick']).toMatch(/^Five /);
+    expect(dictionaries.cs['lesson.pick']).toMatch(/^Pět /);
+  });
+
   it('writes every lesson in both languages', () => {
     expect(lessons.length).toBeGreaterThanOrEqual(4);
     for (const l of lessons) {
@@ -228,6 +239,38 @@ describe('lessons and routes', () => {
 });
 
 describe('scenarios', () => {
+  it('quotes figures its own simulation actually produces', () => {
+    // A scenario note that names a number is a claim about what the reader
+    // will see in the panel beside it. These are the ones that name one.
+    const run = (id) => {
+      const sc = byId(id);
+      const [y, m, d] = sc.date;
+      return noonWorkUp(
+        { lat: sc.lat, lon: sc.lon, date: new Date(Date.UTC(y, m - 1, d)) },
+        { clockErrorSec: sc.clockErrorSec ?? 0, useEoT: sc.useEoT ?? true },
+      );
+    };
+
+    // "the sun's highest arc of the year, 62 degrees at noon"
+    expect(run('greenwich').Ho).toBeCloseTo(62, 0);
+
+    // "the fix is still 247 nm out, because the almanac has been switched off"
+    const eot = run('eot');
+    expect(Math.abs(eot.error.totalNm)).toBeGreaterThan(246);
+    expect(Math.abs(eot.error.totalNm)).toBeLessThan(248);
+    for (const lang of LANGS) expect(byId('eot').note[lang]).toContain('247');
+
+    // "the latitude still lands within a mile" with the clock half an hour out
+    const lat = run('latsail');
+    expect(Math.abs(lat.error.latNm), 'within a mile').toBeLessThan(1);
+    expect(Math.abs(lat.error.lonNm), 'and the longitude worthless').toBeGreaterThan(300);
+
+    // "declination is zero, so the noon sight collapses to 90 - Ho"
+    const eq = run('equinox');
+    expect(Math.abs(eq.dec), 'declination near zero').toBeLessThan(0.1);
+    expect(Math.abs(eq.fix.lat), 'and the latitude falls out as zero').toBeLessThan(0.01);
+  });
+
   it('names and describes every scenario in both languages', () => {
     for (const sc of scenarios) {
       for (const lang of LANGS) {

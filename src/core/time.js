@@ -87,6 +87,22 @@ export const fmtClock = (date, seconds = true) =>
   `${p2(date.getUTCHours())}:${p2(date.getUTCMinutes())}` +
   (seconds ? `:${p2(date.getUTCSeconds())}` : '');
 
+/**
+ * The same, to a tenth of a second.
+ *
+ * One second of time is a quarter of a nautical mile of longitude, so a clock
+ * read only to the second cannot appear in a derivation whose answer is shown
+ * to a tenth of an arcminute -- the line would not multiply out, and a reader
+ * checking it would be right and the page wrong.
+ */
+export const fmtClockTenths = (date) => {
+  const tenths = Math.round(date.getUTCMilliseconds() / 100);
+  // A carry at .95 would otherwise print :07.10
+  const carried = tenths === 10 ? new Date(date.getTime() + 100) : date;
+  const t = tenths === 10 ? 0 : tenths;
+  return `${p2(carried.getUTCHours())}:${p2(carried.getUTCMinutes())}:${p2(carried.getUTCSeconds())}.${t}`;
+};
+
 export const fmtDate = (date) =>
   `${date.getUTCFullYear()}-${p2(date.getUTCMonth() + 1)}-${p2(date.getUTCDate())}`;
 

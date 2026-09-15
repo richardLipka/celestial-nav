@@ -7,7 +7,7 @@ What is built, what is not, and the order worth building it in.
 Working and tested: the computational core, all four tabs, the sight log and
 its two reductions, the first-person sextant, lunar distances, five guided
 lessons, Czech/English throughout, ten Czech towns and twelve world positions,
-seven scenarios, three passages. 149 tests, 9 500 lines, no build step.
+seven scenarios, three passages. 177 tests, 10 000 lines, no build step.
 
 The application demonstrates the thesis within one day, over a passage, through
 the instrument itself, and against the one method that could have beaten the
@@ -118,12 +118,12 @@ shaped it:
 
 Las Palmas to Bridgetown, 2 630 nm, 0.6 kn of current setting west:
 
-| clock | days | worst latitude | longitude at the end | outcome |
+| clock | days | worst latitude | longitude error at the end | outcome |
 |---|---|---|---|---|
-| perfect | 25 | 0.46 nm | 0.0 nm | landfall, 17.6 nm off |
-| H4's rate, 0.081 s/day | 25 | 0.46 nm | 0.5 nm | landfall, 17.7 nm off |
-| the Act's 2.86 s/day | 25 | 0.46 nm | 17.4 nm | landfall, 24 nm off |
-| **none carried** | 36 | 0.46 nm | **538 nm** | never found it |
+| perfect | 25 | 0.46 nm | 0.0 nm | landfall, 17.5 nm off |
+| H4's rate, 0.081 s/day | 25 | 0.46 nm | 0.5 nm | landfall, 17.6 nm off |
+| the Act's 2.86 s/day | 25 | 0.46 nm | 17.4 nm | landfall, 23.5 nm off |
+| **none carried** | 36 | 0.46 nm | **568 nm** | never found it, 539 nm away |
 
 On the chart, a good chronometer puts the two tracks 0.1 px apart. Without one
 they diverge by 110. The latitude is 0.46 nm in every single row.

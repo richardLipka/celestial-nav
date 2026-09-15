@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { fromParts, MS_HOUR, addSeconds } from '../time.js';
+import { fromParts, MS_HOUR, addSeconds, fmtClock } from '../time.js';
 import { culmination } from '../horizon.js';
 import { defaultOptions } from '../corrections.js';
 import {
@@ -377,5 +377,55 @@ describe('crossing two sights', () => {
     // ...and a second pass from that first answer recovers it.
     const again = crossSights(log[0], log[1], far.fix);
     expect(fixError(again.fix, JAMAICA).totalNm).toBeLessThan(1);
+  });
+});
+
+describe('the table the README prints', () => {
+  // The README quotes these four figures. They were once taken from "one
+  // Jamaica log" that named no log and could not be reproduced, which is how
+  // a document starts lying. This is that log, written down.
+  const JIT = [0.4, -0.3, 0.5, -0.45, 0.35, -0.5, 0.45];
+  const lan = culmination(JAMAICA.date, JAMAICA.lon, true);
+  const at = (h, i) => observe(new Date(lan.getTime() + h * MS_HOUR), JAMAICA, OPT, 0, JIT[i] ?? 0);
+
+  // Deliberately asymmetric about noon: a symmetric run would pair with
+  // itself and there would be nothing left to interpolate.
+  const base = () => [at(-3.5, 0), at(-0.35, 1), at(0, 2), at(0.15, 3)];
+
+  const work = (log) => {
+    const r = reduceLog(log.sort((a, b) => a.tChrono - b.tChrono));
+    return { r, err: fixError({ lat: r.lat, lon: r.lon }, JAMAICA) };
+  };
+
+  it('costs five and a half miles when the crossing is interpolated', () => {
+    const { r, err } = work([...base(), at(3.0, 4), at(4.0, 5)]);
+    expect(r.equalAlt.pair.observed, 'this pair must be interpolated').toBe(false);
+    expect(r.equalAlt.pair.gapHours).toBeCloseTo(1, 2);
+    expect(fmtClock(r.equalAlt.lanChrono)).toBe('17:18:12');
+    expect(Math.abs(err.lonNm)).toBeCloseTo(5.74, 1);
+    expect(Math.abs(err.latNm)).toBeCloseTo(0.52, 1);
+  });
+
+  it('and a tenth of a mile when it is watched down on to the mark', () => {
+    const b = base();
+    const cross = matchAltitudeTime(b[0].Ho, lan, JAMAICA, OPT);
+    const { r, err } = work([...b, observe(cross, JAMAICA, OPT, 0, JIT[4])]);
+    expect(r.equalAlt.pair.observed, 'this pair must be observed').toBe(true);
+    expect(fmtClock(r.equalAlt.lanChrono)).toBe('17:18:36');
+    expect(Math.abs(err.lonNm)).toBeLessThan(0.2);
+    expect(Math.abs(err.latNm)).toBeCloseTo(0.52, 1);
+  });
+
+  it('agrees that true noon that day was 17:18:36', () => {
+    expect(fmtClock(lan)).toBe('17:18:36');
+  });
+
+  it('gives the three figures in the first table too', () => {
+    const jitter = (i) =>
+      [0.4, -0.3, 0.5, -0.45, 0.35, -0.5, 0.45, -0.35, 0.3, -0.4, 0.5, -0.3][i] ?? 0;
+    const r = reduceLog(takeSights(JAMAICA, WORKING_LOG, 0, jitter));
+    expect(Math.abs(r.lat - JAMAICA.lat) * 60).toBeCloseTo(0.28, 1);
+    expect(Math.abs(fixError({ lat: r.lat, lon: r.lonByMax }, JAMAICA).lonNm)).toBeCloseTo(14.2, 0);
+    expect(Math.abs(fixError({ lat: r.lat, lon: r.lon }, JAMAICA).lonNm)).toBeCloseTo(0.4, 1);
   });
 });

@@ -130,20 +130,24 @@ Same sextant, same sun, same chronometer — only a better way of asking when
 noon was. Both numbers are on screen at once, as two bars.
 
 The other half of it is *how* you get the afternoon crossing. If it has to be
-interpolated between two logged sights, the gap between them sets the accuracy,
-and an hour of gap is worth the best part of a minute of time. If you clamp the
-sextant on a morning altitude and watch the sun come back down to it — the
-**watch it down** button, which is the actual historical method — the crossing
-is observed rather than guessed. On one Jamaica log:
+interpolated between two logged sights, the gap between them sets the accuracy:
+an hour of gap costs about half a minute of time, and two hours costs four
+times that, because the error grows as the square of the gap. If instead you
+clamp the sextant on a morning altitude and watch the sun come back down to
+it — the **watch it down** button, which is the actual historical method — the
+crossing is observed and there is nothing left to interpolate.
+
+The same Jamaica day, the same four sights round noon, differing only in how
+the afternoon crossing was got (`sights.test.js` pins it):
 
 | afternoon crossing | noon found | longitude error |
 |---|---|---|
-| interpolated between sights | 17:18:02 | 7.93 nm |
-| observed on the mark | 17:18:40 | 0.92 nm |
+| interpolated across an hour | 17:18:12 | 5.74 nm |
+| watched down on to the mark | 17:18:36 | 0.08 nm |
 
-True noon was 17:18:36. The latitude was 0.42 nm out in both. The reduction
-says which kind of crossing it used, and the log nudges you toward the better
-one.
+True noon was 17:18:36. The latitude was 0.52 nm out in both — it does not
+care. The reduction says which kind of crossing it used, and the log nudges
+you toward the better one.
 
 ## Language
 
@@ -274,7 +278,7 @@ bodies well up — against a watch you simply read. That is the whole argument
 for Harrison, in one ratio.
 
 It needs a much better almanac than anything else here: the moon to tens of
-arcseconds (a 120-term truncation of ELP-2000/82), the sun an order better than
+arcseconds (a 120-term truncation of ELP-2000/82), the sun seven times better than
 the readable version the rest of the program uses, and the difference between
 dynamical and universal time, which is seventy seconds today and would be a
 minute of Greenwich time on its own.

@@ -74,11 +74,18 @@ describe('the noon lesson', () => {
     // by an hour's worth of declination -- about 1' at the equinox, when
     // declination changes fastest. Saying "it has not moved" was a lie, and a
     // needless one, because the true ratio is six hundred to one.
+    // Walk to step 4, then apply ONLY step 5. Re-walking from the top would
+    // re-run step 0, which clears the log, so step 3 would draw a *different*
+    // sight with a different reading error -- and the comparison would be
+    // between two sights rather than between two clocks. That is what this
+    // test did at first, and it passed on luck.
     const a = walk('noon', 4).logResult;
     const beforeLat = a.lat;
     const beforeLon = a.lonByMax;
-    const after = walk('noon').logResult;
+    applyStep(store, 'noon', 4);
+    const after = store.get().logResult;
     expect(store.state.clockErrorSec).toBe(3600);
+    expect(store.get().observations.length, 'the same single sight throughout').toBe(1);
 
     const latNm = Math.abs(after.lat - beforeLat) * 60;
     const lonNm = Math.abs(after.lonByMax - beforeLon) * 60 * Math.cos((after.lat * Math.PI) / 180);

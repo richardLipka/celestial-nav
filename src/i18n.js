@@ -48,7 +48,7 @@ const dict = {
     'log.hint.bracket': 'Your highest sight is still at one end of the log. Take more on the other side of noon.',
     'log.hint.equal': 'Now take a morning sight and watch the sun back down to the same altitude — that is what gives you the moment of noon.',
     'log.hint.done': 'Paired at {ho}, {span} h apart, and the crossing was actually observed. That pair is your noon.',
-    'log.hint.interp': 'Paired at {ho}, {span} h apart — but the afternoon crossing had to be interpolated between two sights, which can cost a minute of time. Use “watch it down” on a morning sight to observe the crossing instead.',
+    'log.hint.interp': 'Paired at {ho}, {span} h apart — but the afternoon crossing had to be interpolated between two sights, which costs about half a minute of time for an hour of gap between them, and four times that for two. Use “watch it down” on a morning sight to observe the crossing instead.',
 
     'wu.needLog': 'Nothing to reduce yet. Take a few sights in the log and they will be worked up here.',
     'wu.fitted': 'peak, fitted',
@@ -85,7 +85,7 @@ const dict = {
 
     'tab.voyage': 'Voyage',
     'panel.voyage': 'The passage',
-    'panel.voyage.sub': 'the same argument, over six weeks',
+    'panel.voyage.sub': 'the same argument, over a whole passage',
 
     'voy.route': 'passage',
     'voy.speed': 'speed',
@@ -131,7 +131,7 @@ const dict = {
     'aria.sextant': 'The sextant telescope field: the horizon, and the sun brought down to it',
     'lesson.heading': 'Guided lesson',
     'lesson.none': '— none —',
-    'lesson.pick': 'Four short walks through the argument. Each one sets the controls for you; you can leave at any point and fiddle.',
+    'lesson.pick': 'Five short walks through the argument. Each one sets the controls for you; you can leave at any point and fiddle.',
     'lesson.count': '{n} of {of}',
     'lesson.back': 'Back',
     'lesson.next': 'Next',
@@ -355,7 +355,7 @@ const dict = {
     'lun.cost.sub': 'the whole argument, in one ratio',
     'lun.cost.lede': 'Right now the moon is closing on the sun slowly enough that one arcminute of error in the cleared distance is {min} minutes of Greenwich time — and {nm} nautical miles of longitude.',
     'lun.cost.note': 'The same arcminute of sextant error. A noon sight turns it into one mile of latitude; a lunar turns it into {n}. That factor is why lunars needed tables to the arcsecond, four hours of arithmetic and a calm deck — and why a watch that simply kept time won.',
-    'lun.cost.almanac': 'One thing this simulation flatters. The almanac that reduces the sight is the same one that put the moon in the sky, so the table’s own error cancels out and never appears here. A real lunar carried it: Mayer’s tables were good to about half an arcminute, which is two minutes of Greenwich time and thirty miles of longitude — before the observer has made a single mistake.',
+    'lun.cost.almanac': 'One thing this simulation flatters. The almanac that reduces the sight is the same one that put the moon in the sky, so the table’s own error cancels out and never appears here. A real lunar carried it: Mayer’s tables were good to about half an arcminute, which is a minute of Greenwich time and fifteen miles of longitude — before the observer has made a single mistake.',
     'lun.bar.noon': 'noon sight',
     'lun.bar.lunar': 'lunar',
   },
@@ -390,7 +390,7 @@ const dict = {
     'log.hint.bracket': 'Vaše nejvyšší měření je stále na okraji deníku. Změřte další na druhé straně poledne.',
     'log.hint.equal': 'Teď změřte dopolední výšku a počkejte, až se k ní Slunce vrátí — právě to vám dá okamžik poledne.',
     'log.hint.done': 'Dvojice na {ho}, odstup {span} h, a průchod byl skutečně pozorován. Ta dvojice je vaše poledne.',
-    'log.hint.interp': 'Dvojice na {ho}, odstup {span} h — jenže odpolední průchod se musel interpolovat mezi dvěma měřeními, což může stát minutu času. Použijte u dopoledního měření „počkat na návrat“ a průchod skutečně pozorujte.',
+    'log.hint.interp': 'Dvojice na {ho}, odstup {span} h — jenže odpolední průchod se musel interpolovat mezi dvěma měřeními, což při hodinovém odstupu stojí asi půl minuty času a při dvouhodinovém čtyřikrát tolik. Použijte u dopoledního měření „počkat na návrat“ a průchod skutečně pozorujte.',
 
     'wu.needLog': 'Zatím není co počítat. Zapište v deníku několik měření a tady se zpracují.',
     'wu.fitted': 'vrchol, proložený',
@@ -427,7 +427,7 @@ const dict = {
 
     'tab.voyage': 'Plavba',
     'panel.voyage': 'Plavba',
-    'panel.voyage.sub': 'tentýž argument, ale přes šest týdnů',
+    'panel.voyage.sub': 'tentýž argument, ale přes celou plavbu',
 
     'voy.route': 'trasa',
     'voy.speed': 'rychlost',
@@ -473,7 +473,7 @@ const dict = {
     'aria.sextant': 'Zorné pole dalekohledu sextantu: obzor a Slunce stažené k němu',
     'lesson.heading': 'Průvodce',
     'lesson.none': '— žádný —',
-    'lesson.pick': 'Čtyři krátké procházky celou úvahou. Každá vám sama nastaví ovládání; kdykoli můžete odejít a hrát si.',
+    'lesson.pick': 'Pět krátkých procházek celou úvahou. Každá vám sama nastaví ovládání; kdykoli můžete odejít a hrát si.',
     'lesson.count': '{n} z {of}',
     'lesson.back': 'Zpět',
     'lesson.next': 'Dál',
@@ -697,7 +697,7 @@ const dict = {
     'lun.cost.sub': 'celý argument v jediném poměru',
     'lun.cost.lede': 'Právě teď se Měsíc blíží ke Slunci tak pomalu, že jedna úhlová minuta chyby v opravené vzdálenosti znamená {min} minut greenwichského času — a {nm} námořních mil zeměpisné délky.',
     'lun.cost.note': 'Táž úhlová minuta chyby sextantu. Polední měření z ní udělá jednu míli šířky; měsíční vzdálenost {n}. Ten násobek je důvod, proč měsíční vzdálenosti potřebovaly tabulky na úhlové vteřiny, čtyři hodiny počítání a klidnou palubu — a proč zvítězily hodiny, které prostě jdou.',
-    'lun.cost.almanac': 'V jedné věci je tahle simulace příliš laskavá. Ročenka, kterou se měření vyhodnocuje, je táž, která Měsíc na oblohu postavila, takže vlastní chyba tabulky se vyruší a nikdy se tu neobjeví. Skutečné měření ji neslo: Mayerovy tabulky byly přesné asi na půl úhlové minuty, což jsou dvě minuty greenwichského času a třicet mil délky — ještě než pozorovatel udělá jedinou chybu.',
+    'lun.cost.almanac': 'V jedné věci je tahle simulace příliš laskavá. Ročenka, kterou se měření vyhodnocuje, je táž, která Měsíc na oblohu postavila, takže vlastní chyba tabulky se vyruší a nikdy se tu neobjeví. Skutečné měření ji neslo: Mayerovy tabulky byly přesné asi na půl úhlové minuty, což je minuta greenwichského času a patnáct mil délky — ještě než pozorovatel udělá jedinou chybu.',
     'lun.bar.noon': 'polední měření',
     'lun.bar.lunar': 'měsíční vzdálenost',
   },

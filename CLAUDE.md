@@ -12,7 +12,7 @@ lost). Five guided lessons walk a newcomer through all four.
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 149 tests
+npm test         # vitest, 177 tests
 npm run test:watch
 ```
 
@@ -88,8 +88,9 @@ morning altitude. Either:
   runs `matchAltitudeTime()`, i.e. clamp the sextant and wait. `pair.observed`
   is true. This is the real historical method, not a shortcut.
 - or it must be interpolated between two logged sights, and the gap between
-  them sets the accuracy — an hour of gap costs the best part of a minute of
-  time, which is eight miles of longitude at 45°N.
+  them sets the accuracy — an hour of gap costs about half a minute of time,
+  which is five miles of longitude at 45°N, and the error grows as the *square*
+  of the gap: two hours costs four times as much, not twice.
 
 `bestPair()` prefers an observed crossing over an interpolated one, and the
 widest span among equals. The UI labels which kind it used.
@@ -326,6 +327,18 @@ figures.
 - `.wu-row` does not exist. The work-up rows are a `<dl class="wu-rows">` with
   `dt`/`dd`, which is a two-column grid that keeps a long wrapped label from
   dragging its value along. Reuse it rather than inventing a parallel one.
+- **A derivation cannot be shown to a finer precision than its own inputs.**
+  One second of time is a quarter of a mile of longitude and a tenth of a
+  minute of the equation of time is three quarters of one, so a line quoting
+  both of those and answering to a tenth of an arcminute could never add up.
+  `fmtClockTenths` exists for that line.
+- A test that walks a lesson twice walks step 0 twice, which clears the log —
+  so the second walk draws a *different* sight with a different reading error.
+  Apply the last step on its own instead. The first version of that test passed
+  on luck and failed the moment another file changed the random sequence.
+- Prose that counts things goes stale. "Four short walks" survived a fifth
+  lesson; "over six weeks" outlived every passage in the program. Where a
+  count appears in a string, there is a tripwire test beside it.
 
 ## Testing
 
@@ -345,6 +358,10 @@ prose is worth pinning too.
   tests; it imports only pure things (`applyStep`, `verdict`).
 - `tex.test.js` — the TeX escaping trap, checked in the source *and* in the
   built strings.
+- `theory.test.js` — renders every `sub` block against a full log and checks
+  that the arithmetic on screen actually works out at the precision it is
+  shown to. A line whose numbers are each right and which still does not add
+  up is worse than no line at all.
 - `lunars.test.js` — the moon, the precise sun and delta T against
   `astronomy-engine`; the clearing proved by round trip; the thirty-to-one
   amplification measured rather than asserted; and the claim that a lunar gives

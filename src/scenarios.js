@@ -66,10 +66,10 @@ export const scenarios = [
     note: {
       en:
         'Early November: the sundial runs sixteen minutes ahead of the clock. The chronometer here is perfect ' +
-        'and the fix is still 246 nm out, because the almanac has been switched off. The clock was never sufficient on its own.',
+        'and the fix is still 247 nm out, because the almanac has been switched off. The clock was never sufficient on its own.',
       cs:
         'Začátek listopadu: sluneční hodiny jdou šestnáct minut napřed před hodinami. Chronometr je tu naprosto přesný, ' +
-        'a pozice je přesto o 246 nm vedle, protože je vypnutá ročenka. Samotné hodiny nikdy nestačily.',
+        'a pozice je přesto o 247 nm vedle, protože je vypnutá ročenka. Samotné hodiny nikdy nestačily.',
     },
   },
   {

@@ -4,7 +4,7 @@
 
 import { fmtAngle, fmtNumber, cosd, sind, degToNm } from './core/angles.js';
 import { NM_PER_CLOCK_SECOND } from './core/horizon.js';
-import { fmtClock, daysBetween } from './core/time.js';
+import { fmtClock, fmtClockTenths, daysBetween } from './core/time.js';
 import { fLon } from './ui/format.js';
 
 // --- turning formatted values into TeX ------------------------------------
@@ -88,8 +88,8 @@ export const theory = [
       {
         k: 'p',
         text: {
-          en: 'Its three sides are exactly the three quantities a sight is about.',
-          cs: 'Jeho tři strany jsou přesně ty tři veličiny, o které v měření jde.',
+          en: 'Its three sides are exactly the three quantities a sight is about. They are written here for an observer north of the equator; south of it the pole above the horizon is the southern one and every sign mirrors — which is why the equation they lead to carries signed latitude and declination rather than magnitudes, and holds either way.',
+          cs: 'Jeho tři strany jsou přesně ty tři veličiny, o které v měření jde. Jsou zapsány pro pozorovatele severně od rovníku; jižně od něj je pólem nad obzorem ten jižní a všechna znaménka se obrátí — proto rovnice, ke které vedou, nese znaménkovou šířku a deklinaci místo jejich velikostí, a platí tak i tak.',
         },
       },
       {
@@ -192,11 +192,11 @@ export const theory = [
       {
         k: 'p',
         text: {
-          en: 'The same fact arrives by a second route. The elevated pole stands at an altitude equal to your latitude, which is why one sight of Polaris is a latitude and nothing else:',
-          cs: 'Tentýž fakt přichází ještě druhou cestou. Povýšený pól stojí ve výšce rovné vaší šířce — proto je jediné zaměření Polárky rovnou zeměpisnou šířkou:',
+          en: 'The same fact arrives by a second route. Whichever pole stands above your horizon does so at an altitude equal to your latitude — which is why, north of the equator, a single sight of Polaris is a latitude and nothing else:',
+          cs: 'Tentýž fakt přichází ještě druhou cestou. Ten pól, který máte nad obzorem, stojí ve výšce rovné vaší šířce — proto je severně od rovníku jediné zaměření Polárky rovnou zeměpisnou šířkou:',
         },
       },
-      { k: 'math', tex: 'H_P = \\varphi' },
+      { k: 'math', tex: 'H_P = |\\varphi|' },
       { k: 'sub', fn: (d, s) => `H_P = ${A(Math.abs(s.lat))}` },
     ],
   },
@@ -305,8 +305,8 @@ export const theory = [
       {
         k: 'p',
         text: {
-          en: 'Finding \\(\\mathrm{UT}_{\\text{LAN}}\\) by watching for the highest altitude does not work, because near culmination the altitude is flat: half a minute of reading error becomes a minute of time. Equal altitudes finds it instead. The sun passes each altitude twice, and noon lies halfway between:',
-          cs: 'Hledat \\(\\mathrm{UT}_{\\text{LAN}}\\) vyčkáváním na nejvyšší výšku nefunguje, protože v okolí kulminace je výška plochá: půl úhlové minuty chyby odečtu se změní v minutu času. Místo toho slouží metoda stejných výšek. Slunce projde každou výškou dvakrát a poledne leží přesně uprostřed:',
+          en: 'Finding \\(\\mathrm{UT}_{\\text{LAN}}\\) by watching for the highest altitude does not work, because near culmination the altitude is flat. Half a minute of reading error puts the moment of the maximum one to five minutes of time out of place — one when the sun climbs nearly overhead, five when it culminates low — and a minute of time is fifteen miles of longitude at the equator. Equal altitudes finds it instead. The sun passes each altitude twice, and noon lies halfway between:',
+          cs: 'Hledat \\(\\mathrm{UT}_{\\text{LAN}}\\) vyčkáváním na nejvyšší výšku nefunguje, protože v okolí kulminace je výška plochá. Půl úhlové minuty chyby odečtu posune okamžik vrcholu o jednu až pět minut času — o jednu, když Slunce vystoupá téměř do nadhlavníku, o pět, když kulminuje nízko — a minuta času je patnáct mil zeměpisné délky na rovníku. Místo toho slouží metoda stejných výšek. Slunce projde každou výškou dvakrát a poledne leží přesně uprostřed:',
         },
       },
       { k: 'math', tex: '\\mathrm{LAN} = \\dfrac{T_1 + T_2}{2} - \\Delta' },
@@ -327,7 +327,15 @@ export const theory = [
           const e = d.logResult.equalAlt;
           if (!e) return null;
           const p = e.pair;
-          return `\\lambda = 15^\\circ\\!/\\mathrm{h}\\cdot(12^\\mathrm{h} - \\text{${fmtClock(e.lanChrono)}}) - ${SIGNED(e.eotMin, 'min')} = ${LON(e.lon)}`;
+          // Both inputs are shown fine enough for the line to multiply out at
+          // the tenth of an arcminute its answer is given to. A tenth of a
+          // second of time is 0.025' of longitude; the equation of time as an
+          // angle rather than as minutes of time is another 0.05'. Quoted in
+          // whole seconds and tenths of a minute, as this line first was, the
+          // two roundings came to most of an arcminute and it visibly did not
+          // add up -- which is worse than useless in a derivation.
+          const E = e.eotMin / 4; // minutes of time -> degrees of hour angle
+          return `\\lambda = 15^\\circ\\!/\\mathrm{h}\\cdot(12^\\mathrm{h} - \\text{${fmtClockTenths(e.lanChrono)}}) - (${E < 0 ? '-' : '+'}${A(Math.abs(E))}) = ${LON(e.lon)}`;
         },
         empty: {
           en: 'Take a morning sight in the simulation, then watch the sun back down to it, and this line fills in.',
@@ -442,8 +450,8 @@ export const theory = [
       {
         k: 'note',
         text: {
-          en: 'The Longitude Act of 1714 asked for half a degree on a voyage to the West Indies. Half a degree is two minutes of time; over a six-week passage that is a rate of three seconds a day, in a damp cabin swinging through forty degrees of temperature.',
-          cs: 'Zákon o zeměpisné délce z roku 1714 žádal půl stupně na plavbě do Západní Indie. Půl stupně jsou dvě minuty času; na šestitýdenní plavbě to znamená tři sekundy denně — ve vlhké kajutě, houpající se čtyřiceti stupni teplotních změn.',
+          en: 'The Longitude Act of 1714 asked for half a degree on a voyage to the West Indies. Half a degree is two minutes of time; over a six-week passage that is a rate held to under three seconds a day, in a damp cabin swinging through forty degrees of temperature.',
+          cs: 'Zákon o zeměpisné délce z roku 1714 žádal půl stupně na plavbě do Západní Indie. Půl stupně jsou dvě minuty času; na šestitýdenní plavbě to znamená udržet chod pod třemi sekundami denně — ve vlhké kajutě, houpající se čtyřiceti stupni teplotních změn.',
         },
       },
     ],

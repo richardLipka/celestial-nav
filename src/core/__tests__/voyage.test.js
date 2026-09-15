@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { fromParts } from '../time.js';
 import { degToNm } from '../angles.js';
 import { angularDistance } from '../fix.js';
+import { defaultOptions } from '../corrections.js';
 import { rhumb, planPassage, dayRun, simulateVoyage, seededRandom } from '../voyage.js';
 
 // The trade-wind route: Las Palmas to Bridgetown, which is the passage the
@@ -169,5 +170,59 @@ describe('when the sun will not oblige', () => {
     expect(v.destination).toBeUndefined();
     expect(v.truth.lon).toBeGreaterThan(5); // ran east
     expect(Math.abs(v.truth.lat)).toBeLessThan(0.1);
+  });
+});
+
+describe('the acceptance table in ROADMAP.md', () => {
+  // Four rows of figures a reader will compare against the chart in front of
+  // them. Las Palmas to Bridgetown, 5 knots, 0.6 of a knot setting west.
+  const base = {
+    start: { lat: 28.13, lon: -15.43 },
+    destination: { lat: 13.11, lon: -59.6 },
+    departureDate: new Date(Date.UTC(1765, 4, 1)),
+    // planPassage gives 22 days for this leg and the store allows 14 more to
+    // wander in before giving up, which is the budget the chart is drawn to.
+    days: planPassage({ lat: 28.13, lon: -15.43 }, { lat: 13.11, lon: -59.6 }, 5).days + 14,
+    speedKts: 5,
+    driftKts: 0.6,
+    setDeg: 275,
+    steeringBiasDeg: 2,
+    seed: 7,
+    opt: defaultOptions(),
+    steerToDestination: true,
+  };
+  const run = (cfg) => simulateVoyage({ ...base, ...cfg });
+  const worstLat = (v) => v.legs.reduce((m, l) => Math.max(m, Math.abs(l.error.latNm)), 0);
+
+  it('holds the latitude to under half a mile whatever the clock does', () => {
+    for (const rate of [0, 5 / 62, 120 / 42]) {
+      const v = run({ carryChronometer: true, clockErrorSec: 0, clockRateSecPerDay: rate });
+      expect(worstLat(v), `rate ${rate}`).toBeCloseTo(0.46, 1);
+    }
+    expect(worstLat(run({ carryChronometer: false })), 'and blind too').toBeCloseTo(0.46, 1);
+  });
+
+  it('makes its landfall in twenty-five days with a clock', () => {
+    const perfect = run({ carryChronometer: true, clockErrorSec: 0, clockRateSecPerDay: 0 });
+    expect(perfect.legs.length).toBe(25);
+    expect(perfect.arrived).toBe(true);
+    expect(Math.abs(perfect.error.lonNm)).toBeLessThan(0.1);
+    expect(perfect.truthToDestNm).toBeCloseTo(17.5, 0);
+
+    const h4 = run({ carryChronometer: true, clockErrorSec: 0, clockRateSecPerDay: 5 / 62 });
+    expect(Math.abs(h4.error.lonNm)).toBeCloseTo(0.5, 1);
+    expect(h4.truthToDestNm).toBeCloseTo(17.6, 0);
+
+    const act = run({ carryChronometer: true, clockErrorSec: 0, clockRateSecPerDay: 120 / 42 });
+    expect(Math.abs(act.error.lonNm)).toBeCloseTo(17.4, 0);
+    expect(act.truthToDestNm).toBeCloseTo(23.5, 0);
+  });
+
+  it('never finds the island without one', () => {
+    const blind = run({ carryChronometer: false });
+    expect(blind.arrived).toBe(false);
+    expect(blind.legs.length).toBe(36);
+    expect(Math.abs(blind.error.lonNm)).toBeCloseTo(568, -1);
+    expect(blind.truthToDestNm).toBeCloseTo(539, -1);
   });
 });

@@ -183,8 +183,8 @@ export const lessons = [
         tab: 'simulation', panel: 'p-workup',
         act: (store) => { ensureSights(store, [-3, -0.15, 0.15]); ensurePair(store); },
         text: {
-          en: 'Back off Jamaica, with the log you have. Now take hold of the chronometer error slider in the rail and pull it. Watch the two bars: the longitude runs away and the latitude does not move at all. That asymmetry is the whole subject.',
-          cs: 'Zpátky u Jamajky, s deníkem, který máte. Vezměte v panelu posuvník chyby chronometru a zatáhněte za něj. Sledujte oba sloupce: délka utíká a šířka se vůbec nehne. Ta nesouměrnost je celé téma.',
+          en: 'Back off Jamaica, with the log you have. Now take hold of the chronometer error slider in the rail and pull it. Watch the two bars: the longitude runs away at a mile for every four seconds, while the latitude barely stirs — half a mile for a whole hour of error, and only because the declination was looked up late. More than a thousand to one, and that asymmetry is the whole subject.',
+          cs: 'Zpátky u Jamajky, s deníkem, který máte. Vezměte v panelu posuvník chyby chronometru a zatáhněte za něj. Sledujte oba sloupce: délka utíká o míli za každé čtyři sekundy, zatímco šířka se sotva pohne — půl míle za celou hodinu chyby, a jen proto, že se deklinace vyhledala později. Víc než tisíc ku jedné, a ta nesouměrnost je celé téma.',
         },
       },
       {
@@ -236,8 +236,8 @@ export const lessons = [
         tab: 'lunars', panel: 'p-lunlog',
         act: (store) => ensureLunars(store),
         text: {
-          en: 'A round of five has been taken. Each is three readings at once — the moon’s altitude, the sun’s, and the distance between their near limbs — which meant three observers and one voice counting. Look at the spread: the same sky, five answers, a minute apart. That scatter is the observer, and averaging is the only thing to be done about it.',
-          cs: 'Byla změřena série pěti. Každé měření jsou tři odečty naráz — výška Měsíce, výška Slunce a vzdálenost jejich přivrácených okrajů — což znamenalo tři pozorovatele a jeden hlas, který odpočítával. Podívejte se na rozptyl: tatáž obloha, pět odpovědí, minutu od sebe. Ten rozptyl je pozorovatel a jediné, co s ním jde dělat, je průměrovat.',
+          en: 'A round of five has been taken, three minutes apart. Each is three readings at once — the moon’s altitude, the sun’s, and the distance between their near limbs — which meant three observers and one voice counting. Look at the spread: the same sky, five answers, and a minute or so of Greenwich time between the best of them and the worst. That scatter is the observer, and averaging is the only thing to be done about it.',
+          cs: 'Byla změřena série pěti měření po třech minutách. Každé jsou tři odečty naráz — výška Měsíce, výška Slunce a vzdálenost jejich přivrácených okrajů — což znamenalo tři pozorovatele a jeden hlas, který odpočítával. Podívejte se na rozptyl: tatáž obloha, pět odpovědí a zhruba minuta greenwichského času mezi tou nejlepší a nejhorší. Ten rozptyl je pozorovatel a jediné, co s ním jde dělat, je průměrovat.',
         },
       },
       {
