@@ -80,8 +80,8 @@ export const theory = [
       {
         k: 'p',
         text: {
-          en: 'Three points on the celestial sphere carry the whole problem: the elevated pole P, your zenith Z, and the sun X. Join them with great circles and you have the navigational triangle. Drag the sphere to turn it.',
-          cs: 'Celý problém nesou tři body na nebeské sféře: povýšený pól P, váš zenit Z a Slunce X. Spojte je hlavními kružnicemi a máte navigační trojúhelník. Tažením sférou otočíte.',
+          en: 'Three points on the celestial sphere carry the whole problem: the elevated pole P, your zenith Z, and the sun X. Join them with great circles and you have the navigational triangle. Drag the sphere to turn it, and move the hour in the rail to watch the triangle open and close — at noon it has no interior at all, which is the whole of the next section.',
+          cs: 'Celý problém nesou tři body na nebeské sféře: povýšený pól P, váš zenit Z a Slunce X. Spojte je hlavními kružnicemi a máte navigační trojúhelník. Tažením sférou otočíte a posunutím hodiny v panelu uvidíte, jak se trojúhelník otevírá a zavírá — v poledne nemá vnitřek vůbec žádný, a právě o tom je celá další část.',
         },
       },
       { k: 'fig', id: 'pzx3d' },
