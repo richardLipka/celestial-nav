@@ -220,7 +220,7 @@ const dict = {
     'wu.barLon': 'longitude',
     'wu.barLat': 'latitude',
     'wu.noteClean':
-      'With a true chronometer and the almanac applied, both reductions land on the ship. Put an error on the clock and watch which one moves.',
+      'With a true chronometer and the equation of time applied, both reductions land on the ship. Put an error on the clock and watch which one moves.',
     'wu.noteNoLat': 'The latitude is untouched. The longitude is out by {d}.',
     'wu.noteAll':
       'The fix is {total} from the ship, and the longitude carries essentially all of it. The small latitude error is only the declination drifting — never the clock.',
@@ -578,7 +578,7 @@ const dict = {
     'wu.barLon': 'délka',
     'wu.barLat': 'šířka',
     'wu.noteClean':
-      'Se správným chronometrem a s použitým almanachem padnou oba výpočty přesně na loď. Rozhoďte hodiny a sledujte, který z nich se pohne.',
+      'Se správným chronometrem a s použitou časovou rovnicí padnou oba výpočty přesně na loď. Rozhoďte hodiny a sledujte, který z nich se pohne.',
     'wu.noteNoLat': 'Šířka zůstala nedotčená. Délka je mimo o {d}.',
     'wu.noteAll':
       'Určená pozice leží {total} od lodi a prakticky celou tu chybu nese délka. Malá chyba šířky je jen posun deklinace — nikdy ne hodiny.',
@@ -665,7 +665,7 @@ const dict = {
     'aria.meridian': 'Řez Zemí poledníkem pozorovatele v pravé poledne',
 
     // --- lunar distances --------------------------------------------------
-    'tab.lunars': 'Měsíční vzdálenosti',
+    'tab.lunars': 'Lunární vzdálenosti',
     'lun.sky': 'Dvě tělesa',
     'lun.sky.sub': 'a jediný úhel mezi nimi',
     'lun.sky.aria': 'Měsíc a Slunce na obloze a měřený úhel mezi nimi',
@@ -683,7 +683,7 @@ const dict = {
     'lun.round': 'Série pěti',
     'lun.clear': 'Vymazat',
     'lun.average': 'průměrovat deník',
-    'lun.empty': 'Zatím nic. Měsíční vzdálenost jsou tři současné odečty — výška Měsíce, výška Slunce a vzdálenost jejich přivrácených okrajů — což na lodi znamenalo tři pozorovatele a jeden hlas, který odpočítával.',
+    'lun.empty': 'Zatím nic. Lunární vzdálenost jsou tři současné odečty — výška Měsíce, výška Slunce a vzdálenost jejich přivrácených okrajů — což na lodi znamenalo tři pozorovatele a jeden hlas, který odpočítával.',
     'lun.count': 'V deníku: {n}.',
     'lun.remove': 'odstranit toto měření',
     'lun.spread': 'Deník si odporuje o {n} sekund greenwichského času. Ten rozptyl je chyba odečtu a průměrování je to, co s ním navigátor dělal.',
@@ -729,9 +729,9 @@ const dict = {
     'lun.cost.sub': 'celý argument v jediném poměru',
     'lun.cost.lede': 'Právě teď se Měsíc blíží ke Slunci tak pomalu, že jedna úhlová minuta chyby v opravené vzdálenosti znamená {min} minut greenwichského času — a {nm} námořních mil zeměpisné délky.',
     'lun.cost.note': 'Táž úhlová minuta chyby sextantu. Polední měření z ní udělá jednu míli šířky; měsíční vzdálenost {n}. Ten násobek je důvod, proč měsíční vzdálenosti potřebovaly tabulky na úhlové vteřiny, čtyři hodiny počítání a klidnou palubu — a proč zvítězily hodiny, které prostě jdou.',
-    'lun.cost.almanac': 'V jedné věci je tahle simulace příliš laskavá. Ročenka, kterou se měření vyhodnocuje, je táž, která Měsíc na oblohu postavila, takže vlastní chyba tabulky se vyruší a nikdy se tu neobjeví. Skutečné měření ji neslo: Mayerovy tabulky byly přesné asi na půl úhlové minuty, což je minuta greenwichského času a patnáct mil délky — ještě než pozorovatel udělá jedinou chybu.',
+    'lun.cost.almanac': 'V jedné věci je tahle simulace příliš laskavá. Almanach, kterým se měření vyhodnocuje, je týž, který Měsíc na oblohu postavil, takže vlastní chyba tabulky se vyruší a nikdy se tu neobjeví. Skutečné měření ji neslo: Mayerovy tabulky byly přesné asi na půl úhlové minuty, což je minuta greenwichského času a patnáct mil délky — ještě než pozorovatel udělá jedinou chybu.',
     'lun.bar.noon': 'polední měření',
-    'lun.bar.lunar': 'měsíční vzdálenost',
+    'lun.bar.lunar': 'lunární vzdálenost',
   },
 };
 

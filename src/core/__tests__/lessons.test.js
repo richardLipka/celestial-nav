@@ -5,6 +5,7 @@ import { applyStep } from '../../views/lessonbar.js';
 import { lessons, lessonById } from '../../lessons.js';
 import { verdict } from '../../views/workup.js';
 import { dictionaries, LANGS } from '../../i18n.js';
+import { richText } from '../../ui/text.js';
 
 // The other suites pin the physics. This one pins the *claims*: a lesson step
 // says something in words, and the reader sees whatever the store derived. If
@@ -201,5 +202,135 @@ describe('the lunars lesson', () => {
     expect(Math.abs(d.lunar.cost.nm)).toBeLessThan(45);
     expect(d.lunar.cost.minutesOfTime).toBeGreaterThan(1.5);
     expect(d.lunar.cost.minutesOfTime).toBeLessThan(3);
+  });
+});
+
+
+// =========================================================================
+// What the guides say in words, against what the reader will see -- and
+// against the interface, when they quote a button by name.
+// =========================================================================
+describe('the words the guides use', () => {
+  const stepText = (id, i, lang) => lessonById(id).steps[i].text[lang];
+
+  it('quotes only buttons that exist, by the name they actually carry', () => {
+    // A guide that names a control has to name it exactly: the reader is
+    // hunting the screen for those words. English sets them in “...”, Czech
+    // in „...“, and every one of them must be a string from the dictionary.
+    const marks = {
+      en: /[“]([^”]+)[”]/g,
+      cs: /[„]([^“]+)[“]/g,
+    };
+    let found = 0;
+    for (const l of lessons) {
+      for (const [i, step] of l.steps.entries()) {
+        for (const lang of LANGS) {
+          const values = new Set(Object.values(dictionaries[lang]));
+          for (const m of step.text[lang].matchAll(marks[lang])) {
+            found++;
+            expect(values, `${l.id}[${i}].${lang} quotes "${m[1]}"`).toContain(m[1]);
+          }
+        }
+      }
+    }
+    expect(found, 'the guides do quote controls').toBeGreaterThan(3);
+  });
+
+  it('does not tell the reader to add when the panel beside it subtracts', () => {
+    // The noon lesson runs on the equinox preset, where the sun passes a few
+    // arcminutes *north* of the zenith: the work-up reads phi = delta - z. The
+    // step used to say "add them and you have it".
+    const d = walk('noon', 4);
+    expect(d.logResult.sunBearsSouth, 'the sun passes north of the zenith here').toBe(false);
+    expect(stepText('noon', 3, 'en')).toContain('which side of your zenith');
+    expect(stepText('noon', 3, 'cs')).toContain('kterou stranou zenitu');
+    expect(stepText('noon', 3, 'en')).not.toContain('Add them');
+  });
+
+  it('moves the latitude by the one mile it now claims, not a mile and a half', () => {
+    const before = walk('noon', 4).logResult.lat;
+    applyStep(store, 'noon', 4);
+    const moved = Math.abs(store.get().logResult.lat - before) * 60;
+    expect(moved, 'one mile').toBeGreaterThan(0.85);
+    expect(moved, 'one mile').toBeLessThan(1.15);
+    expect(stepText('noon', 4, 'en')).toContain('one mile');
+    expect(stepText('noon', 4, 'cs')).toContain('jednu míli');
+  });
+
+  it('costs a mile every four seconds off Jamaica, and half a mile an hour of it', () => {
+    walk('clock', 1);
+    const base = store.get().logResult;
+    const cosLat = Math.cos((store.state.lat * Math.PI) / 180);
+    const move = (sec) => {
+      store.set({ clockErrorSec: sec });
+      const r = store.get().logResult;
+      return {
+        lon: Math.abs(r.lon - base.lon) * 60 * cosLat,
+        lat: Math.abs(r.lat - base.lat) * 60,
+      };
+    };
+
+    const four = move(4);
+    expect(four.lon, 'a mile for every four seconds').toBeGreaterThan(0.85);
+    expect(four.lon, 'a mile for every four seconds').toBeLessThan(1.15);
+
+    const hour = move(3600);
+    expect(hour.lat, 'half a mile for a whole hour').toBeGreaterThan(0.4);
+    expect(hour.lat, 'half a mile for a whole hour').toBeLessThan(0.7);
+    expect(hour.lon / hour.lat, 'more than a thousand to one').toBeGreaterThan(1000);
+
+    for (const lang of LANGS) {
+      expect(stepText('clock', 0, lang).length).toBeGreaterThan(80);
+    }
+    expect(stepText('clock', 0, 'en')).toContain('a mile for every four seconds');
+    expect(stepText('clock', 0, 'en')).toContain('half a mile for a whole hour');
+    expect(stepText('clock', 0, 'cs')).toContain('o míli za každé čtyři sekundy');
+    expect(stepText('clock', 0, 'cs')).toContain('půl míle za celou hodinu');
+  });
+
+  it('sails the passage in the three and a half weeks it says, not three', () => {
+    const v = walk('clock', 3).voyage;
+    expect(v.arrived).toBe(true);
+    expect(v.legs.length, 'days at sea').toBeGreaterThan(22);
+    expect(v.legs.length, 'days at sea').toBeLessThan(29);
+    expect(v.legs.length / 7, 'three and a half weeks').toBeGreaterThan(3.2);
+    expect(stepText('clock', 2, 'en')).toContain('three and a half weeks');
+    expect(stepText('clock', 2, 'cs')).toContain('tři a půl týdne');
+  });
+
+  it('pairs up its emphasis, and leans on words the reader can see it lean on', () => {
+    // The lesson bar sets innerHTML through the same renderer the theory tab
+    // uses, so *rate* is italic -- but only while the marks come in pairs. It
+    // set textContent for years, and those four words wore their asterisks.
+    let emphasised = 0;
+    for (const l of lessons) {
+      for (const [i, step] of l.steps.entries()) {
+        for (const lang of LANGS) {
+          const text = step.text[lang];
+          const stripped = text.replace(/\*\*[^*]+\*\*/g, '').replace(/\*[^*]+\*/g, '');
+          expect(stripped, `${l.id}[${i}].${lang} has an unpaired asterisk`).not.toContain('*');
+          if (stripped !== text) emphasised++;
+          expect(richText(text), `${l.id}[${i}].${lang}`).not.toContain('*');
+        }
+      }
+    }
+    expect(emphasised, 'the guides do lean on words').toBeGreaterThan(2);
+  });
+
+  it('spreads the round of lunars over about the minute of GMT it names', () => {
+    // The scatter *is* the reading error, drawn fresh every time, so one round
+    // proves nothing: it has come out at a fifth of a minute and at two. The
+    // claim is about the typical round, so take the median of a few dozen.
+    const runs = [];
+    for (let i = 0; i < 25; i++) {
+      store.set({ lesson: null, lessonStep: 0, lunarSights: [] });
+      runs.push(walk('lunars').lunar.spreadSec / 60);
+    }
+    runs.sort((a, b) => a - b);
+    const median = runs[Math.floor(runs.length / 2)];
+    expect(median, 'a minute or so').toBeGreaterThan(0.7);
+    expect(median, 'a minute or so').toBeLessThan(2);
+    expect(stepText('lunars', 1, 'en')).toContain('a minute or so of Greenwich time');
+    expect(stepText('lunars', 1, 'cs')).toContain('minuta greenwichského času');
   });
 });

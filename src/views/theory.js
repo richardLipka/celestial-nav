@@ -20,6 +20,7 @@ import { meanDirection } from './sphere.js';
 import { angularDistance } from '../core/fix.js';
 import { fmtAngle, fmtBearing } from '../core/angles.js';
 import { fLat } from '../ui/format.js';
+import { richText } from '../ui/text.js';
 
 const h = (tag, cls, txt) => {
   const n = document.createElement(tag);
@@ -105,7 +106,7 @@ export function createTheory(onRotate, onCentre) {
     for (const b of section.blocks) {
       if (b.k === 'p') {
         const p = h('p', 'th-p');
-        p.innerHTML = escapeButKeepMath(pick(b.text));
+        p.innerHTML = richText(pick(b.text));
         body.append(p);
       } else if (b.k === 'math') {
         const m = h('div', `th-math ${b.big ? 'big' : ''}`);
@@ -120,7 +121,7 @@ export function createTheory(onRotate, onCentre) {
         body.append(wrap);
       } else if (b.k === 'note') {
         const n = h('div', `th-note ${b.kind || ''}`);
-        n.innerHTML = escapeButKeepMath(pick(b.text));
+        n.innerHTML = richText(pick(b.text));
         body.append(n);
       } else if (b.k === 'fig') {
         const fig = figures[b.id];
@@ -280,22 +281,4 @@ export function createTheory(onRotate, onCentre) {
       }, 0);
     },
   };
-}
-
-/**
- * Escape the text, leave \( ... \) alone so MathJax can find it, and let the
- * two emphases the prose is written with through as tags.
- *
- * Without that last step the asterisks reached the page as asterisks: a term
- * being defined read `**intercept**`. The escaping happens first, so the only
- * tags that can ever reach innerHTML are the two put there here, and the TeX
- * in this file contains no asterisk for the emphasis rules to catch.
- */
-export function escapeButKeepMath(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*([^*]+)\*/g, '<em>$1</em>');
 }

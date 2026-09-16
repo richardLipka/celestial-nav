@@ -53,8 +53,8 @@ export const lessons = [
         state: { scenario: 'equinox', clockErrorSec: 0, clockRateSecPerDay: 0, sights: [] },
         tab: 'simulation', view: 'dome', panel: 'p-sky',
         text: {
-          en: 'We are on the equator, on the day of the equinox, and the sun is about to cross the meridian. The circle is your horizon and the dot at its centre is the point straight overhead — your zenith. Watch the dashed track: that is the sun’s path across the sky for the whole day.',
-          cs: 'Jsme na rovníku, v den rovnodennosti, a Slunce se chystá projít poledníkem. Kružnice je váš obzor a tečka uprostřed je bod přímo nad hlavou — váš zenit. Sledujte čárkovanou dráhu: to je cesta Slunce po obloze za celý den.',
+          en: 'We are on the equator, on the day of the equinox, and the sun is about to cross your meridian — the line that runs from due north, over the point above your head, to due south. The circle is your horizon and the dot at its centre is the point straight overhead — your zenith. Watch the dashed track: that is the sun’s path across the sky for the whole day.',
+          cs: 'Jsme na rovníku, v den rovnodennosti, a Slunce se chystá projít vaším poledníkem — čarou, která vede od severu přes bod nad vaší hlavou k jihu. Kružnice je váš obzor a tečka uprostřed je bod přímo nad hlavou — váš zenit. Sledujte čárkovanou dráhu: to je cesta Slunce po obloze za celý den.',
         },
       },
       {
@@ -68,7 +68,7 @@ export const lessons = [
         state: { secondOfDay: null },
         tab: 'simulation', view: 'sextant', panel: 'p-sky',
         text: {
-          en: 'Now take the sight yourself. Swing the arc until the sun drops into the telescope field, then drag inside the field to bring its lower edge exactly down onto the horizon. When it sits on the line, log it.',
+          en: 'Now take the sight yourself. Swing the arc until the sun drops into the telescope field, then drag inside the field to bring its lower limb — its bottom edge — exactly down onto the horizon. When it sits on the line, log it.',
           cs: 'Teď to změřte sami. Otáčejte obloukem, dokud Slunce nespadne do zorného pole dalekohledu, pak tažením uvnitř pole stáhněte jeho spodní okraj přesně na obzor. Jakmile sedí na čáře, zapište to.',
         },
       },
@@ -76,16 +76,16 @@ export const lessons = [
         tab: 'simulation', view: 'dome', panel: 'p-workup',
         act: (store) => ensureSights(store, [0]),
         text: {
-          en: 'There is your latitude. The sun’s declination came from the almanac — from the date, and the date alone — and the zenith distance came off the arc. Add them and you have it. Nowhere in that sum is there a time.',
-          cs: 'A tady je vaše šířka. Deklinace Slunce přišla z almanachu — z data, a jen z data — a zenitová vzdálenost z oblouku. Sečtěte je a je to. Nikde v tom součtu není žádný čas.',
+          en: 'There is your latitude. The sun’s declination — the latitude of the spot it is standing over — came from the almanac, from the date and the date alone, and the zenith distance came off the arc. Put the two together, minding which side of your zenith the sun passed, and you have it. Nowhere in that sum is there a time.',
+          cs: 'A tady je vaše šířka. Deklinace Slunce — zeměpisná šířka místa, nad kterým Slunce stojí — přišla z almanachu, z data a jen z data, a zenitová vzdálenost z oblouku. Složte je dohromady podle toho, kterou stranou zenitu Slunce prošlo, a je to. Nikde v tom součtu není žádný čas.',
         },
       },
       {
         state: { clockErrorSec: 3600 },
         tab: 'simulation', panel: 'p-workup',
         text: {
-          en: 'To prove it: the chronometer has just been put a full hour wrong. The longitude jumps nine hundred miles. The latitude moves a mile and a half — and only because the declination was looked up an hour late, which at the equinox is as fast as it ever changes. The sight itself was self-timing: you watched the altitude stop rising, and the sun told you when. That is why latitude was never the problem.',
-          cs: 'A důkaz: chronometr právě dostal chybu celou hodinu. Délka poskočí o devět set mil. Šířka se pohne o míli a půl — a jen proto, že se deklinace vyhledala o hodinu později, což je o rovnodennosti její nejrychlejší změna vůbec. Samo měření si čas určilo: čekali jste, až výška přestane růst, a Slunce vám řeklo kdy. Proto šířka nikdy nebyla ten problém.',
+          en: 'To prove it: the chronometer has just been put a full hour wrong. The longitude jumps nine hundred miles. The latitude moves one mile — and only because the declination was looked up an hour late, which at the equinox is as fast as it ever changes. The sight itself was self-timing: you watched the altitude stop rising, and the sun told you when. That is why latitude was never the problem.',
+          cs: 'A důkaz: chronometr právě dostal chybu celou hodinu. Délka poskočí o devět set mil. Šířka se pohne o jednu míli — a jen proto, že se deklinace vyhledala o hodinu později, což je o rovnodennosti její nejrychlejší změna vůbec. Samo měření si čas určilo: čekali jste, až výška přestane růst, a Slunce vám řeklo kdy. Proto šířka nikdy nebyla ten problém.',
         },
       },
     ],
@@ -200,8 +200,8 @@ export const lessons = [
         tab: 'voyage', panel: null,
         act: (store) => ensureVoyage(store, true),
         text: {
-          en: 'And here is that same watch on a passage to the West Indies. It arrives, and the landfall is a couple of dozen miles from the harbour — the rate had only three weeks to work in, not the six the prize allowed, so the ship comes in comfortably inside half a degree. Now untick “carry a chronometer” and sail it again.',
-          cs: 'A tady jsou tytéž hodiny na plavbě do Západní Indie. Doplují, a přistání je pár desítek mil od přístavu — chod měl na práci jen tři týdny, ne šest, které cena připouštěla, takže se loď vejde pohodlně pod půl stupně. Teď odškrtněte „vézt chronometr“ a proplujte to znovu.',
+          en: 'And here is that same watch on a passage to the West Indies. It arrives, and the landfall is a couple of dozen miles from the harbour — the rate had only three and a half weeks to work in, not the six the prize allowed, so the ship comes in comfortably inside half a degree. Now untick “carry a chronometer” and sail it again.',
+          cs: 'A tady jsou tytéž hodiny na plavbě do Západní Indie. Doplují, a přistání je pár desítek mil od přístavu — chod měl na práci jen tři a půl týdne, ne šest, které cena připouštěla, takže se loď vejde pohodlně pod půl stupně. Teď odškrtněte „vézt chronometr“ a proplujte to znovu.',
         },
       },
       {
@@ -244,8 +244,8 @@ export const lessons = [
         tab: 'lunars', panel: 'p-lunwork',
         act: (store) => ensureLunars(store),
         text: {
-          en: 'Now the reduction, and the reason lunars were dreaded. Refraction lifts both bodies; parallax drops the moon by a whole degree. Neither changes the angle at the zenith between them, and that is the hinge the clearing turns on. Notice how far the clearing moves the measured distance — and that every line of it was done in logarithms, by hand, twice.',
-          cs: 'A teď výpočet — a důvod, proč se měsíčních vzdáleností báli. Refrakce zvedá obě tělesa, paralaxa snižuje Měsíc o celý stupeň. Ani jedno nemění úhel u zenitu mezi nimi, a právě o ten se celá oprava opírá. Všimněte si, jak daleko oprava naměřenou vzdálenost posune — a že každý její řádek se počítal v logaritmech, ručně, a pro kontrolu dvakrát.',
+          en: 'Now the reduction, and the reason lunars were dreaded. Refraction — the air bending the light on its way down — lifts both bodies; parallax — your standing on the surface and not at the centre of the Earth — drops the moon by a whole degree. Neither changes the angle at the zenith between them, and that is the hinge the clearing turns on. Notice how far the clearing moves the measured distance — and that every line of it was done in logarithms, by hand, twice.',
+          cs: 'A teď výpočet — a důvod, proč se lunárních vzdáleností báli. Refrakce — ohyb světla ve vzduchu cestou dolů — zvedá obě tělesa, paralaxa — to, že stojíte na povrchu, a ne ve středu Země — snižuje Měsíc o celý stupeň. Ani jedno nemění úhel u zenitu mezi nimi, a právě o ten se celá oprava opírá. Všimněte si, jak daleko oprava naměřenou vzdálenost posune — a že každý její řádek se počítal v logaritmech, ručně, a pro kontrolu dvakrát.',
         },
       },
       {

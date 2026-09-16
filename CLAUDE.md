@@ -12,7 +12,7 @@ lost). Five guided lessons walk a newcomer through all four.
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 201 tests
+npm test         # vitest, 208 tests
 npm run test:watch
 ```
 
@@ -145,7 +145,20 @@ Two rules, both learned the hard way:
 - **A sentence that quotes a number is an assertion, and needs a test.** Three
   shipped sentences were simply wrong (ROADMAP has the list). `lessons.test.js`
   now walks each lesson through the real store and checks the figures its text
-  quotes.
+  quotes. It caught a fourth: an hour of clock error moves the noon latitude
+  by one mile, and the lesson said a mile and a half.
+- **A guide that names a control must name it exactly**, because the reader is
+  hunting the screen for those words. Quote it in `“…”` (English) or `„…“`
+  (Czech) and `lessons.test.js` checks the quoted string is a real dictionary
+  value.
+- **And it must not contradict the panel it is pointing at.** The noon lesson
+  runs on the equinox preset, where the sun passes a few arcminutes *north* of
+  the zenith and the work-up reads `φ = δ − z`; the step said "add them".
+  Anything a step says about a sign has to be checked against the reduction
+  that will be on screen beside it.
+- The guides expect no navigation either, so the same introduce-before-use
+  rule applies: the meridian, the declination, refraction, parallax and the
+  lower limb are all named where a lesson first leans on them.
 
 ## Lunar distances
 
@@ -299,10 +312,11 @@ mid-render.
   and not an animation frame: both observers and frames are tied to the
   rendering loop, and a window sitting behind another runs neither. Six
   rectangles per scroll is not a cost worth optimising.
-- Prose may use `**bold**` and `*italic*`; `escapeButKeepMath()` turns those
-  two into tags after escaping the HTML, and nothing else is markdown. It went
-  years without doing so, and `**intercept**` reached the page with its
-  asterisks showing.
+- Prose may use `**bold**` and `*italic*`; `ui/text.js`'s `richText()` turns
+  those two into tags after escaping the HTML, and nothing else is markdown.
+  **It is the only renderer either the theory tab or the lesson bar may use.**
+  The tab escaped without the emphasis and the bar did neither, so six strings
+  reached the page wearing their asterisks, in both languages.
 
 ### Nothing is used before it is introduced
 
@@ -323,7 +337,8 @@ row. Two consequences worth knowing:
 ### Czech terminology
 
 Checked against Czech practice rather than translated: **poziční linie** (not
-"přímka"), **námořní almanach** (not "ročenka"), **náměr** for a bearing,
+"přímka"), **námořní almanach** (not "ročenka"), **lunární vzdálenosti** (not
+"měsíční", which also means *monthly*), **náměr** for a bearing,
 **metoda stejných výšek**, **intercept**, **kulminace**, **pravé poledne**,
 **podsluneční bod (PB)** — the abbreviation the globe panel labels it with.
 Sources: chovanec.com's ocean-passage write-up, tomaskudela.cz on the sextant,

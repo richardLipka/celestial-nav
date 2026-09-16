@@ -3,7 +3,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import * as store from '../../state/store.js';
 import { theory } from '../../theory.js';
 import { setLang } from '../../i18n.js';
-import { escapeButKeepMath } from '../../views/theory.js';
+import { richText } from '../../ui/text.js';
 import * as Astronomy from 'astronomy-engine';
 import { solarPrecise, decRateMinPerHour } from '../sun.js';
 import { horizon, culmination } from '../horizon.js';
@@ -283,12 +283,12 @@ describe('nothing is used before it is introduced', () => {
 
 describe('the prose renderer', () => {
   it('turns the two emphases into tags and escapes everything else', () => {
-    expect(escapeButKeepMath('the **intercept**, which *would* be'))
+    expect(richText('the **intercept**, which *would* be'))
       .toBe('the <strong>intercept</strong>, which <em>would</em> be');
-    expect(escapeButKeepMath('<script>alert(1)</script>'))
+    expect(richText('<script>alert(1)</script>'))
       .toBe('&lt;script&gt;alert(1)&lt;/script&gt;');
     // Inline maths comes through untouched, delimiters and all.
-    expect(escapeButKeepMath('so \\(t = 0\\) and')).toBe('so \\(t = 0\\) and');
+    expect(richText('so \\(t = 0\\) and')).toBe('so \\(t = 0\\) and');
   });
 });
 

@@ -1,6 +1,7 @@
-// Somewhere to stand. The Czech towns are all within a degree and a half of
-// each other, which makes them a good way to see how little the noon sight
-// changes across a country -- and how much the longitude reduction does.
+// Somewhere to stand. The Czech towns span less than two degrees of latitude
+// and five and a half of longitude, which makes them a good way to see how
+// little the noon sight changes across a country -- and how much the
+// longitude reduction does.
 
 export const places = [
   // --- Czech towns --------------------------------------------------------

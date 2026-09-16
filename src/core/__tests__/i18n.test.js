@@ -265,10 +265,17 @@ describe('scenarios', () => {
     expect(Math.abs(lat.error.latNm), 'within a mile').toBeLessThan(1);
     expect(Math.abs(lat.error.lonNm), 'and the longitude worthless').toBeGreaterThan(300);
 
-    // "declination is zero, so the noon sight collapses to 90 - Ho"
+    // "declination is three arcminutes from zero", and the sun passes north of
+    // the zenith there, which is why the note gives the sign rather than
+    // claiming phi = 90 - Ho outright.
     const eq = run('equinox');
-    expect(Math.abs(eq.dec), 'declination near zero').toBeLessThan(0.1);
+    expect(Math.abs(eq.dec) * 60, 'three arcminutes').toBeGreaterThan(2.5);
+    expect(Math.abs(eq.dec) * 60, 'three arcminutes').toBeLessThan(4);
+    expect(eq.sunBearsSouth, 'the sun passes north of the zenith').toBe(false);
     expect(Math.abs(eq.fix.lat), 'and the latitude falls out as zero').toBeLessThan(0.01);
+    for (const lang of LANGS) {
+      expect(byId('equinox').note[lang], lang).toContain('\u00b1(90');
+    }
   });
 
   it('names and describes every scenario in both languages', () => {

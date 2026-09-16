@@ -32,11 +32,13 @@ export const scenarios = [
     name: { en: 'Equinox, on the equator', cs: 'Rovnodennost, na rovníku' },
     note: {
       en:
-        'Declination is zero, so the noon sight collapses to φ = 90° − Ho and nothing else. ' +
-        'The degenerate easy case, and the right place to start.',
+        'Declination is three arcminutes from zero — near enough that the sun’s own latitude drops out of the ' +
+        'noon sight and what is left is the zenith distance itself: φ = ±(90° − Ho), with the sign saying which ' +
+        'side of your zenith the sun passed. The degenerate easy case, and the right place to start.',
       cs:
-        'Deklinace je nulová, takže se polední měření smrskne na φ = 90° − Ho a nic víc. ' +
-        'Nejjednodušší možný případ a správné místo, kde začít.',
+        'Deklinace jsou tři úhlové minuty od nuly — dost blízko na to, aby vlastní šířka Slunce z poledního ' +
+        'měření vypadla a zbyla jen sama zenitová vzdálenost: φ = ±(90° − Ho), kde znaménko říká, kterou stranou ' +
+        'zenitu Slunce prošlo. Nejjednodušší možný případ a správné místo, kde začít.',
     },
   },
   {
@@ -66,10 +68,10 @@ export const scenarios = [
     note: {
       en:
         'Early November: the sundial runs sixteen minutes ahead of the clock. The chronometer here is perfect ' +
-        'and the fix is still 247 nm out, because the almanac has been switched off. The clock was never sufficient on its own.',
+        'and the fix is still 247 nm out, because the equation of time has been switched off. The clock was never sufficient on its own.',
       cs:
         'Začátek listopadu: sluneční hodiny jdou šestnáct minut napřed před hodinami. Chronometr je tu naprosto přesný, ' +
-        'a pozice je přesto o 247 nm vedle, protože je vypnutý almanach. Samotné hodiny nikdy nestačily.',
+        'a pozice je přesto o 247 nm vedle, protože je vypnutá časová rovnice. Samotné hodiny nikdy nestačily.',
     },
   },
   {

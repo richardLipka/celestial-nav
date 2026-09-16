@@ -5,6 +5,7 @@
 
 import { lessons, lessonById } from '../lessons.js';
 import { t, pick } from '../i18n.js';
+import { richText } from '../ui/text.js';
 
 const h = (tag, cls, txt) => {
   const n = document.createElement(tag);
@@ -81,7 +82,7 @@ export function createLessonBar(store) {
       const i = Math.min(s.lessonStep, lesson.steps.length - 1);
       title.textContent = pick(lesson.title);
       count.textContent = t('lesson.count', { n: i + 1, of: lesson.steps.length });
-      body.textContent = pick(lesson.steps[i].text);
+      body.innerHTML = richText(pick(lesson.steps[i].text));
       back.disabled = i === 0;
       next.textContent = i === lesson.steps.length - 1 ? t('lesson.finish') : t('lesson.next');
 
