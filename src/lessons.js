@@ -77,7 +77,7 @@ export const lessons = [
         act: (store) => ensureSights(store, [0]),
         text: {
           en: 'There is your latitude. The sun’s declination came from the almanac — from the date, and the date alone — and the zenith distance came off the arc. Add them and you have it. Nowhere in that sum is there a time.',
-          cs: 'A tady je vaše šířka. Deklinace Slunce přišla z ročenky — z data, a jen z data — a zenitová vzdálenost z oblouku. Sečtěte je a je to. Nikde v tom součtu není žádný čas.',
+          cs: 'A tady je vaše šířka. Deklinace Slunce přišla z almanachu — z data, a jen z data — a zenitová vzdálenost z oblouku. Sečtěte je a je to. Nikde v tom součtu není žádný čas.',
         },
       },
       {
@@ -229,7 +229,7 @@ export const lessons = [
         tab: 'lunars', panel: 'p-lunsky',
         text: {
           en: 'Suppose you have no chronometer at all. There is still a clock overhead: the moon moves its own width against the background every hour, so the angle between the moon and the sun is a function of absolute time — the same function for every ship on Earth. Measure that angle and the almanac tells you the hour at Greenwich.',
-          cs: 'Dejme tomu, že nemáte vůbec žádný chronometr. Přesto máte hodiny nad hlavou: Měsíc se za hodinu posune proti pozadí o svůj vlastní průměr, takže úhel mezi Měsícem a Sluncem je funkcí absolutního času — a je to tatáž funkce pro každou loď na světě. Změřte ten úhel a ročenka vám řekne, kolik je v Greenwichi.',
+          cs: 'Dejme tomu, že nemáte vůbec žádný chronometr. Přesto máte hodiny nad hlavou: Měsíc se za hodinu posune proti pozadí o svůj vlastní průměr, takže úhel mezi Měsícem a Sluncem je funkcí absolutního času — a je to tatáž funkce pro každou loď na světě. Změřte ten úhel a almanach vám řekne, kolik je v Greenwichi.',
         },
       },
       {

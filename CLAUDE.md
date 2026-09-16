@@ -12,7 +12,7 @@ lost). Five guided lessons walk a newcomer through all four.
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 192 tests
+npm test         # vitest, 201 tests
 npm run test:watch
 ```
 
@@ -299,6 +299,35 @@ mid-render.
   and not an animation frame: both observers and frames are tied to the
   rendering loop, and a window sitting behind another runs neither. Six
   rectangles per scroll is not a cost worth optimising.
+- Prose may use `**bold**` and `*italic*`; `escapeButKeepMath()` turns those
+  two into tags after escaping the HTML, and nothing else is markdown. It went
+  years without doing so, and `**intercept**` reached the page with its
+  asterisks showing.
+
+### Nothing is used before it is introduced
+
+The tab expects a reader who knows trigonometry and no navigation, so every
+navigational symbol has to be named in prose before an equation uses it.
+`theory.test.js` holds a table of (symbol, the phrase that introduces it) and
+checks the order in both languages; add a symbol to the derivations and add a
+row. Two consequences worth knowing:
+
+- Subscripted symbols go through MathJax (`\\(H_o\\)`, `\\(Z_n\\)`), never as
+  Unicode. There is no subscript "c" in Unicode at all, so an Hc written as a
+  character could never match the Ho standing beside it.
+- **The angle at Z is not the bearing.** The angle in the triangle is measured
+  from the elevated pole and never passes 180 degrees; the bearing Zn is
+  measured from north and runs the whole way round. The tab says so where the
+  angle is introduced, and uses Zn everywhere afterwards.
+
+### Czech terminology
+
+Checked against Czech practice rather than translated: **poziční linie** (not
+"přímka"), **námořní almanach** (not "ročenka"), **náměr** for a bearing,
+**metoda stejných výšek**, **intercept**, **kulminace**, **pravé poledne**,
+**podsluneční bod (PB)** — the abbreviation the globe panel labels it with.
+Sources: chovanec.com's ocean-passage write-up, tomaskudela.cz on the sextant,
+and krasajachtingu.cz's beginners' piece.
 
 ## Traps already hit
 
@@ -358,6 +387,11 @@ mid-render.
 - An ephemeris wants dynamical time and everything else wants UT. Feeding UT
   straight in is silent, and for the moon it is forty arcseconds — the exact
   size that matters. `lunar()` converts; nothing else should.
+- **A bash heredoc eats one level of backslash**, quoted or not, so a patch
+  script written inline turns `\\(` into `\(` and the delimiter vanishes from
+  the JS string long before MathJax sees it. Write the script to a file with
+  the Write tool. `tex.test.js` catches the result, which is the only reason
+  this is a footnote rather than a shipped bug.
 - **`IntersectionObserver` is as tied to the rendering loop as
   `requestAnimationFrame` is.** A page that is not being drawn fires neither —
   and neither does it fire `scroll`, which is why a scroll-driven feature

@@ -3,6 +3,10 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import * as store from '../../state/store.js';
 import { theory } from '../../theory.js';
 import { setLang } from '../../i18n.js';
+import { escapeButKeepMath } from '../../views/theory.js';
+import * as Astronomy from 'astronomy-engine';
+import { solarPrecise, decRateMinPerHour } from '../sun.js';
+import { horizon, culmination } from '../horizon.js';
 
 // The theory tab substitutes live figures into its equations. Each number can
 // be right and the line still wrong, because a line has to *multiply out* at
@@ -194,5 +198,205 @@ describe('the substituted equations', () => {
     } finally {
       setLang('en');
     }
+  });
+});
+
+// =========================================================================
+// A derivation that uses a symbol before it has said what the symbol is has
+// not derived anything -- it is asking the reader to take it on trust. This
+// table is that contract written down: every symbol below has to be named in
+// prose before any equation uses it, in both languages.
+// =========================================================================
+describe('nothing is used before it is introduced', () => {
+  // Every block of every section, in the order they are read.
+  const stream = theory.flatMap((sec) => sec.blocks.map((b) => ({ sec: sec.id, b })));
+
+  const proseOf = (b, lang) => (b.k === 'p' || b.k === 'note' ? b.text[lang] : '');
+  const mathsOf = (b) => {
+    if (b.k === 'math') return b.tex;
+    if (b.k !== 'sub') return '';
+    const tex = b.fn(store.get(), store.state);
+    return tex === null || tex === undefined ? '' : tex;
+  };
+
+  const INTRODUCTIONS = [
+    { what: 'the observed altitude', symbol: /H_o/,
+      en: 'zenith distance', cs: 'zenitová vzdálenost' },
+    { what: 'the latitude', symbol: /\\varphi/,
+      en: 'your latitude \\(\\varphi\\)', cs: 'zeměpisnou šířku \\(\\varphi\\)' },
+    { what: 'the declination', symbol: /\\delta/,
+      en: 'declination', cs: 'deklinace' },
+    { what: 'the hour angle', symbol: /\bt\b/,
+      en: 'local hour angle \\(t\\)', cs: 'místní hodinový úhel \\(t\\)' },
+    { what: 'the longitude', symbol: /\\lambda/,
+      en: 'longitude \\(\\lambda\\)', cs: 'délku \\(\\lambda\\)' },
+    { what: 'the azimuth', symbol: /Z_n/,
+      en: 'azimuth angle \\(Z\\)', cs: 'azimutální úhel \\(Z\\)' },
+    { what: 'the Greenwich hour angle', symbol: /\\mathrm\{GHA\}/,
+      en: 'hour angle at Greenwich', cs: 'hodinový úhel Slunce vůči Greenwichi' },
+    { what: 'the equation of time', symbol: /[+-] E\b/,
+      en: 'equation of time', cs: 'časová rovnice' },
+    { what: 'the error at the rating', symbol: /\\Delta T_0/,
+      en: '\\(\\Delta T_0\\) is the error', cs: '\\(\\Delta T_0\\) chyba' },
+    { what: 'the computed altitude', symbol: /H_c/,
+      en: 'computed altitude', cs: 'výška vypočtená' },
+    { what: 'the departure', symbol: /\\text\{dep\}/,
+      en: 'departure', cs: 'departure' },
+  ];
+
+  for (const lang of ['en', 'cs']) {
+    it(`introduces every symbol before an equation uses it, in ${lang}`, () => {
+      for (const row of INTRODUCTIONS) {
+        const used = stream.findIndex((x) => row.symbol.test(mathsOf(x.b)));
+        const said = stream.findIndex((x) => proseOf(x.b, lang).includes(row[lang]));
+        expect(used, `${row.what}: no equation uses it`).toBeGreaterThanOrEqual(0);
+        expect(said, `${row.what}: never introduced in ${lang}`).toBeGreaterThanOrEqual(0);
+        expect(said, `${row.what}: used at block ${used}, introduced at ${said} (${lang})`)
+          .toBeLessThanOrEqual(used);
+      }
+    });
+  }
+
+  it('closes every inline formula it opens', () => {
+    for (const lang of ['en', 'cs']) {
+      for (const { sec, b } of stream) {
+        const text = proseOf(b, lang);
+        const opens = (text.match(/\\\(/g) || []).length;
+        const closes = (text.match(/\\\)/g) || []).length;
+        expect(opens, `${sec} (${lang})`).toBe(closes);
+        expect(text, `${sec} (${lang}): display maths does not belong in prose`)
+          .not.toContain('\\[');
+      }
+    }
+  });
+
+  it('pairs up every emphasis mark, so none reaches the page as an asterisk', () => {
+    for (const lang of ['en', 'cs']) {
+      for (const { sec, b } of stream) {
+        const text = proseOf(b, lang);
+        const stripped = text.replace(/\*\*[^*]+\*\*/g, '').replace(/\*[^*]+\*/g, '');
+        expect(stripped, `${sec} (${lang}) has an unpaired asterisk`).not.toContain('*');
+      }
+    }
+  });
+});
+
+describe('the prose renderer', () => {
+  it('turns the two emphases into tags and escapes everything else', () => {
+    expect(escapeButKeepMath('the **intercept**, which *would* be'))
+      .toBe('the <strong>intercept</strong>, which <em>would</em> be');
+    expect(escapeButKeepMath('<script>alert(1)</script>'))
+      .toBe('&lt;script&gt;alert(1)&lt;/script&gt;');
+    // Inline maths comes through untouched, delimiters and all.
+    expect(escapeButKeepMath('so \\(t = 0\\) and')).toBe('so \\(t = 0\\) and');
+  });
+});
+
+
+// =========================================================================
+// The sentences that quote a number about the sky, checked against the sky.
+// Each one also checks that the sentence still says what was measured: edit
+// the prose and the test comes with it.
+// =========================================================================
+describe('the figures the prose quotes', () => {
+  const para = (secId, needle, lang = 'en') => {
+    const sec = theory.find((x) => x.id === secId);
+    return sec.blocks.find((b) => b.text?.[lang]?.includes(needle))?.text[lang];
+  };
+
+  it('has Polaris two degrees off the pole in 1762, and forty minutes off now', () => {
+    // Polaris, J2000: 02h 31m 49.09s, +89 15' 50.8". Precession does the rest,
+    // and astronomy-engine is the independent oracle for it.
+    Astronomy.DefineStar(Astronomy.Body.Star1, 2 + 31 / 60 + 49.09 / 3600,
+      89 + 15 / 60 + 50.8 / 3600, 447);
+    const at = (y) => {
+      const eq = Astronomy.Equator(Astronomy.Body.Star1,
+        new Date(Date.UTC(y, 0, 19)), new Astronomy.Observer(0, 0, 0), true, false);
+      return 90 - eq.dec;
+    };
+    const then = at(1762);
+    const now = at(new Date().getUTCFullYear());
+    expect(then).toBeGreaterThan(1.9);
+    expect(then).toBeLessThan(2.1);
+    // A hundred and eighteen arcminutes, which the prose calls a hundred and
+    // twenty miles: one arcminute of latitude is one nautical mile.
+    expect(then * 60).toBeGreaterThan(115);
+    expect(then * 60).toBeLessThan(121);
+    expect(now * 60).toBeLessThan(40);
+
+    const p = para('latitude', 'Polaris');
+    expect(p).toContain('two degrees from the pole');
+    expect(p).toContain('a hundred and twenty');
+    expect(p).toContain('under forty minutes');
+  });
+
+  it('has the equation of time reaching sixteen minutes one way and fifteen the other', () => {
+    let lo = { min: 1e9 };
+    let hi = { min: -1e9 };
+    for (let d = 0; d < 366; d++) {
+      const when = new Date(Date.UTC(1762, 0, 1) + d * 86400e3 + 12 * 3600e3);
+      const min = solarPrecise(when).eotDeg * 4; // degrees of hour angle -> minutes of time
+      if (min < lo.min) lo = { min, when };
+      if (min > hi.min) hi = { min, when };
+    }
+    expect(hi.min).toBeGreaterThan(16);
+    expect(hi.min).toBeLessThan(16.5);
+    expect(hi.when.getUTCMonth()).toBe(10);      // November
+    expect(hi.when.getUTCDate()).toBeLessThan(8); // and the start of it
+    expect(lo.min).toBeLessThan(-14.5);
+    expect(lo.min).toBeGreaterThan(-15);
+    expect(lo.when.getUTCMonth()).toBe(1);       // February
+
+    const p = para('longitude', 'equation of time');
+    expect(p).toContain('sixteen minutes of time one way at the start of November');
+    expect(p).toContain('fifteen the other in February');
+  });
+
+  it('has the declination creeping at most an arcminute an hour', () => {
+    let worst = 0;
+    for (let d = 0; d < 366 * 4; d++) {
+      const when = new Date(Date.UTC(1762, 0, 1) + d * 86400e3);
+      worst = Math.max(worst, Math.abs(decRateMinPerHour(when)));
+    }
+    expect(worst).toBeLessThan(1);
+    expect(worst).toBeGreaterThan(0.9); // and it really does get that far
+    expect(para('fact', 'declination')).toContain('at most a minute of arc an hour');
+  });
+
+  it('costs one minute of time high and five minutes low to read half an arcminute wrong', () => {
+    // Near culmination the altitude curve is flat, so a reading error becomes
+    // a time error -- and how big depends on how high the sun climbs.
+    const offsetMinutes = (lat, date) => {
+      const lan = culmination(date, 0, true);
+      const hMax = horizon(lat, 0, lan).H;
+      let lo = 0;
+      let hi = 60;
+      for (let i = 0; i < 50; i++) {
+        const mid = (lo + hi) / 2;
+        const h = horizon(lat, 0, new Date(lan.getTime() + mid * 60000)).H;
+        if (hMax - h < 0.5 / 60) lo = mid;
+        else hi = mid;
+      }
+      return { hMax, minutes: (lo + hi) / 2 };
+    };
+
+    const high = offsetMinutes(20, new Date(Date.UTC(1762, 5, 21)));
+    expect(high.hMax).toBeGreaterThan(85);
+    expect(high.minutes).toBeCloseTo(1, 0);
+
+    const low = offsetMinutes(50, new Date(Date.UTC(1762, 0, 19)));
+    expect(low.hMax).toBeLessThan(21);
+    expect(low.minutes).toBeCloseTo(5, 0);
+
+    // And nothing in between escapes the range the sentence gives.
+    for (let lat = -5; lat <= 50; lat += 5) {
+      const r = offsetMinutes(lat, new Date(Date.UTC(1762, 0, 19)));
+      if (r.hMax < 20 || r.hMax > 88) continue;
+      expect(r.minutes, `culminating at ${r.hMax.toFixed(0)}`).toBeGreaterThan(0.9);
+      expect(r.minutes, `culminating at ${r.hMax.toFixed(0)}`).toBeLessThan(5.2);
+    }
+
+    const p = para('longitude', 'highest altitude');
+    expect(p).toContain('one to five minutes of time');
   });
 });

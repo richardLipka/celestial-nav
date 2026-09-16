@@ -43,7 +43,14 @@ export const theory = [
         k: 'p',
         text: {
           en: 'At any instant the sun stands directly overhead at exactly one place on Earth — its geographical position, or GP. The altitude you measure and your distance from that place are the same number, turned inside out.',
-          cs: 'V každém okamžiku stojí Slunce v nadhlavníku právě nad jediným místem na Zemi — nad svým podslunečním bodem. Výška, kterou naměříte, a vaše vzdálenost od toho místa jsou totéž číslo, jen obrácené naruby.',
+          cs: 'V každém okamžiku stojí Slunce v nadhlavníku právě nad jediným místem na Zemi — nad svým podslunečním bodem, na obrázcích PB. Výška, kterou naměříte, a vaše vzdálenost od toho místa jsou totéž číslo, jen obrácené naruby.',
+        },
+      },
+      {
+        k: 'p',
+        text: {
+          en: 'Altitude is the angle from the horizon up to the body, and what is left of the quarter circle above you is the zenith distance z. Write \\(H_o\\) for the altitude a sextant reading becomes once the corrections are applied — index error, dip, refraction, semi-diameter, parallax — because every reduction works on that and never on the raw reading.',
+          cs: 'Výška je úhel od obzoru nahoru k tělesu a to, co ze čtvrtkružnice nad vámi zbývá, je zenitová vzdálenost z. Symbolem \\(H_o\\) se značí výška, na kterou se odečet ze sextantu promění po započtení oprav — indexové chyby, deprese obzoru, refrakce, poloměru Slunce a paralaxy — protože každý výpočet pracuje s ní, a nikdy se surovým odečtem.',
         },
       },
       { k: 'math', tex: 'z = 90^\\circ - H_o' },
@@ -57,15 +64,15 @@ export const theory = [
       {
         k: 'p',
         text: {
-          en: 'So a single sight puts you somewhere on a circle drawn round the GP, and never at a point. Everything that follows is working out where that circle lies.',
-          cs: 'Jediné měření vás tedy umístí někam na kružnici kolem podslunečního bodu, nikdy do jednoho bodu. Všechno ostatní je hledání toho, kde ta kružnice leží.',
+          en: 'So a single sight puts you somewhere on a circle drawn round the GP — the circle of equal altitude — and never at a point. Everything that follows is working out where that circle lies.',
+          cs: 'Jediné měření vás tedy umístí někam na kružnici stejné výšky kolem podslunečního bodu, nikdy do jednoho bodu. Všechno ostatní je hledání toho, kde ta kružnice leží.',
         },
       },
       {
         k: 'p',
         text: {
           en: 'The almanac gives the GP in two independent halves. Its latitude is the sun’s declination, which is a function of the date and drifts by at most a minute of arc an hour. Its longitude is set by the Earth’s rotation, at fifteen degrees an hour. Dates are cheap. Time is not.',
-          cs: 'Ročenka udává podsluneční bod ve dvou nezávislých polovinách. Jeho šířka je deklinace Slunce, funkce data, která se mění nejvýš o jednu úhlovou minutu za hodinu. Jeho délku určuje rotace Země, patnáct stupňů za hodinu. Datum je laciné. Čas nikoli.',
+          cs: 'Námořní almanach udává podsluneční bod ve dvou nezávislých polovinách. Jeho šířka je deklinace Slunce, funkce data, která se mění nejvýš o jednu úhlovou minutu za hodinu. Jeho délku určuje rotace Země, patnáct stupňů za hodinu. Datum je laciné. Čas nikoli.',
         },
       },
     ],
@@ -80,16 +87,16 @@ export const theory = [
       {
         k: 'p',
         text: {
-          en: 'Three points on the celestial sphere carry the whole problem: the elevated pole P, your zenith Z, and the sun X. Join them with great circles and you have the navigational triangle. Drag the sphere to turn it, and move the hour in the rail to watch the triangle open and close — at noon it has no interior at all, which is the whole of the next section.',
-          cs: 'Celý problém nesou tři body na nebeské sféře: povýšený pól P, váš zenit Z a Slunce X. Spojte je hlavními kružnicemi a máte navigační trojúhelník. Tažením sférou otočíte a posunutím hodiny v panelu uvidíte, jak se trojúhelník otevírá a zavírá — v poledne nemá vnitřek vůbec žádný, a právě o tom je celá další část.',
+          en: 'Three points on the celestial sphere — the sky taken as a sphere of unlimited radius, on which only directions count — carry the whole problem: the elevated pole P, which is the celestial pole standing above your own horizon; your zenith Z, the point straight overhead; and the sun X. Join them with great circles and you have the navigational triangle. Drag the sphere to turn it, and move the hour in the rail to watch the triangle open and close — at noon it has no interior at all, which is the whole of the next section.',
+          cs: 'Celý problém nesou tři body na nebeské sféře — na obloze chápané jako koule o nekonečném poloměru, na níž záleží jen na směrech: povýšený pól P, tedy ten nebeský pól, který máte nad obzorem; váš zenit Z, bod přímo nad hlavou; a Slunce X. Spojte je hlavními kružnicemi a máte navigační trojúhelník. Tažením sférou otočíte a posunutím hodiny v panelu uvidíte, jak se trojúhelník otevírá a zavírá — v poledne nemá vnitřek vůbec žádný, a právě o tom je celá další část.',
         },
       },
       { k: 'fig', id: 'pzx3d' },
       {
         k: 'p',
         text: {
-          en: 'Its three sides are exactly the three quantities a sight is about. They are written here for an observer north of the equator; south of it the pole above the horizon is the southern one and every sign mirrors — which is why the equation they lead to carries signed latitude and declination rather than magnitudes, and holds either way.',
-          cs: 'Jeho tři strany jsou přesně ty tři veličiny, o které v měření jde. Jsou zapsány pro pozorovatele severně od rovníku; jižně od něj je pólem nad obzorem ten jižní a všechna znaménka se obrátí — proto rovnice, ke které vedou, nese znaménkovou šířku a deklinaci místo jejich velikostí, a platí tak i tak.',
+          en: 'Its three sides carry exactly the three quantities a sight is about: your latitude \\(\\varphi\\), the sun’s declination \\(\\delta\\), and the altitude \\(H\\). Each side is the complement of one of them, because a side runs from a pole or a zenith while the quantity itself is measured from an equator or a horizon. They are written here for an observer north of the equator; south of it the pole above the horizon is the southern one and every sign mirrors — which is why the equation they lead to carries latitude and declination with their signs rather than as magnitudes, and holds either way.',
+          cs: 'Jeho tři strany nesou přesně ty tři veličiny, o které v měření jde: vaši zeměpisnou šířku \\(\\varphi\\), deklinaci Slunce \\(\\delta\\) a výšku \\(H\\). Každá strana je doplňkem jedné z nich do 90°, protože strana vede od pólu nebo od zenitu, kdežto sama veličina se měří od rovníku nebo od obzoru. Jsou zapsány pro pozorovatele severně od rovníku; jižně od něj je pólem nad obzorem ten jižní a všechna znaménka se obrátí — proto rovnice, ke které vedou, nese šířku a deklinaci se znaménkem, a ne jen jejich velikost, a platí tak i tak.',
         },
       },
       {
@@ -100,16 +107,16 @@ export const theory = [
       {
         k: 'p',
         text: {
-          en: 'The angle at P is the local hour angle t — how far the sun stands from your meridian, and therefore a measure of time. The angle at Z is the azimuth, the bearing you would take of the sun. The spherical cosine rule for sides ties them together:',
-          cs: 'Úhel při P je místní hodinový úhel t — jak daleko stojí Slunce od vašeho poledníku, tedy míra času. Úhel při Z je azimut, tedy směr, ve kterém Slunce vidíte. Sférická kosinová věta pro strany je spojuje dohromady:',
+          en: 'The angle at P is the local hour angle \\(t\\) — how far the sun stands from your meridian, and therefore a measure of time. The angle at Z is the azimuth angle \\(Z\\), which is the sun’s bearing with one caveat: bearings run from north the whole way round, and an angle in a triangle cannot pass \\(180^\\circ\\). North of the equator \\(Z_n = Z\\) with the sun in the east and \\(Z_n = 360^\\circ - Z\\) with it in the west. It is \\(Z_n\\) that goes on a chart, and \\(Z_n\\) that the rest of this page uses. The spherical cosine rule for sides ties the triangle together:',
+          cs: 'Úhel při P je místní hodinový úhel \\(t\\) — jak daleko stojí Slunce od vašeho poledníku, tedy míra času. Úhel při Z je azimutální úhel \\(Z\\), což je náměr Slunce s jednou výhradou: náměry se počítají od severu dokola, ale úhel v trojúhelníku nemůže přesáhnout \\(180^\\circ\\). Severně od rovníku platí \\(Z_n = Z\\), je-li Slunce na východě, a \\(Z_n = 360^\\circ - Z\\), je-li na západě. Do mapy se nanáší \\(Z_n\\) a se \\(Z_n\\) pracuje i zbytek této stránky. Sférická kosinová věta pro strany spojuje trojúhelník dohromady:',
         },
       },
       { k: 'math', tex: '\\cos ZX = \\cos PZ \\, \\cos PX + \\sin PZ \\, \\sin PX \\, \\cos P' },
       {
         k: 'p',
         text: {
-          en: 'Substitute the three sides and use \\(\\cos(90^\\circ-x)=\\sin x\\), and out falls the equation every sight reduction in the world rests on:',
-          cs: 'Dosaďte tři strany a použijte \\(\\cos(90^\\circ-x)=\\sin x\\) — a vypadne rovnice, na které stojí každý navigační výpočet na světě:',
+          en: 'Substitute the three sides and use \\(\\cos(90^\\circ-x)=\\sin x\\) on the cosines and \\(\\sin(90^\\circ-x)=\\cos x\\) on the sines, and out falls the equation every sight reduction in the world rests on:',
+          cs: 'Dosaďte tři strany, na kosiny použijte \\(\\cos(90^\\circ-x)=\\sin x\\) a na siny \\(\\sin(90^\\circ-x)=\\cos x\\) — a vypadne rovnice, na které stojí každý navigační výpočet na světě:',
         },
       },
       { k: 'math', tex: '\\sin H = \\sin\\varphi \\, \\sin\\delta + \\cos\\varphi \\, \\cos\\delta \\, \\cos t', big: true },
@@ -123,7 +130,7 @@ export const theory = [
         k: 'note',
         text: {
           en: 'Three unknowns hide in that line: \\(\\varphi\\), \\(\\delta\\) and \\(t\\). The almanac hands you \\(\\delta\\) from the date alone. The rest of this page is the two different ways of getting rid of one more.',
-          cs: 'V té řádce se skrývají tři neznámé: \\(\\varphi\\), \\(\\delta\\) a \\(t\\). Ročenka vám dá \\(\\delta\\) ze samotného data. Zbytek této stránky jsou dva různé způsoby, jak se zbavit ještě jedné.',
+          cs: 'V té řádce se skrývají tři neznámé: \\(\\varphi\\), \\(\\delta\\) a \\(t\\). Almanach vám dá \\(\\delta\\) ze samotného data. Zbytek této stránky jsou dva různé způsoby, jak se zbavit ještě jedné.',
         },
       },
     ],
@@ -151,8 +158,8 @@ export const theory = [
       {
         k: 'p',
         text: {
-          en: 'The zenith distance is simply the difference of two latitudes — yours and the sun’s. Which way round depends only on which side of your zenith the sun passed, and you can see that:',
-          cs: 'Zenitová vzdálenost je prostě rozdíl dvou šířek — vaší a sluneční. Na kterou stranu, závisí jen na tom, kterou stranou zenitu Slunce prošlo, a to je vidět:',
+          en: 'The zenith distance is simply the difference of two latitudes — yours and the sun’s. Which way round depends only on which side of your zenith the sun passed: bearing south, \\(\\varphi = \\delta + z\\); bearing north, \\(\\varphi = \\delta - z\\). Both hold with the declination carrying its own sign, and you can see which case you are in:',
+          cs: 'Zenitová vzdálenost je prostě rozdíl dvou šířek — vaší a sluneční. Na kterou stranu, závisí jen na tom, kterou stranou zenitu Slunce prošlo: míří-li na jih, je \\(\\varphi = \\delta + z\\), míří-li na sever, je \\(\\varphi = \\delta - z\\). Obojí platí s deklinací i s jejím znaménkem, a je vidět, který případ nastal:',
         },
       },
       {
@@ -192,8 +199,8 @@ export const theory = [
       {
         k: 'p',
         text: {
-          en: 'The same fact arrives by a second route. Whichever pole stands above your horizon does so at an altitude equal to your latitude — which is why, north of the equator, a single sight of Polaris is a latitude and nothing else:',
-          cs: 'Tentýž fakt přichází ještě druhou cestou. Ten pól, který máte nad obzorem, stojí ve výšce rovné vaší šířce — proto je severně od rovníku jediné zaměření Polárky rovnou zeměpisnou šířkou:',
+          en: 'The same fact arrives by a second route. Whichever pole stands above your horizon does so at an altitude equal to your latitude — which is why, north of the equator, a single sight of Polaris is very nearly a latitude and nothing else. Only very nearly: in 1762 Polaris stood two degrees from the pole, a hundred and twenty miles of it, and the almanac carries its own table to take that out. Today it is under forty minutes of arc.',
+          cs: 'Tentýž fakt přichází ještě druhou cestou. Ten pól, který máte nad obzorem, stojí ve výšce rovné vaší šířce — proto je severně od rovníku jediné zaměření Polárky téměř rovnou zeměpisnou šířkou. Jen téměř: v roce 1762 stála Polárka dva stupně od pólu, tedy sto dvacet námořních mil, a almanach na to má vlastní tabulku. Dnes je to méně než čtyřicet úhlových minut.',
         },
       },
       { k: 'math', tex: 'H_P = |\\varphi|' },
@@ -234,16 +241,16 @@ export const theory = [
       {
         k: 'p',
         text: {
-          en: 'What the sky does offer is the sun’s hour angle at Greenwich, which is pure rotation:',
-          cs: 'Co obloha nabízí, je hodinový úhel Slunce vůči Greenwichi, a to je čirá rotace:',
+          en: 'What the sky does offer is the sun’s hour angle at Greenwich: pure rotation, and one number out of an almanac — the equation of time \\(E\\), by which the sun in the sky and the sun a clock keeps differ. It runs from sixteen minutes of time one way at the start of November to fifteen the other in February, it is a function of the date, and nothing you can measure will give it to you; below it enters as an angle, a minute of time being fifteen minutes of arc.',
+          cs: 'Co obloha nabízí, je hodinový úhel Slunce vůči Greenwichi: čirá rotace a jedno číslo z almanachu — časová rovnice \\(E\\), o kterou se liší Slunce na obloze a Slunce, které ukazují hodiny. Pohybuje se od šestnácti minut času na jednu stranu začátkem listopadu po patnáct na druhou v únoru, je funkcí data a nic, co změříte, vám ji nedá; do rovnice níže vstupuje jako úhel, neboť minuta času je patnáct úhlových minut.',
         },
       },
       { k: 'math', tex: '\\mathrm{GHA} = 15^\\circ\\!/\\mathrm{h} \\cdot (\\mathrm{UT} - 12^\\mathrm{h}) + E' },
       {
         k: 'p',
         text: {
-          en: 'and your own hour angle differs from it by exactly your longitude:',
-          cs: 'a váš vlastní hodinový úhel se od něj liší přesně o vaši zeměpisnou délku:',
+          en: 'and your own hour angle differs from it by exactly your longitude \\(\\lambda\\), counted positive to the east:',
+          cs: 'a váš vlastní hodinový úhel se od něj liší přesně o vaši zeměpisnou délku \\(\\lambda\\), počítanou kladně na východ:',
         },
       },
       { k: 'math', tex: 't = \\mathrm{GHA} + \\lambda' },
@@ -270,14 +277,14 @@ export const theory = [
         kind: 'bad',
         text: {
           en: 'Two things in that line must be told to you, and neither is in the sky: \\(\\mathrm{UT}_{\\text{LAN}}\\), from a chronometer that has held Greenwich time across an ocean, and \\(E\\), from an almanac. The clock was necessary. It was never sufficient.',
-          cs: 'Dvě věci v té řádce vám musí někdo sdělit a ani jedna není na obloze: \\(\\mathrm{UT}_{\\text{LAN}}\\) z chronometru, který udržel greenwichský čas přes celý oceán, a \\(E\\) z ročenky. Hodiny byly nutné. Nikdy nebyly dostačující.',
+          cs: 'Dvě věci v té řádce vám musí někdo sdělit a ani jedna není na obloze: \\(\\mathrm{UT}_{\\text{LAN}}\\) z chronometru, který udržel greenwichský čas přes celý oceán, a \\(E\\) z almanachu. Hodiny byly nutné. Nikdy nebyly dostačující.',
         },
       },
       {
         k: 'p',
         text: {
-          en: 'And a chronometer is not judged by whether it is right. It is judged by whether its rate is constant: you have it rated ashore, you apply that known rate at sea, and what is left to hurt you is only the part of the rate nobody knew about.',
-          cs: 'A chronometr se neposuzuje podle toho, jestli jde přesně. Posuzuje se podle toho, jestli má stálý chod: necháte si ho na břehu vyměřit, na moři ten známý chod započítáte, a uškodit vám může jen ta část chodu, o které nikdo nevěděl.',
+          en: 'And a chronometer is not judged by whether it is right. It is judged by whether its rate is constant: you have it rated ashore, you apply that known rate at sea, and what is left to hurt you is only the part of the rate nobody knew about. Below, \\(\\Delta T_0\\) is the error it carried on the day \\(t_0\\) it was rated, and \\(\\dot{r}\\) is that unknown part of the daily rate.',
+          cs: 'A chronometr se neposuzuje podle toho, jestli jde přesně. Posuzuje se podle toho, jestli má stálý chod: necháte si ho na břehu vyměřit, na moři ten známý chod započítáte, a uškodit vám může jen ta část chodu, o které nikdo nevěděl. Níže je \\(\\Delta T_0\\) chyba, kterou měl v den \\(t_0\\), kdy byl vyměřen, a \\(\\dot{r}\\) ta neznámá část denního chodu.',
         },
       },
       { k: 'math', tex: '\\Delta T(t) = \\Delta T_0 + \\dot{r} \\, (t - t_0)' },
@@ -317,8 +324,8 @@ export const theory = [
       {
         k: 'p',
         text: {
-          en: '\\(\\Delta\\) is the equation of equal altitudes: the declination moves between the two sights, so the midpoint is not quite noon. Note what it needs — the latitude. That is why a navigator works the noon latitude out first, and then the longitude.',
-          cs: '\\(\\Delta\\) je rovnice stejných výšek: mezi oběma měřeními se posune deklinace, takže střed není tak docela poledne. Všimněte si, co k tomu potřebuje — zeměpisnou šířku. Proto navigátor nejdřív spočítá polední šířku a teprve pak délku.',
+          en: '\\(\\Delta\\) is the equation of equal altitudes. \\(\\Delta\\delta\\) is how far the declination moved between the two sights — it moves, so the midpoint is not quite noon — and \\(t\\) here is the sun’s hour angle at either of them, which is half the interval between them turned into an angle at fifteen degrees an hour. Note what it needs — the latitude. That is why a navigator works the noon latitude out first, and then the longitude.',
+          cs: '\\(\\Delta\\) je rovnice stejných výšek. \\(\\Delta\\delta\\) je to, o kolik se mezi oběma měřeními posunula deklinace — posune se, a proto střed není tak docela poledne — a \\(t\\) je zde hodinový úhel Slunce při kterémkoli z nich, tedy polovina intervalu mezi nimi převedená na úhel patnácti stupni za hodinu. Všimněte si, co k tomu potřebuje — zeměpisnou šířku. Proto navigátor nejdřív spočítá polední šířku a teprve pak délku.',
         },
       },
       {
@@ -354,23 +361,23 @@ export const theory = [
       {
         k: 'p',
         text: {
-          en: 'A noon sight is a special case, and a generous one: it hands you a latitude directly and asks nothing of the clock. The general method asks a different question. Guess where you are — an assumed position, conventionally at a round degree, because that is what made the tables easy — and work out what the altitude *would* be there.',
-          cs: 'Polední měření je zvláštní a velkorysý případ: rovnou vám dá šířku a na hodinách nežádá nic. Obecná metoda se ptá jinak. Odhadněte, kde jste — domnělá pozice, obvykle v celých stupních, protože s tou se dobře počítalo z tabulek — a spočítejte, jaká *by tam* výška byla.',
+          en: 'A noon sight is a special case, and a generous one: it hands you a latitude directly and asks nothing of the clock. The general method asks a different question. Guess where you are — an assumed position, conventionally at a round degree, because that is what made the tables easy — and work out what the altitude *would* be there. Call that one \\(H_c\\), the computed altitude, against the \\(H_o\\) you actually observed.',
+          cs: 'Polední měření je zvláštní a velkorysý případ: rovnou vám dá šířku a na hodinách nežádá nic. Obecná metoda se ptá jinak. Odhadněte, kde jste — domnělá pozice, obvykle v celých stupních, protože s tou se dobře počítalo z tabulek — a spočítejte, jaká *by tam* výška byla. Označme ji \\(H_c\\), výška vypočtená, proti \\(H_o\\), kterou jste opravdu naměřili.',
         },
       },
       { k: 'math', tex: 'p = H_o - H_c', big: true },
       {
         k: 'p',
         text: {
-          en: 'The difference \\(p\\) is the **intercept**, in minutes of arc and therefore in nautical miles. It is how far the ship lies toward the sun from your guess, or away from it, measured along the sun’s bearing \\(Z_n\\). The line of position runs at right angles to that bearing — which is the rule from the very first section, arrived at a second time.',
-          cs: 'Rozdíl \\(p\\) je **intercept**, v úhlových minutách, a tedy v námořních mílích. Udává, o kolik leží loď od vašeho odhadu směrem ke Slunci, nebo od něj, měřeno podél azimutu Slunce \\(Z_n\\). Poziční přímka vede kolmo na tento směr — což je totéž pravidlo jako v první části, jen dosažené podruhé.',
+          en: 'The difference \\(p\\) is the **intercept**, in minutes of arc and therefore in nautical miles. It is how far the ship lies toward the sun from your guess, or away from it, measured along the sun’s bearing \\(Z_n\\). The line of position runs at right angles to that bearing, and it is the circle of the first section arriving a second time: the bearing points at the GP, which is that circle’s centre, and a tangent stands at right angles to its radius.',
+          cs: 'Rozdíl \\(p\\) je **intercept**, v úhlových minutách, a tedy v námořních mílích. Udává, o kolik leží loď od vašeho odhadu směrem ke Slunci, nebo od něj, měřeno podél náměru Slunce \\(Z_n\\). Poziční linie vede kolmo na tento směr a je to kružnice z první části, která přichází podruhé: náměr míří na podsluneční bod, tedy do středu té kružnice, a tečna stojí kolmo na její poloměr.',
         },
       },
       {
         k: 'p',
         text: {
-          en: 'Measure east and north from the assumed position in nautical miles, and a line of position is nothing but',
-          cs: 'Měřte od domnělé pozice na východ a na sever v námořních mílích a poziční přímka není nic jiného než',
+          en: 'Measure east and north from the assumed position in nautical miles — \\(x\\) to the east, \\(y\\) to the north — and a line of position is nothing but',
+          cs: 'Měřte od domnělé pozice na východ a na sever v námořních mílích — \\(x\\) na východ, \\(y\\) na sever — a poziční linie není nic jiného než',
         },
       },
       { k: 'math', tex: 'x \\sin Z_n + y \\cos Z_n = p', big: true },
@@ -378,7 +385,7 @@ export const theory = [
         k: 'p',
         text: {
           en: 'so crossing two sights is a pair of linear equations, and the determinant is \\(\\sin(Z_{n1} - Z_{n2})\\). Two sights on the same bearing give a determinant of zero and no fix at all: the lines are parallel. A navigator calls that a poor cut, and the remedy is to take the second sight hours away from the first, when the sun has moved round the sky.',
-          cs: 'takže zkřížení dvou měření jsou dvě lineární rovnice a determinant je \\(\\sin(Z_{n1} - Z_{n2})\\). Dvě měření ve stejném směru dají nulový determinant a žádnou pozici: přímky jsou rovnoběžné. Námořník tomu říká špatné protnutí a lékem je změřit druhou výšku o hodiny později, až Slunce obejde oblohu.',
+          cs: 'takže zkřížení dvou měření jsou dvě lineární rovnice a determinant je \\(\\sin(Z_{n1} - Z_{n2})\\). Dvě měření ve stejném směru dají nulový determinant a žádnou pozici: ty dvě linie jsou rovnoběžné. Námořník tomu říká špatné protnutí a lékem je změřit druhou výšku o hodiny později, až Slunce obejde oblohu.',
         },
       },
       {
@@ -414,16 +421,16 @@ export const theory = [
       {
         k: 'p',
         text: {
-          en: 'Differentiate the altitude equation with respect to the hour angle, at constant declination, and one line answers the whole question:',
-          cs: 'Zderivujte rovnici pro výšku podle hodinového úhlu při konstantní deklinaci — a jediná řádka zodpoví celou otázku:',
+          en: 'Differentiate the altitude equation with respect to the hour angle, holding the position and the declination fixed, and one line answers the whole question:',
+          cs: 'Zderivujte rovnici pro výšku podle hodinového úhlu při pevné poloze a konstantní deklinaci — a jediná řádka zodpoví celou otázku:',
         },
       },
       { k: 'math', tex: '\\frac{\\partial H}{\\partial t} = \\cos\\varphi \\, \\sin Z_n', big: true },
       {
         k: 'p',
         text: {
-          en: 'On the meridian \\(Z_n = 180^\\circ\\), \\(\\sin Z_n = 0\\), and the derivative vanishes: a clock error cannot reach the sight at all. On the prime vertical \\(|\\sin Z_n| = 1\\) and it is at its maximum: the sight is nothing but the clock. The same instrument, the same sun, two hours apart.',
-          cs: 'Na poledníku je \\(Z_n = 180^\\circ\\), \\(\\sin Z_n = 0\\) a derivace mizí: chyba hodin se k měření vůbec nedostane. Na prvním vertikálu je \\(|\\sin Z_n| = 1\\) a derivace je maximální: měření pak není nic než hodiny. Týž přístroj, totéž Slunce, o dvě hodiny jinde.',
+          en: 'On the meridian \\(Z_n = 180^\\circ\\), \\(\\sin Z_n = 0\\), and the derivative vanishes: a clock error cannot reach the sight at all. On the prime vertical — the great circle through your zenith and the east and west points, so the sun bearing 090 or 270 — \\(|\\sin Z_n| = 1\\) and it is at its maximum: the sight is nothing but the clock. The same instrument, the same sun, two hours apart.',
+          cs: 'Na poledníku je \\(Z_n = 180^\\circ\\), \\(\\sin Z_n = 0\\) a derivace mizí: chyba hodin se k měření vůbec nedostane. Na prvním vertikálu — na hlavní kružnici procházející vaším zenitem a východním a západním bodem obzoru, tedy při náměru Slunce 090 nebo 270 — je \\(|\\sin Z_n| = 1\\) a derivace je maximální: měření pak není nic než hodiny. Týž přístroj, totéž Slunce, o dvě hodiny jinde.',
         },
       },
       {
@@ -434,8 +441,8 @@ export const theory = [
       {
         k: 'p',
         text: {
-          en: 'In distance, an error of \\(\\Delta T\\) on the chronometer becomes',
-          cs: 'Ve vzdálenosti se chyba \\(\\Delta T\\) na chronometru promění v',
+          en: 'In distance, an error of \\(\\Delta T\\) on the chronometer becomes a displacement in longitude, and that difference of longitude becomes a *departure* — the east-west distance it actually comes to, which shrinks with the cosine of the latitude:',
+          cs: 'Ve vzdálenosti se chyba \\(\\Delta T\\) na chronometru promění nejprve v posun zeměpisné délky a ten pak v *departure* — ve vzdálenost ve směru východ–západ, které ten rozdíl délky opravdu odpovídá a která se krátí s kosinem šířky:',
         },
       },
       {
@@ -450,8 +457,8 @@ export const theory = [
       {
         k: 'note',
         text: {
-          en: 'The Longitude Act of 1714 asked for half a degree on a voyage to the West Indies. Half a degree is two minutes of time; over a six-week passage that is a rate held to under three seconds a day, in a damp cabin swinging through forty degrees of temperature.',
-          cs: 'Zákon o zeměpisné délce z roku 1714 žádal půl stupně na plavbě do Západní Indie. Půl stupně jsou dvě minuty času; na šestitýdenní plavbě to znamená udržet chod pod třemi sekundami denně — ve vlhké kajutě, houpající se čtyřiceti stupni teplotních změn.',
+          en: 'So the same instrument, the same sun and the same chronometer give a longitude that is worth everything at one hour of the day and nothing at another. A navigator did not take sights when it suited him. He took them for longitude when the sun was near the prime vertical, for latitude when it was on his meridian, and carried the first forward to the second — which is the whole of the day’s routine, and it comes out of this one derivative.',
+          cs: 'Týž přístroj, totéž Slunce a týž chronometr tedy dají délku, která v jednu denní dobu platí všechno a v jinou nic. Navigátor neměřil, kdy se mu zachtělo. Pro délku měřil, když bylo Slunce blízko prvního vertikálu, pro šířku, když bylo na jeho poledníku, a první měření přenášel k druhému — a v tom je celá denní rutina, která plyne z této jedné derivace.',
         },
       },
     ],

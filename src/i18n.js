@@ -572,13 +572,13 @@ const dict = {
     'wu.crossOff': 'To protnutí padne {d} od lodi — ze dvou měření a vůbec bez poledne.',
     'wu.crossAp': 'domnělá pozice',
     'wu.crossFix': 'určená pozice',
-    'wu.crossPoor': 'Tato měření leží skoro ve stejném směru, takže jejich poziční přímky jsou téměř rovnoběžné a nikde užitečně se neprotnou. Změřte jedno pořádně daleko od poledne.',
+    'wu.crossPoor': 'Tato měření leží skoro ve stejném směru, takže jejich poziční linie jsou téměř rovnoběžné a nikde užitečně se neprotnou. Změřte jedno pořádně daleko od poledne.',
     'wu.crossNeed': 'Změřte dvě výšky v různých směrech a tady se zkříží.',
     'wu.errorTitle': 'Chyba určené pozice',
     'wu.barLon': 'délka',
     'wu.barLat': 'šířka',
     'wu.noteClean':
-      'Se správným chronometrem a s použitou ročenkou padnou oba výpočty přesně na loď. Rozhoďte hodiny a sledujte, který z nich se pohne.',
+      'Se správným chronometrem a s použitým almanachem padnou oba výpočty přesně na loď. Rozhoďte hodiny a sledujte, který z nich se pohne.',
     'wu.noteNoLat': 'Šířka zůstala nedotčená. Délka je mimo o {d}.',
     'wu.noteAll':
       'Určená pozice leží {total} od lodi a prakticky celou tu chybu nese délka. Malá chyba šířky je jen posun deklinace — nikdy ne hodiny.',
@@ -636,7 +636,7 @@ const dict = {
 
     'show.cross': 'dvě měření, zkřížená',
     'show.cop': 'kružnice stejné výšky',
-    'show.lop': 'poziční přímka',
+    'show.lop': 'poziční linie',
     'show.equator': 'nebeský rovník',
     'show.night': 'den a noc',
     'show.belowHorizon': 'Slunce pod obzorem',
@@ -713,7 +713,7 @@ const dict = {
     'lun.dApp': 'střed ke středu, zdánlivá',
     'lun.cleared': 'opravená vzdálenost',
     'lun.clearedBy': 'oprava posunula o',
-    'lun.almanac': 'ročenka dává GMT',
+    'lun.almanac': 'almanach dává GMT',
     'lun.result': 'Co měření dalo',
     'lun.watchSays': 'hodiny ukazují',
     'lun.watchError': 'měření říká, že jdou o',

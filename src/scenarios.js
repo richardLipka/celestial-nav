@@ -69,7 +69,7 @@ export const scenarios = [
         'and the fix is still 247 nm out, because the almanac has been switched off. The clock was never sufficient on its own.',
       cs:
         'Začátek listopadu: sluneční hodiny jdou šestnáct minut napřed před hodinami. Chronometr je tu naprosto přesný, ' +
-        'a pozice je přesto o 247 nm vedle, protože je vypnutá ročenka. Samotné hodiny nikdy nestačily.',
+        'a pozice je přesto o 247 nm vedle, protože je vypnutý almanach. Samotné hodiny nikdy nestačily.',
     },
   },
   {

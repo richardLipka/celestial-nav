@@ -282,10 +282,20 @@ export function createTheory(onRotate, onCentre) {
   };
 }
 
-/** Escape the text but leave \( ... \) alone so MathJax can find it. */
-function escapeButKeepMath(str) {
+/**
+ * Escape the text, leave \( ... \) alone so MathJax can find it, and let the
+ * two emphases the prose is written with through as tags.
+ *
+ * Without that last step the asterisks reached the page as asterisks: a term
+ * being defined read `**intercept**`. The escaping happens first, so the only
+ * tags that can ever reach innerHTML are the two put there here, and the TeX
+ * in this file contains no asterisk for the emphasis rules to catch.
+ */
+export function escapeButKeepMath(str) {
   return String(str)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+    .replace(/>/g, '&gt;')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em>$1</em>');
 }
