@@ -63,15 +63,20 @@ one pole to the other as you scrub through the day.
 
 ## Theory
 
-Five sections, each with its equations typeset and then shown again *with your
-own figures* substituted from whatever sight is currently on the timeline:
+Six sections, each with its equations typeset and then shown again *with your
+own figures* substituted from whatever sight is currently on the timeline.
+Everything that can be changed stays pinned in the rail on the left, and the
+celestial sphere stays pinned at the top right, where it follows what you are
+reading: reach the triangle and the triangle appears on it; click any angle,
+on a chip or in any figure, and that angle is drawn on the sphere where it
+actually lies — turning the sphere to face you if it was round the back.
 
 1. **One measurement, one circle** — `z = 90° − Ho`, and why one sight buys a
    circle rather than a point.
-2. **The navigational triangle** — the PZX triangle, live on a draggable
-   celestial sphere and again as the flat textbook figure. The spherical cosine
-   rule for sides turns into `sin H = sin φ sin δ + cos φ cos δ cos t`, and
-   everything afterwards is that one equation solved for a different unknown.
+2. **The navigational triangle** — the PZX triangle, live on the sphere and
+   again as the flat textbook figure. The spherical cosine rule for sides turns
+   into `sin H = sin φ sin δ + cos φ cos δ cos t`, and everything afterwards is
+   that one equation solved for a different unknown.
 3. **Latitude** — set `t = 0` and it collapses to `cos(φ − δ)`. The triangle
    degenerates into a straight line along your meridian and spherical
    trigonometry becomes addition. No `t` appears, so no clock does either.
@@ -79,7 +84,10 @@ own figures* substituted from whatever sight is currently on the timeline:
    Two things in that line must be told to you and neither is in the sky.
    Includes the equation of equal altitudes, which needs the latitude — which
    is why a navigator works the noon latitude out first.
-5. **Why one is free and the other is not** — `∂H/∂t = cos φ sin Zₙ`.
+5. **Crossing two sights** — the Marcq St Hilaire intercept `p = Ho − Hc`, the
+   line of position at right angles to the bearing, and why two sights on the
+   same bearing give no fix at all.
+6. **Why one is free and the other is not** — `∂H/∂t = cos φ sin Zₙ`.
 
 ## The panels
 
@@ -217,8 +225,10 @@ src/views/
   sightlog.js      the log book and its actions
   workup.js        both reductions, worked from the log
   timeline.js      the day scrubber and the sensitivity gauge
-  theory.js        the theory tab renderer and MathJax handling
+  theory.js        the theory tab: the argument, the stage, MathJax handling
   theoryfig.js     the 3D triangle, the flat triangle, the hour-angle wedge
+  theorysphere.js  the sphere the theory tab keeps on screen, and its angles
+  sphere.js        the projection and the spherical geometry those two share
 
 src/ui/rail.js     the controls, which are the state and nothing else
 src/ui/format.js   the formatters that need to know the language

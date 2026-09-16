@@ -95,14 +95,25 @@ function draw(svg, d, s) {
   svg.append(el('circle', { cx: ox, cy: oy, r: 4, class: 'mark observer' }));
 
   // --- the angles ---------------------------------------------------------
+  // Each is a hit target: clicking one draws that same angle on the main
+  // sphere, on the celestial sphere rather than in this cross-section. The
+  // transparent arc underneath is what gives a 2px stroke a catchable width.
+  const mark = (focus, cx, cy, r, a1, a2, label, colour, labelR) => {
+    const node = angleMark(cx, cy, r, a1, a2, label, colour, labelR);
+    node.prepend(arc(cx, cy, r, a1, a2, { class: 'hit-line' }));
+    node.setAttribute('class', 'hit');
+    node.setAttribute('data-focus', focus);
+    return node;
+  };
+
   // At the centre: delta and z stack end to end and make phi.
-  svg.append(angleMark(CX, CY, 52, 0, phi, 'φ', 'var(--c-phi)', 65));
-  svg.append(angleMark(CX, CY, 30, 0, dec, 'δ', 'var(--c-dec)', 19));
-  svg.append(angleMark(CX, CY, 30, dec, phi, 'z', 'var(--c-zen)', 41));
+  svg.append(mark('phi', CX, CY, 52, 0, phi, 'φ', 'var(--c-phi)', 65));
+  svg.append(mark('dec', CX, CY, 30, 0, dec, 'δ', 'var(--c-dec)', 19));
+  svg.append(mark('zen', CX, CY, 30, dec, phi, 'z', 'var(--c-zen)', 41));
 
   // At the observer: the same z, and the altitude that was actually measured.
-  svg.append(angleMark(ox, oy, 28, phi + (sunSouth ? -90 : 90), dec, 'H', 'var(--c-alt)', 40));
-  svg.append(angleMark(ox, oy, 16, dec, phi, 'z', 'var(--c-zen)', 25));
+  svg.append(mark('alt', ox, oy, 28, phi + (sunSouth ? -90 : 90), dec, 'H', 'var(--c-alt)', 40));
+  svg.append(mark('zen', ox, oy, 16, dec, phi, 'z', 'var(--c-zen)', 25));
 
   // --- the arithmetic, on its own row ------------------------------------
   svg.append(el('line', { x1: 14, y1: 212, x2: W - 14, y2: 212, class: 'equator-line' }));

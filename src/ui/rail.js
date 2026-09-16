@@ -1,7 +1,7 @@
 // The control rail: everything on the left is the state, and nothing else is.
 
 import { fmtNumber } from '../core/angles.js';
-import { fmtDate } from '../core/time.js';
+import { fmtDate, fmtClock } from '../core/time.js';
 import { t, pick } from '../i18n.js';
 import { fLat, fLon, fClockError, fRate } from './format.js';
 import { scenarios, byId, applyScenario } from '../scenarios.js';
@@ -14,8 +14,8 @@ const h = (tag, cls, txt) => {
   return n;
 };
 
-function group(label) {
-  const g = h('div', 'rail-group');
+function group(label, cls = '') {
+  const g = h('div', `rail-group ${cls}`);
   g.append(h('div', 'rail-label', label));
   return g;
 }
@@ -66,7 +66,7 @@ export function createRail(store) {
   const refs = {};
 
   // --- scenario -----------------------------------------------------------
-  const gScenario = group(t('rail.scenario'));
+  const gScenario = group(t('rail.scenario'), 'rail-g-scenario');
   const sel = document.createElement('select');
   sel.id = 'scenario';
   sel.className = 'rail-select';
@@ -81,7 +81,7 @@ export function createRail(store) {
   node.append(gScenario);
 
   // --- position -----------------------------------------------------------
-  const gPos = group(t('rail.ship'));
+  const gPos = group(t('rail.ship'), 'rail-g-ship');
 
   const placeSel = document.createElement('select');
   placeSel.id = 'place';
@@ -127,8 +127,26 @@ export function createRail(store) {
   );
   node.append(gPos);
 
+  // --- the time of day ----------------------------------------------------
+  // Every other tab moves the clock with the timeline under its panels. The
+  // theory tab has no timeline, and at local apparent noon the triangle it is
+  // about has no interior at all -- P, Z and X lie on one great circle -- so
+  // the hour has to be reachable from here, and the stylesheet shows this
+  // group on that tab alone.
+  const gTime = group(t('rail.timeOfDay'), 'rail-g-time');
+  refs.timeVal = h('output', 'rail-value');
+  refs.time = slider('time-of-day', {
+    min: 0, max: 86340, step: 60, value: 43200,
+    onInput: (v) => set({ secondOfDay: v }),
+  });
+  const noonBtn = h('button', 'rail-reset', t('tl.goNoon'));
+  noonBtn.type = 'button';
+  noonBtn.addEventListener('click', () => set({ secondOfDay: null }));
+  gTime.append(labelled(t('tl.utc'), refs.timeVal, refs.time), noonBtn);
+  node.append(gTime);
+
   // --- the chronometer ----------------------------------------------------
-  const gClock = group(t('rail.chronometer'));
+  const gClock = group(t('rail.chronometer'), 'rail-g-clock');
   refs.clockVal = h('output', 'rail-value clock');
   refs.clock = slider('clock-error', {
     min: -100, max: 100, step: 1, value: secToPos(state.clockErrorSec),
@@ -169,7 +187,7 @@ export function createRail(store) {
   node.append(gClock);
 
   // --- the sextant --------------------------------------------------------
-  const gSext = group(t('rail.sextant'));
+  const gSext = group(t('rail.sextant'), 'rail-g-sextant');
   refs.eyeVal = h('output', 'rail-value');
   refs.eye = slider('eye-height', {
     min: 1, max: 30, step: 0.5, value: state.eyeHeightM,
@@ -205,7 +223,7 @@ export function createRail(store) {
   node.append(gSext);
 
   // --- overlays -----------------------------------------------------------
-  const gShow = group(t('rail.overlays'));
+  const gShow = group(t('rail.overlays'), 'rail-g-show');
   refs.show = {};
   const showBox = h('div', 'rail-checks');
   for (const k of ['cop', 'lop', 'cross', 'equator', 'night', 'belowHorizon']) {
@@ -230,6 +248,12 @@ export function createRail(store) {
       refs.latVal.textContent = fLat(s.lat);
       refs.lonVal.textContent = fLon(s.lon);
       if (document.activeElement !== refs.date) refs.date.value = fmtDate(s.date);
+
+      // Seconds into the UTC day, which is what the timeline scrubs too, so
+      // the two controls agree by construction. `secondOfDay` is null at noon,
+      // and then the slider follows wherever culmination actually falls.
+      setVal(refs.time, Math.round((d.now - s.date) / 1000));
+      refs.timeVal.textContent = fmtClock(d.now);
 
       setVal(refs.clock, secToPos(s.clockErrorSec));
       refs.clockVal.textContent = fClockError(s.clockErrorSec);

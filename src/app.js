@@ -92,7 +92,11 @@ function mount() {
     (sec) => set({ secondOfDay: sec }),
     () => set({ secondOfDay: null }),
   );
-  const theory = createTheory(rotateGlobe('theoryView'));
+  // The theory sphere turns itself when what it is asked to show is round the
+  // back, which needs an absolute centre rather than the drag's increments.
+  const centreTheory = (lat, lon) =>
+    set({ theoryView: { lat: Math.max(-85, Math.min(85, lat)), lon } });
+  const theory = createTheory(rotateGlobe('theoryView'), centreTheory);
   const voyage = createVoyage(store);
   const lunars = createLunars(store);
   const rail = createRail(store);
@@ -177,6 +181,10 @@ function mount() {
 
   const applyTab = () => {
     const tab = state.tab;
+    // The tab is on the body element because the rail belongs to all four and
+    // has to behave differently on one of them: the theory tab pins it open,
+    // because every number in the derivations comes off these controls.
+    body.className = `body on-${tab}`;
     sim.hidden = tab !== 'simulation';
     thy.hidden = tab !== 'theory';
     voy.hidden = tab !== 'voyage';

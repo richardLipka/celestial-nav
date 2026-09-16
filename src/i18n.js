@@ -28,6 +28,18 @@ const dict = {
     'tab.simulation': 'Simulation',
     'theory.withYourFigures': 'with your figures',
 
+    'th.stage.title': 'The sky above you',
+    'th.stage.sub': 'it follows what you are reading',
+    'th.stage.pick': 'Angles to draw on the sphere',
+    'th.stage.hint':
+      'Click an angle here, or in any figure, to draw it on the sphere. Click it again and the sphere goes back to following the text.',
+    'th.ang.phi': 'latitude',
+    'th.ang.dec': 'declination',
+    'th.ang.alt': 'altitude',
+    'th.ang.zen': 'zenith distance',
+    'th.ang.lha': 'hour angle',
+    'th.ang.az': 'azimuth',
+
     'panel.log': 'Sight log',
     'panel.log.sub': 'what you actually observed',
 
@@ -70,6 +82,7 @@ const dict = {
     'fig.zenith': 'your zenith',
     'fig.sun': 'the sun',
     'fig.pzxNote': 'the sky, seen from outside',
+    'fig.dragSphere': 'drag to turn the sphere',
     'fig.greenwich': 'Greenwich',
     'fig.yourMeridian': 'your meridian',
     'fig.rotation': 'Earth turns',
@@ -80,6 +93,8 @@ const dict = {
     'degen.held': 'declination held still, so that only the rotation varies',
     'aria.degeneracy': 'Three observers at three longitudes, each at local noon, reading the same altitude',
     'aria.pzx': 'The navigational triangle on the celestial sphere',
+    'aria.theorySphere':
+      'The observer’s own sky: the navigational triangle, and whichever angle is being read about',
     'aria.pzxFlat': 'The navigational triangle with its sides and angles labelled',
     'aria.hourAngle': 'The Earth from above the pole, showing Greenwich hour angle, local hour angle and longitude',
 
@@ -248,6 +263,7 @@ const dict = {
     'rail.latitude': 'latitude',
     'rail.longitude': 'longitude',
     'rail.date': 'date',
+    'rail.timeOfDay': 'The hour',
     'rail.error': 'error',
     'rail.rate': 'rate',
     'rail.departure': 'set and rated on',
@@ -370,6 +386,18 @@ const dict = {
     'tab.simulation': 'Simulace',
     'theory.withYourFigures': 's vašimi čísly',
 
+    'th.stage.title': 'Obloha nad vámi',
+    'th.stage.sub': 'sleduje, co právě čtete',
+    'th.stage.pick': 'Úhly ke kreslení na sféře',
+    'th.stage.hint':
+      'Klepněte na úhel zde nebo v kterémkoli obrázku a vykreslí se na sféře. Dalším klepnutím se sféra vrátí k tomu, aby sledovala text.',
+    'th.ang.phi': 'šířka',
+    'th.ang.dec': 'deklinace',
+    'th.ang.alt': 'výška',
+    'th.ang.zen': 'zenitová vzdálenost',
+    'th.ang.lha': 'hodinový úhel',
+    'th.ang.az': 'azimut',
+
     'panel.log': 'Deník měření',
     'panel.log.sub': 'co jste skutečně pozorovali',
 
@@ -412,6 +440,7 @@ const dict = {
     'fig.zenith': 'váš zenit',
     'fig.sun': 'Slunce',
     'fig.pzxNote': 'obloha, viděná zvenčí',
+    'fig.dragSphere': 'tažením otočíte sférou',
     'fig.greenwich': 'Greenwich',
     'fig.yourMeridian': 'váš poledník',
     'fig.rotation': 'Země se otáčí',
@@ -422,6 +451,8 @@ const dict = {
     'degen.held': 'deklinace držena na místě, aby se měnila jen rotace',
     'aria.degeneracy': 'Tři pozorovatelé na třech délkách, každý v místním poledni, měří tutéž výšku',
     'aria.pzx': 'Navigační trojúhelník na nebeské sféře',
+    'aria.theorySphere':
+      'Vlastní obloha pozorovatele: navigační trojúhelník a úhel, o kterém právě čtete',
     'aria.pzxFlat': 'Navigační trojúhelník s popsanými stranami a úhly',
     'aria.hourAngle': 'Země shora od pólu s greenwichským a místním hodinovým úhlem a zeměpisnou délkou',
 
@@ -590,6 +621,7 @@ const dict = {
     'rail.latitude': 'šířka',
     'rail.longitude': 'délka',
     'rail.date': 'datum',
+    'rail.timeOfDay': 'Hodina',
     'rail.error': 'chyba',
     'rail.rate': 'chod',
     'rail.departure': 'seřízeny dne',

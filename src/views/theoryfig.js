@@ -5,6 +5,7 @@
 import { el, g, text, polyline, polygon, clear, arc, onCircle, arrowhead } from '../svg.js';
 import { sind, cosd, norm180, norm360, fmtAngle, fmtBearing } from '../core/angles.js';
 import { greatCircle, angularDistance } from '../core/fix.js';
+import { orthographic, parallel, meridian } from './sphere.js';
 import { t } from '../i18n.js';
 
 // =========================================================================
@@ -21,16 +22,7 @@ const CX = 215;
 const CY = 178;
 const R = 140;
 
-function projector(centre) {
-  const { lat: la0, lon: lo0 } = centre;
-  return (lat, lon) => {
-    const dl = lon - lo0;
-    const x = cosd(lat) * sind(dl);
-    const y = cosd(la0) * sind(lat) - sind(la0) * cosd(lat) * cosd(dl);
-    const z = sind(la0) * sind(lat) + cosd(la0) * cosd(lat) * cosd(dl);
-    return { x: CX + R * x, y: CY - R * y, z, visible: z >= 0 };
-  };
-}
+const projector = (centre) => orthographic({ cx: CX, cy: CY, r: R, centre });
 
 function track(svg, pts, proj, attrs) {
   let run = null;
@@ -44,18 +36,6 @@ function track(svg, pts, proj, attrs) {
   }
   if (run && run.length > 1) svg.append(polyline(run, attrs));
 }
-
-const circleAt = (lat, step = 3) => {
-  const out = [];
-  for (let lon = -180; lon <= 180; lon += step) out.push({ lat, lon });
-  return out;
-};
-
-const meridianAt = (lon, from = -90, to = 90) => {
-  const out = [];
-  for (let lat = from; lat <= to; lat += 2) out.push({ lat, lon });
-  return out;
-};
 
 export function createTriangle3D(onRotate) {
   const svg = el('svg', {
@@ -104,12 +84,12 @@ function drawTriangle3D(svg, d, s) {
   for (let i = 0; i <= 180; i++) rim.push({ lat: 0, lon: -180 + i * 2 });
   track(svg, rim, proj, { class: 'horizon-circle' });
 
-  for (let alt = -60; alt <= 60; alt += 30) if (alt) track(svg, circleAt(alt), proj, { class: 'grat' });
-  for (let az = 0; az < 360; az += 30) track(svg, meridianAt(az), proj, { class: 'grat' });
+  for (let alt = -60; alt <= 60; alt += 30) if (alt) track(svg, parallel(alt), proj, { class: 'grat' });
+  for (let az = 0; az < 360; az += 30) track(svg, meridian(az), proj, { class: 'grat' });
 
   // The observer's meridian: the great circle through N, the zenith and S.
-  track(svg, meridianAt(0), proj, { class: 'obs-meridian' });
-  track(svg, meridianAt(180), proj, { class: 'obs-meridian' });
+  track(svg, meridian(0), proj, { class: 'obs-meridian' });
+  track(svg, meridian(180), proj, { class: 'obs-meridian' });
 
   // The celestial equator, where declination is measured from.
   track(svg, d.equatorTrack.map((p) => ({ lat: p.H, lon: p.Az })), proj, { class: 'cel-equator-3d' });
@@ -161,7 +141,7 @@ function drawTriangle3D(svg, d, s) {
   }
 
   svg.append(
-    text(W - 10, H3 - 8, t('globe.drag'), { class: 'lbl tiny muted', 'text-anchor': 'end' }),
+    text(W - 10, H3 - 8, t('fig.dragSphere'), { class: 'lbl tiny muted', 'text-anchor': 'end' }),
   );
   svg.append(text(10, H3 - 8, t('fig.pzxNote'), { class: 'lbl tiny muted' }));
 }
@@ -212,20 +192,27 @@ function drawFlat(svg, d, s) {
   const cZX = arcPath(Z, X, 'tri-side zen');
 
   // --- the angles at P and Z ---------------------------------------------
-  const ang = (v, a, b, r, cls) => {
+  // Each one is a hit target: clicking it puts that same angle on the main
+  // sphere, where it is drawn where it actually lies rather than flattened.
+  // The transparent `hit-line` under each arc is what makes a 2px stroke
+  // catchable by a finger.
+  const ang = (v, a, b, r, cls, label, textCls, focus) => {
     const a1 = (Math.atan2(-(a[1] - v[1]), a[0] - v[0]) * 180) / Math.PI;
     const a2 = (Math.atan2(-(b[1] - v[1]), b[0] - v[0]) * 180) / Math.PI;
     let d2 = a2 - a1;
     while (d2 > 180) d2 -= 360;
     while (d2 < -180) d2 += 360;
-    svg.append(arc(v[0], v[1], r, a1, a1 + d2, { class: cls, 'stroke-width': 2.2 }));
-    return onCircle(v[0], v[1], r + 16, a1 + d2 / 2);
+    const [lx, ly] = onCircle(v[0], v[1], r + 16, a1 + d2 / 2);
+    svg.append(
+      g({ class: 'hit', 'data-focus': focus }, [
+        arc(v[0], v[1], r, a1, a1 + d2, { class: 'hit-line' }),
+        arc(v[0], v[1], r, a1, a1 + d2, { class: cls, 'stroke-width': 2.2 }),
+        text(lx, ly + 4, label, { class: `lbl gk ${textCls}`, 'text-anchor': 'middle' }),
+      ]),
+    );
   };
-  const lp = ang(P, cPZ, cPX, 34, 'ang-time');
-  const lz = ang(Z, cPZ, cZX, 30, 'ang-az');
-
-  svg.append(text(lp[0], lp[1] + 4, 't', { class: 'lbl gk lha-text', 'text-anchor': 'middle' }));
-  svg.append(text(lz[0], lz[1] + 4, 'Zₙ', { class: 'lbl gk az-lbl', 'text-anchor': 'middle' }));
+  ang(P, cPZ, cPX, 34, 'ang-time', 't', 'lha-text', 'lha');
+  ang(Z, cPZ, cZX, 30, 'ang-az', 'Zₙ', 'az-lbl', 'az');
 
   // --- corners ------------------------------------------------------------
   const corner = (p, name, sub, cls, dx, dy, anchor) => {
@@ -238,9 +225,17 @@ function drawFlat(svg, d, s) {
   corner(X, 'X', t('fig.sun'), 'tri-x', 12, 6, 'start');
 
   // --- side labels --------------------------------------------------------
-  const sideLbl = (c, main, val, cls, dx, dy, anchor) => {
-    svg.append(text(c[0] + dx, c[1] + dy, main, { class: `lbl mn ${cls}`, 'text-anchor': anchor }));
-    svg.append(text(c[0] + dx, c[1] + dy + 13, val, { class: 'lbl tiny muted', 'text-anchor': anchor }));
+  // Clicking a side shows the angle it is the complement of: PZ against the
+  // pole's altitude, PX against the declination, ZX against the altitude. Each
+  // pair is adjacent on the sphere and makes up a quarter circle, which is the
+  // fact these three "90 minus something" sides are all standing on.
+  const sideLbl = (c, main, val, cls, dx, dy, anchor, focus) => {
+    svg.append(
+      g({ class: 'hit', 'data-focus': focus }, [
+        text(c[0] + dx, c[1] + dy, main, { class: `lbl mn ${cls}`, 'text-anchor': anchor }),
+        text(c[0] + dx, c[1] + dy + 13, val, { class: 'lbl tiny muted', 'text-anchor': anchor }),
+      ]),
+    );
   };
   // P is the elevated pole -- the one the 3D figure draws, and the one above
   // your horizon. Measured from it, PZ is 90 - |φ| always, but PX is 90 - δ
@@ -250,9 +245,9 @@ function drawFlat(svg, d, s) {
   // 3D figure beside it draws the true arc, so the two would disagree on screen.
   const south = s.lat < 0;
   const dec = d.sky.solar.dec * (south ? -1 : 1);
-  sideLbl(cPZ, south ? '90°+φ' : '90°−φ', fmtAngle(90 - Math.abs(s.lat)), 'phi-text', -10, 0, 'end');
-  sideLbl(cPX, south ? '90°+δ' : '90°−δ', fmtAngle(90 - dec), 'dec-text', 10, 0, 'start');
-  sideLbl(cZX, 'z = 90°−H', fmtAngle(d.z), 'zen-text', 0, 26, 'middle');
+  sideLbl(cPZ, south ? '90°+φ' : '90°−φ', fmtAngle(90 - Math.abs(s.lat)), 'phi-text', -10, 0, 'end', 'phi');
+  sideLbl(cPX, south ? '90°+δ' : '90°−δ', fmtAngle(90 - dec), 'dec-text', 10, 0, 'start', 'dec');
+  sideLbl(cZX, 'z = 90°−H', fmtAngle(d.z), 'zen-text', 0, 26, 'middle', 'zen');
 }
 
 // =========================================================================
@@ -320,17 +315,25 @@ function drawHourAngle(svg, d, s) {
   }
 
   // --- the three angles ---------------------------------------------------
-  svg.append(arc(PCX, PCY, 96, gAng, sAng, { class: 'ang-gha' }));
-  svg.append(arc(PCX, PCY, 72, oAng, sAng, { class: 'ang-lha' }));
-  svg.append(arc(PCX, PCY, 48, gAng, oAng, { class: 'ang-lon' }));
-
   const lbl = (r, a1, a2, txt, cls) => {
     const [x, y] = onCircle(PCX, PCY, r, (a1 + a2) / 2);
-    svg.append(text(x, y + 4, txt, { class: `lbl mn ${cls}`, 'text-anchor': 'middle' }));
+    return text(x, y + 4, txt, { class: `lbl mn ${cls}`, 'text-anchor': 'middle' });
   };
-  lbl(110, gAng, sAng, `GHA ${fmtAngle(gha)}`, 'lha-text');
-  lbl(84, oAng, sAng, `t ${fmtAngle(Math.abs(lha))}`, 'lha-text');
-  lbl(60, gAng, oAng, `λ ${fmtAngle(Math.abs(lon))}`, 'phi-text');
+  svg.append(arc(PCX, PCY, 96, gAng, sAng, { class: 'ang-gha' }));
+  svg.append(lbl(110, gAng, sAng, `GHA ${fmtAngle(gha)}`, 'lha-text'));
+
+  // The local hour angle is the one of the three that is also an angle in the
+  // navigational triangle, so it is the one the main sphere can show.
+  svg.append(
+    g({ class: 'hit', 'data-focus': 'lha' }, [
+      arc(PCX, PCY, 72, oAng, sAng, { class: 'hit-line' }),
+      arc(PCX, PCY, 72, oAng, sAng, { class: 'ang-lha' }),
+      lbl(84, oAng, sAng, `t ${fmtAngle(Math.abs(lha))}`, 'lha-text'),
+    ]),
+  );
+
+  svg.append(arc(PCX, PCY, 48, gAng, oAng, { class: 'ang-lon' }));
+  svg.append(lbl(60, gAng, oAng, `λ ${fmtAngle(Math.abs(lon))}`, 'phi-text'));
 
   svg.append(text(gx + (gx > PCX ? 6 : -6), gy - 6, t('fig.greenwich'),
     { class: 'lbl tiny lha-text', 'text-anchor': gx > PCX ? 'start' : 'end' }));

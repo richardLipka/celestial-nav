@@ -12,7 +12,7 @@ lost). Five guided lessons walk a newcomer through all four.
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 177 tests
+npm test         # vitest, 192 tests
 npm run test:watch
 ```
 
@@ -249,6 +249,41 @@ are functions of the derived state returning a TeX string, or `null` to show
 their `empty` prompt — that is how the equations fill with the navigator's own
 figures.
 
+### The stage, and the sphere on it
+
+The tab is two columns: the argument, and a **stage** pinned to the top of the
+right-hand column that never scrolls away. It holds the celestial sphere, six
+chips carrying the live value of every angle, and nothing else. The rail is
+pinned on this tab for the same reason — an equation full of live figures is
+worth nothing if the figures are three screens up — and to fit one screen it
+drops the groups the tab cannot express and picks up **the hour**, which every
+other tab gets from the timeline under its panels. At local apparent noon the
+triangle has no interior at all, so without that control the tab cannot show
+its own subject.
+
+What the sphere draws is one of:
+
+- the **triangle**, when the section being read is about it (`SECTION_VIEW` in
+  `views/theorysphere.js` maps section id → what to show), or
+- **one angle**, named either by that map or by the reader clicking — a chip,
+  or any angle in any figure, which carry `data-focus` and are caught by one
+  delegated handler in `views/theory.js`. Clicking the angle already shown
+  releases it back to following the text.
+
+`views/sphere.js` holds the geometry both spheres share: the orthographic
+projection with its back-face test, the tangent at a point, and the arc that
+marks a spherical angle. **Angle marks are drawn on the sphere, never as a flat
+arc round a projected vertex** — that is right only at the centre of the disc.
+`focusSpec()` is pure and returns the arc *and* the label, so
+`theorysphere.test.js` can measure every arc and check it is as long as its
+own label says.
+
+Half a sphere always faces away, so being asked to show an angle is not the
+same as showing it: `reveal()` turns the sphere to the mean direction of
+everything wanted, but only when something wanted is hidden, and only from a
+click or a section change — never from inside a render, which would set state
+mid-render.
+
 - Static equations are typeset once at build; `sub` blocks are re-typeset on a
   **`setTimeout`, not `requestAnimationFrame`**. A frame never arrives while
   the page is not rendering, which would latch the debounce flag on and leave
@@ -259,6 +294,11 @@ figures.
   **double** backslashes in JS source (`\\circ`, `\\,`). A single one silently
   becomes a literal character and the equation renders wrong rather than
   failing.
+- The section being read is found with a **scroll listener, not an
+  `IntersectionObserver`**, for exactly the reason the typesetting uses a timer
+  and not an animation frame: both observers and frames are tied to the
+  rendering loop, and a window sitting behind another runs neither. Six
+  rectangles per scroll is not a cost worth optimising.
 
 ## Traps already hit
 
@@ -318,6 +358,20 @@ figures.
 - An ephemeris wants dynamical time and everything else wants UT. Feeding UT
   straight in is silent, and for the moon it is forty arcseconds — the exact
   size that matters. `lunar()` converts; nothing else should.
+- **`IntersectionObserver` is as tied to the rendering loop as
+  `requestAnimationFrame` is.** A page that is not being drawn fires neither —
+  and neither does it fire `scroll`, which is why a scroll-driven feature
+  cannot be tested in a preview pane that is not painting. Dispatch the event
+  by hand to test the logic, and force a paint to test the wiring.
+- A listener on `window` outlives a language switch, because `mount()` replaces
+  the DOM and unsubscribes from the store but knows nothing about listeners a
+  view attached elsewhere. `followScroll` removes itself the first time it
+  finds its own node detached.
+- **The azimuth is not the angle at Z.** The angle in the triangle is measured
+  from the *elevated* pole and never exceeds 180; the bearing Zn is measured
+  from north and runs the whole way round. At the Cape with the sun in the
+  north-east the two differ by 64 degrees, so an angle mark drawn the short way
+  round and labelled Zn draws one number and writes another.
 - Parallax from the geocentric altitude and parallax from the observed one are
   different functions. Confusing them is worth 0.7 arcminutes at 45 degrees,
   which is twenty sea miles through a lunar.
