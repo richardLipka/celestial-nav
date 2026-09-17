@@ -74,7 +74,11 @@ actually lies — turning the sphere to face you if it was round the back.
 1. **One measurement, one circle** — `z = 90° − Ho`, and why one sight buys a
    circle rather than a point.
 2. **The navigational triangle** — the PZX triangle, live on the sphere and
-   again as the flat textbook figure. The spherical cosine rule for sides turns
+   again flattened beside it. The flat one is not a schematic: it is the same
+   triangle in the projection that keeps angles, so the angle drawn at P is the
+   hour angle you would measure, the sides are curved because they have to be,
+   and at noon the whole figure is one straight line. The cosine rule for sides
+   turns
    into `sin H = sin φ sin δ + cos φ cos δ cos t`, and everything afterwards is
    that one equation solved for a different unknown.
 3. **Latitude** — set `t = 0` and it collapses to `cos(φ − δ)`. The triangle
@@ -228,7 +232,7 @@ src/views/
   theory.js        the theory tab: the argument, the stage, MathJax handling
   theoryfig.js     the 3D triangle, the flat triangle, the hour-angle wedge
   theorysphere.js  the sphere the theory tab keeps on screen, and its angles
-  sphere.js        the projection and the spherical geometry those two share
+  sphere.js        two projections and the spherical geometry those two share
 
 src/ui/rail.js     the controls, which are the state and nothing else
 src/ui/format.js   the formatters that need to know the language

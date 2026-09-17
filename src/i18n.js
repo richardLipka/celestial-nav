@@ -82,6 +82,8 @@ const dict = {
     'fig.zenith': 'your zenith',
     'fig.sun': 'the sun',
     'fig.pzxNote': 'the sky, seen from outside',
+    'fig.flatNote': 'the same triangle, flattened: the angles are true, the lengths of the sides are not',
+    'fig.flatCollapsed': 'the sun is on your meridian — P, Z and X in one line, and no triangle at all',
     'fig.dragSphere': 'drag to turn the sphere',
     'fig.greenwich': 'Greenwich',
     'fig.yourMeridian': 'your meridian',
@@ -95,7 +97,7 @@ const dict = {
     'aria.pzx': 'The navigational triangle on the celestial sphere',
     'aria.theorySphere':
       'The observer’s own sky: the navigational triangle, and whichever angle is being read about',
-    'aria.pzxFlat': 'The navigational triangle with its sides and angles labelled',
+    'aria.pzxFlat': 'The navigational triangle flattened, with its true angles and the length of each side',
     'aria.hourAngle': 'The Earth from above the pole, showing Greenwich hour angle, local hour angle and longitude',
 
     'tab.voyage': 'Voyage',
@@ -440,6 +442,8 @@ const dict = {
     'fig.zenith': 'váš zenit',
     'fig.sun': 'Slunce',
     'fig.pzxNote': 'obloha, viděná zvenčí',
+    'fig.flatNote': 'týž trojúhelník naplocho: úhly jsou pravé, délky stran nikoli',
+    'fig.flatCollapsed': 'Slunce je na vašem poledníku — P, Z a X v jedné přímce a žádný trojúhelník',
     'fig.dragSphere': 'tažením otočíte sférou',
     'fig.greenwich': 'Greenwich',
     'fig.yourMeridian': 'váš poledník',
@@ -453,7 +457,7 @@ const dict = {
     'aria.pzx': 'Navigační trojúhelník na nebeské sféře',
     'aria.theorySphere':
       'Vlastní obloha pozorovatele: navigační trojúhelník a úhel, o kterém právě čtete',
-    'aria.pzxFlat': 'Navigační trojúhelník s popsanými stranami a úhly',
+    'aria.pzxFlat': 'Navigační trojúhelník naplocho, s pravými úhly a délkou každé strany',
     'aria.hourAngle': 'Země shora od pólu s greenwichským a místním hodinovým úhlem a zeměpisnou délkou',
 
     'tab.voyage': 'Plavba',

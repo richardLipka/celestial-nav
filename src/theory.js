@@ -103,6 +103,13 @@ export const theory = [
         k: 'math',
         tex: 'PZ = 90^\\circ-\\varphi \\qquad PX = 90^\\circ-\\delta \\qquad ZX = z = 90^\\circ-H',
       },
+      {
+        k: 'p',
+        text: {
+          en: 'The figure below is that same triangle laid flat. It cannot be laid flat with three straight sides: the angles of a spherical triangle add to more than \\(180^\\circ\\), and the excess is the triangle’s area. Drawn this way instead, every angle on the page is the angle on the sphere, and the sides bend to pay for it — their lengths on the page mean nothing, which is why each one is written on.',
+          cs: 'Obrázek níže je týž trojúhelník rozložený do roviny. Se třemi rovnými stranami to nejde: úhly sférického trojúhelníku dávají v součtu víc než \\(180^\\circ\\) a ten přebytek je jeho obsah. Nakreslený takto má každý úhel na papíře přesně ten, který je na sféře, a zaplatí se za to zakřivením stran — jejich délky na papíře neznamenají nic, a proto je u každé napsaná.',
+        },
+      },
       { k: 'fig', id: 'pzxFlat' },
       {
         k: 'p',

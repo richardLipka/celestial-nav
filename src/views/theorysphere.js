@@ -8,12 +8,15 @@
 // asks for it by clicking. Every angle here is drawn where it actually is,
 // never approximated with a flat arc round a projected vertex.
 
-import { el, text, polyline, clear, runs } from '../svg.js';
+import { el, text, clear, runs } from '../svg.js';
 import {
   sind, cosd, asind, atan2d, norm360, fmtAngle, fmtBearing,
 } from '../core/angles.js';
 import { greatCircle } from '../core/fix.js';
-import { orthographic, angleArc, parallel, meridian } from './sphere.js';
+import {
+  orthographic, angleArc, parallel, meridian, track, midVisible, markAngle,
+  besideMid,
+} from './sphere.js';
 import { t } from '../i18n.js';
 
 const W = 372;
@@ -193,26 +196,6 @@ export function createTheorySphere(onRotate) {
   return { node: svg, draw: (d, s, view) => draw(svg, d, s, view) };
 }
 
-/** Draw a run of lat/lon points, dropping whatever goes round the back. */
-function track(svg, pts, proj, attrs) {
-  let run = null;
-  for (const p of pts) {
-    const q = proj(p.lat, p.lon);
-    if (q.visible) (run || (run = [])).push(q);
-    else if (run) {
-      if (run.length > 1) svg.append(polyline(run, attrs));
-      run = null;
-    }
-  }
-  if (run && run.length > 1) svg.append(polyline(run, attrs));
-}
-
-/** The middle of whatever part of an arc is actually on the near side. */
-function midVisible(pts, proj) {
-  const vis = pts.map((p) => proj(p.lat, p.lon)).filter((q) => q.visible);
-  return vis.length ? vis[Math.floor((vis.length - 1) / 2)] : null;
-}
-
 function draw(svg, d, s, view = {}) {
   clear(svg);
   const { triangle = false, focus = null } = view;
@@ -253,6 +236,29 @@ function draw(svg, d, s, view = {}) {
     side(P, Z, 'tri-side phi');
     side(P, X, 'tri-side dec');
     side(Z, X, 'tri-side zen');
+
+    // And its angles, which are the other half of what a triangle is. The
+    // three side labels quote degrees too, but what they are quoting is
+    // distance along an arc; drawn without these marks the picture has its
+    // numbers lying on the lines and nothing standing at the corners at all.
+    //
+    // The angle being singled out is left to the focus below, which draws it
+    // heavier and writes its value -- two marks on one corner would only be
+    // the same arc twice.
+    if (focus !== 'lha') {
+      markAngle(svg, proj, {
+        V: P, A: Z, B: X, radiusDeg: 15, cls: 'time', label: 't', textCls: 'lha-text',
+      });
+    }
+    // The mark at Z is the angle Z of the triangle, which is not the bearing:
+    // it stops at 180 and the bearing runs the whole way round. The `az`
+    // focus draws the bearing instead, swept from north, and the prose in
+    // this very section is about the difference.
+    if (focus !== 'az') {
+      markAngle(svg, proj, {
+        V: Z, A: P, B: X, radiusDeg: 13, cls: 'az', label: 'Z', textCls: 'az-lbl',
+      });
+    }
   }
 
   // --- the one angle being asked about ------------------------------------
@@ -283,14 +289,24 @@ function draw(svg, d, s, view = {}) {
   if (triangle && !spec) {
     const north = lat >= 0;
     const decFromPole = d.sky.solar.dec * (north ? 1 : -1);
-    const sideLabel = (a, b, label, cls) => {
-      const q = midVisible(greatCircle(a, b, 24), proj);
+    // The middle of the triangle on the page, to push each label away from.
+    const away = [P, Z, X].map((p) => proj(p.lat, p.lon)).reduce(
+      (acc, q, i, all) => ({ x: acc.x + q.x / all.length, y: acc.y + q.y / all.length }),
+      { x: 0, y: 0 },
+    );
+    // Two short lines rather than one long one. Written out as
+    // "90°−δ = 110° 15,9′" the label is nearly half the width of the sphere,
+    // and no amount of moving it keeps that clear of the lines it crosses.
+    const sideLabel = (a, b, main, val, cls) => {
+      const pts = greatCircle(a, b, 40).map((p) => proj(p.lat, p.lon)).filter((q) => q.visible);
+      const q = besideMid(pts, away, 16);
       if (!q) return;
-      svg.append(text(q.x, q.y - 6, label, { class: `lbl mn ${cls}`, 'text-anchor': 'middle' }));
+      svg.append(text(q.x, q.y, main, { class: `lbl mn ${cls}`, 'text-anchor': 'middle' }));
+      svg.append(text(q.x, q.y + 12, val, { class: 'lbl tiny muted', 'text-anchor': 'middle' }));
     };
-    sideLabel(P, Z, `${north ? '90°−φ' : '90°+φ'} = ${fmtAngle(90 - Math.abs(lat))}`, 'phi-text');
-    sideLabel(P, X, `${north ? '90°−δ' : '90°+δ'} = ${fmtAngle(90 - decFromPole)}`, 'dec-text');
-    sideLabel(Z, X, `z = ${fmtAngle(90 - alt)}`, 'zen-text');
+    sideLabel(P, Z, north ? '90°−φ' : '90°+φ', fmtAngle(90 - Math.abs(lat)), 'phi-text');
+    sideLabel(P, X, north ? '90°−δ' : '90°+δ', fmtAngle(90 - decFromPole), 'dec-text');
+    sideLabel(Z, X, 'z', fmtAngle(90 - alt), 'zen-text');
   }
 
   if (spec) {

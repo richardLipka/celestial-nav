@@ -835,6 +835,12 @@ svg .phi-text { fill: var(--c-phi); }
 svg .az-lbl { fill: var(--c-alt); }
 .ang-time { stroke: var(--c-time); fill: none; }
 .ang-az { stroke: var(--c-alt); fill: none; }
+/* An angle of the triangle, drawn on the sphere itself. Lighter than the
+   sides it springs from and lighter than a focus: it is there to say that an
+   angle lives at this corner, not to be the thing being read. */
+.tri-ang { fill: none; stroke-width: 2; stroke-linecap: round; }
+.tri-ang.time { stroke: var(--c-time); }
+.tri-ang.az { stroke: var(--c-alt); }
 .globe-lit { fill: var(--lit); stroke: none; }
 .ang-gha { stroke: var(--c-time); stroke-width: 2.4; fill: none; }
 .ang-lha { stroke: var(--c-time); stroke-width: 2.4; fill: none; stroke-dasharray: 5 3; }

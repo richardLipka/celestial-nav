@@ -68,6 +68,12 @@ const lessonPanel = (state) => {
 // rebuilding costs nothing and cannot drift.
 let detach = null;
 
+// Whether the theory tab has already been wound off the meridian. Module
+// scope, not mount() scope: a language switch remounts the whole UI, and a
+// reader who had deliberately gone back to noon would find the clock moved
+// out from under them for the second time.
+let nudgedOffMeridian = false;
+
 function mount() {
   if (detach) detach();
 
@@ -179,6 +185,27 @@ function mount() {
 
   document.getElementById('root').replaceChildren(app);
 
+  // The theory tab's subject is a triangle, and at local apparent noon there
+  // is not one: P, Z and X stand on a single meridian, and every figure on
+  // the tab is a straight line with all three of its angles either nothing or
+  // everything. The clock snaps to noon by default, which is what the other
+  // three tabs want, so the first time this tab is opened wind it three hours
+  // back -- exactly what the hour slider in the rail does, and exactly what
+  // the noon button beside it undoes.
+  //
+  // Not while a lesson is running: a lesson owns the instant it set, and the
+  // one that opens this tab is pointing at the longitude section, where the
+  // triangle is not the subject.
+  const openOffTheMeridian = (d) => {
+    if (nudgedOffMeridian || state.tab !== 'theory' || state.lesson) return;
+    nudgedOffMeridian = true;
+    if (state.secondOfDay !== null) return;
+    const noon = Math.round((d.now - state.date) / 1000);
+    const want = noon > 3 * 3600 ? noon - 3 * 3600 : noon + 3 * 3600;
+    // Out of the render, like every other state change a view asks for.
+    setTimeout(() => set({ secondOfDay: Math.min(Math.max(want, 0), 86340) }), 0);
+  };
+
   const applyTab = () => {
     const tab = state.tab;
     // The tab is on the body element because the rail belongs to all four and
@@ -207,6 +234,7 @@ function mount() {
 
   detach = subscribe((d, s) => {
     applyTab();
+    openOffTheMeridian(d);
     // Panels update even while hidden: they are cheap, and it keeps the tabs
     // from ever disagreeing about the same instant.
     sky.update(d, s);

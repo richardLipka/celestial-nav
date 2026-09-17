@@ -12,7 +12,7 @@ lost). Five guided lessons walk a newcomer through all four.
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 208 tests
+npm test         # vitest, 218 tests
 npm run test:watch
 ```
 
@@ -291,6 +291,25 @@ arc round a projected vertex** — that is right only at the centre of the disc.
 `theorysphere.test.js` can measure every arc and check it is as long as its
 own label says.
 
+It holds the other projection too. The flat figure of the triangle is
+**stereographic**, which is conformal: every angle on the page is the angle on
+the sphere, exactly, and an angle mark *there* may be an ordinary flat arc for
+that reason and no other. What it costs is the scale, so each side carries its
+length in writing and the ratios on the page mean nothing. A plane triangle
+could not do the job at all — the three angles of a spherical triangle add to
+more than 180°, and the excess is its area — which is why the sides come out
+curved. `flattenTriangle()` returns the corners, the sides, the three angles
+and the direction each side leaves each corner in; the drawing takes its arcs
+from that last one, so a mark and the number beside it cannot disagree.
+
+**The tab opens three hours before local apparent noon.** The clock is snapped
+to noon everywhere else, and at noon P, Z and X stand on one meridian: there
+is no triangle, every figure on the tab is a straight line, and the tab cannot
+show its own subject. `app.js` winds it back once, the first time the tab is
+opened outside a lesson, and the noon button in the rail puts it straight
+back. When it is put back, the flat figure says what has happened rather than
+looking broken.
+
 Half a sphere always faces away, so being asked to show an angle is not the
 same as showing it: `reveal()` turns the sphere to the mean direction of
 everything wanted, but only when something wanted is hidden, and only from a
@@ -383,6 +402,16 @@ and krasajachtingu.cz's beginners' piece.
 - `LANGS` holds codes, not labels. Czech is `cs`, but the switch has to say
   **CZ** — `code.toUpperCase()` gave `CS`, which is not what a Czech reader
   looks for. `LANG_LABEL` keeps the two apart.
+- **A label written along a line is read as part of the line, not as a
+  measurement of it.** The three sides of the triangle carried
+  `90°−δ = 110° 15,9′` lying along the arc, and the question that came back was
+  why the angles were being drawn on the lines. Sides now carry two short lines
+  set square to the arc, and the angles are marks at the corners.
+- **A triangle with no area has no inside, so "push the label outward" means
+  nothing.** At local apparent noon the flat figure is one straight line and
+  every label lands on it and on the next one along. `drawFlat` sees the
+  collapse in the spherical excess and lays the corner names down one side of
+  the line and everything else down the other.
 - Reading error is drawn with `Math.random()`, so any test comparing the two
   longitude methods on one run is flaky — equal altitudes loses outright now
   and then. Compare medians over tens of runs, which is the honest claim anyway.

@@ -2,13 +2,14 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
 import {
   orthographic, tangent, sphericalAngle, angleArc, along, parallel, meridian,
+  stereographic, flattenTriangle, fitBox, besideMid,
 } from '../../views/sphere.js';
 import {
   focusSpec, corners, FOCUS_KEYS, FOCUS_SYMBOL, SECTION_VIEW,
 } from '../../views/theorysphere.js';
 import { theory } from '../../theory.js';
 import { dictionaries } from '../../i18n.js';
-import { horizon } from '../horizon.js';
+import { horizon, culmination } from '../horizon.js';
 import { angularDistance } from '../fix.js';
 import { sind, cosd, setDecimalSeparator } from '../angles.js';
 
@@ -242,5 +243,187 @@ describe('the sphere and the text it follows', () => {
         expect(dictionaries[lang][`th.ang.${key}`], `${lang} ${key}`).toBeTruthy();
       }
     }
+  });
+});
+
+
+// =========================================================================
+// The flat figure, which is the same triangle and has to prove it.
+// =========================================================================
+
+/** The angle between two screen headings, taken the short way round. */
+const between = (a, b) => {
+  let d = b - a;
+  while (d > 180) d -= 360;
+  while (d < -180) d += 360;
+  return Math.abs(d);
+};
+
+const flatFor = (c, box = { w: 430, h: 302, pad: 58 }) => {
+  const { P, Z, X } = corners(c.lat, c.sky.H, c.sky.Az);
+  return { P, Z, X, fig: flattenTriangle(P, Z, X, box) };
+};
+
+describe('the conformal projection', () => {
+  const V = { lat: 34, lon: 12 };
+  const TARGETS = [
+    { lat: 80, lon: -20 }, { lat: -12, lon: 60 }, { lat: 5, lon: -50 },
+    { lat: 60, lon: 130 }, { lat: -40, lon: 4 }, { lat: 34, lon: 100 },
+  ];
+
+  /** The angle at V between two great circles, measured on the page. */
+  const onPage = (proj, A, B) => {
+    const dir = (T) => {
+      const a = along(V, T, -0.02);
+      const b = along(V, T, 0.02);
+      const qa = proj(a.lat, a.lon);
+      const qb = proj(b.lat, b.lon);
+      return (Math.atan2(-(qb.y - qa.y), qb.x - qa.x) * 180) / Math.PI;
+    };
+    return between(dir(A), dir(B));
+  };
+
+  it('keeps every angle, and not only at the point it is centred on', () => {
+    // Centred a long way from V on purpose: a projection that were only
+    // right at the middle of its own picture would be no use for this.
+    const proj = stereographic({ lat: -18, lon: -95 });
+    let worst = 0;
+    for (let i = 0; i < TARGETS.length; i++) {
+      for (let j = i + 1; j < TARGETS.length; j++) {
+        const truth = sphericalAngle(V, TARGETS[i], TARGETS[j]);
+        worst = Math.max(worst, Math.abs(onPage(proj, TARGETS[i], TARGETS[j]) - truth));
+      }
+    }
+    expect(worst).toBeLessThan(0.001);
+  });
+
+  it('is the reason the orthographic one cannot be used for this', () => {
+    // The same measurement under the projection the spheres are drawn in.
+    // It is wrong, and wrong by whole degrees, which is why an angle on the
+    // sphere is drawn as an arc on its surface and never as a flat arc.
+    const proj = orthographic({ cx: 0, cy: 0, r: 1, centre: { lat: -18, lon: -95 } });
+    let worst = 0;
+    for (let i = 0; i < TARGETS.length; i++) {
+      for (let j = i + 1; j < TARGETS.length; j++) {
+        const truth = sphericalAngle(V, TARGETS[i], TARGETS[j]);
+        worst = Math.max(worst, Math.abs(onPage(proj, TARGETS[i], TARGETS[j]) - truth));
+      }
+    }
+    expect(worst).toBeGreaterThan(5);
+  });
+
+  it('scales both axes alike, or the angles would be sheared away again', () => {
+    const pts = [{ x: -1, y: -0.5 }, { x: 2, y: 0.25 }, { x: 0.5, y: 1.5 }];
+    const map = fitBox(pts, { w: 400, h: 200, pad: 20 });
+    const a = pts.map(map);
+    // Every distance changed by the same factor.
+    const k = Math.hypot(a[1].x - a[0].x, a[1].y - a[0].y)
+      / Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+    for (let i = 0; i < 3; i++) {
+      for (let j = i + 1; j < 3; j++) {
+        const was = Math.hypot(pts[j].x - pts[i].x, pts[j].y - pts[i].y);
+        const now = Math.hypot(a[j].x - a[i].x, a[j].y - a[i].y);
+        expect(now / was).toBeCloseTo(k, 9);
+      }
+    }
+    for (const q of a) {
+      expect(q.x).toBeGreaterThanOrEqual(20 - 1e-9);
+      expect(q.x).toBeLessThanOrEqual(380 + 1e-9);
+      expect(q.y).toBeGreaterThanOrEqual(20 - 1e-9);
+      expect(q.y).toBeLessThanOrEqual(180 + 1e-9);
+    }
+  });
+});
+
+describe('the flat figure of the triangle', () => {
+  it('draws each angle the size the number beside it says', () => {
+    for (const c of skies) {
+      const { fig } = flatFor(c);
+      const drawn = [
+        between(fig.heading[0][1], fig.heading[0][2]),
+        between(fig.heading[1][0], fig.heading[1][2]),
+        between(fig.heading[2][0], fig.heading[2][1]),
+      ];
+      for (let i = 0; i < 3; i++) {
+        expect(drawn[i], `${c.name} corner ${i}`).toBeCloseTo(fig.angles[i], 3);
+      }
+    }
+  });
+
+  it('puts the hour angle at P and the azimuth angle at Z', () => {
+    for (const c of skies) {
+      const { fig } = flatFor(c);
+      expect(fig.angles[0], `${c.name} at P`).toBeCloseTo(Math.abs(c.sky.lha), 6);
+      // Measured from the *elevated* pole, so it is the bearing in the north
+      // and the bearing reckoned from south in the south -- the distinction
+      // the figure writes out as "Z" with "Zn" underneath it.
+      const fromPole = c.lat >= 0 ? c.sky.Az : Math.abs(180 - c.sky.Az);
+      const want = fromPole > 180 ? 360 - fromPole : fromPole;
+      expect(fig.angles[1], `${c.name} at Z`).toBeCloseTo(want, 6);
+    }
+  });
+
+  it('carries an excess no plane triangle could, except where there is none', () => {
+    for (const c of skies) {
+      const { fig } = flatFor(c);
+      const excess = fig.angles[0] + fig.angles[1] + fig.angles[2] - 180;
+      // A sun a tenth of a degree off the meridian has a triangle of about
+      // nothing, and that sky is in the list on purpose.
+      const open = Math.abs(c.sky.lha) > 1;
+      if (open) expect(excess, `${c.name}`).toBeGreaterThan(1);
+      else expect(excess, `${c.name}`).toBeLessThan(1);
+    }
+  });
+
+  it('collapses to one straight line when the sun is on the meridian', () => {
+    const at = culmination(new Date(Date.UTC(1762, 0, 19)), -76.8, true);
+    const sky = horizon(18, -76.8, at);
+    const { fig } = flatFor({ lat: 18, sky });
+    const [a, b] = [fig.at[0], fig.at[2]];
+    const len = Math.hypot(b.x - a.x, b.y - a.y);
+    let worst = 0;
+    for (const side of fig.sides) {
+      for (const q of side.pts) {
+        // Distance from the P-X line: the cross product over its length.
+        const cross = (b.x - a.x) * (q.y - a.y) - (b.y - a.y) * (q.x - a.x);
+        worst = Math.max(worst, Math.abs(cross) / len);
+      }
+    }
+    expect(len).toBeGreaterThan(100); // and it is still drawn, not a dot
+    expect(worst).toBeLessThan(1);    // within a pixel of straight
+  });
+
+  it('fits the box it was given, and fills one of its two axes', () => {
+    const box = { w: 430, h: 302, pad: 58 };
+    for (const c of skies) {
+      const { fig } = flatFor(c, box);
+      const xs = fig.sides.flatMap((s) => s.pts.map((q) => q.x));
+      const ys = fig.sides.flatMap((s) => s.pts.map((q) => q.y));
+      const inX = Math.min(...xs) >= box.pad - 0.01 && Math.max(...xs) <= box.w - box.pad + 0.01;
+      const inY = Math.min(...ys) >= box.pad - 0.01 && Math.max(...ys) <= box.h - box.pad + 0.01;
+      expect(inX && inY, `${c.name} stays inside`).toBe(true);
+      // As large as it goes: one axis reaches the padding on both sides.
+      const fullX = Math.max(...xs) - Math.min(...xs) > box.w - 2 * box.pad - 0.5;
+      const fullY = Math.max(...ys) - Math.min(...ys) > box.h - 2 * box.pad - 0.5;
+      expect(fullX || fullY, `${c.name} fills one axis`).toBe(true);
+    }
+  });
+});
+
+describe('where a label goes', () => {
+  it('stands beside the line and not along it', () => {
+    const pts = [{ x: 0, y: 0 }, { x: 50, y: 50 }, { x: 100, y: 100 }];
+    const q = besideMid(pts, { x: 200, y: 0 }, 20);
+    // Square to the line, twenty from it.
+    const cross = (100 * (q.y - 0) - 100 * (q.x - 0)) / Math.hypot(100, 100);
+    expect(Math.abs(cross)).toBeCloseTo(20, 6);
+    // And on the far side from the point it was told to avoid.
+    expect(q.x).toBeLessThan(50);
+    expect(q.y).toBeGreaterThan(50);
+  });
+
+  it('has somewhere to put a label for an arc that is one point long', () => {
+    expect(besideMid([{ x: 4, y: 9 }], { x: 0, y: 0 }, 20)).toEqual({ x: 4, y: 9 });
+    expect(besideMid([], { x: 0, y: 0 }, 20)).toBe(null);
   });
 });
