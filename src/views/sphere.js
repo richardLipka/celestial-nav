@@ -249,29 +249,72 @@ export function flattenTriangle(A, B, C, { w, h, pad = 0, steps = 60 }) {
 // =========================================================================
 
 /**
- * Draw a run of lat/lon points, dropping whatever goes round the back.
+ * Draw a run of lat/lon points, breaking it at the limb.
  *
  * A great circle that leaves the near side and returns has to be drawn as two
  * paths and not one, or the pen crosses the disc on its way between them and
  * writes a line that is not there.
+ *
+ * Pass `behind` and the far side is drawn too, in that style instead of being
+ * dropped -- the sphere as glass rather than as a ball. Worth it for whatever
+ * the reader is being shown, because half a sphere always faces away and a
+ * triangle with a corner round the back is still a triangle. Not worth it for
+ * the frame: every line of a graticule drawn twice is a wire ball, which
+ * reads as neither a ball nor a frame.
  */
-export function track(target, pts, proj, attrs) {
-  let run = null;
-  for (const p of pts) {
-    const q = proj(p.lat, p.lon);
-    if (q.visible) (run || (run = [])).push(q);
-    else if (run) {
-      if (run.length > 1) target.append(polyline(run, attrs));
-      run = null;
-    }
+export function track(target, pts, proj, attrs, behind = null) {
+  for (const run of limbRuns(pts, proj, !!behind)) {
+    target.append(polyline(run.pts, run.near ? attrs : behind));
   }
-  if (run && run.length > 1) target.append(polyline(run, attrs));
 }
 
-/** The middle of whatever part of an arc is actually on the near side. */
-export function midVisible(pts, proj) {
-  const vis = pts.map((p) => proj(p.lat, p.lon)).filter((q) => q.visible);
-  return vis.length ? vis[Math.floor((vis.length - 1) / 2)] : null;
+/**
+ * The same arc, cut into runs that do not cross the limb, each saying which
+ * side of it it is on. Pure, and exported for that reason: the cutting is the
+ * one part of drawing a line on a sphere that can be got wrong.
+ *
+ * With `both` false the far side is dropped, which is what a solid sphere
+ * wants. With it true nothing is dropped, and the point where a run crosses
+ * the limb belongs to both runs -- otherwise the near line and the far one
+ * leave a gap between them exactly where the eye expects them to meet.
+ */
+export function limbRuns(pts, proj, both = false) {
+  const out = [];
+  let run = null;
+  const flush = () => {
+    if (run && run.pts.length > 1) out.push(run);
+    run = null;
+  };
+  for (const p of pts) {
+    const q = proj(p.lat, p.lon);
+    if (!q.visible && !both) {
+      flush();
+      continue;
+    }
+    if (run && q.visible !== run.near) {
+      run.pts.push(q);
+      flush();
+    }
+    if (!run) run = { near: q.visible, pts: [] };
+    run.pts.push(q);
+  }
+  flush();
+  return out;
+}
+
+/**
+ * The middle of whatever part of an arc is on the near side -- or, when the
+ * arc is being drawn through the glass, the middle of it wherever that falls.
+ *
+ * What comes back is a projected point, so it carries its own `visible`, and
+ * a caller can mark a label on the far side as being on the far side.
+ */
+export function midOf(pts, proj, through = false) {
+  const all = pts.map((p) => proj(p.lat, p.lon));
+  const vis = all.filter((q) => q.visible);
+  if (vis.length) return vis[Math.floor((vis.length - 1) / 2)];
+  if (!through || !all.length) return null;
+  return all[Math.floor((all.length - 1) / 2)];
 }
 
 /**
@@ -313,11 +356,12 @@ export function besideMid(pts, away, k = 18) {
  * however many degrees it is quoted in, and a reader looking for the angles
  * of a triangle will not find them there.
  */
-export function markAngle(target, proj, { V, A, B, radiusDeg, cls, label, textCls }) {
+export function markAngle(target, proj, { V, A, B, radiusDeg, cls, label, textCls, through = false }) {
   const pts = angleArc(V, A, B, radiusDeg, 28);
   if (!pts.length) return;
-  track(target, pts, proj, { class: `tri-ang ${cls}` });
-  const q = midVisible(pts, proj);
+  track(target, pts, proj, { class: `tri-ang ${cls}` },
+    through ? { class: `tri-ang ${cls} behind` } : null);
+  const q = midOf(pts, proj, through);
   if (!q || !label) return;
   const v = proj(V.lat, V.lon);
   const dx = q.x - v.x;
@@ -325,7 +369,7 @@ export function markAngle(target, proj, { V, A, B, radiusDeg, cls, label, textCl
   const n = Math.hypot(dx, dy) || 1;
   target.append(
     text(q.x + (dx / n) * 15, q.y + (dy / n) * 15 + 4, label, {
-      class: `lbl gk ${textCls}`,
+      class: `lbl gk ${textCls}${q.visible ? '' : ' behind'}`,
       'text-anchor': 'middle',
     }),
   );

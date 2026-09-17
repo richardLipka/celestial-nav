@@ -30,7 +30,7 @@ const projector = (centre) => orthographic({ cx: CX, cy: CY, r: R, centre });
 export function createTriangle3D(onRotate) {
   const svg = el('svg', {
     viewBox: `0 0 ${W} ${H3}`,
-    class: 'fig-svg globe',
+    class: 'fig-svg globe glass',
     role: 'img',
     'aria-label': t('aria.pzx'),
   });
@@ -67,23 +67,27 @@ function drawTriangle3D(svg, d, s) {
 
   svg.append(el('circle', { cx: CX, cy: CY, r: R, class: 'globe-sea' }));
 
-  // Below the horizon is a different world; shade it.
+  // The horizon, and your own meridian below, carry on round the back of the
+  // sphere: they are what everything else is placed against. The graticule
+  // does not -- every line of it drawn twice is a wire ball, which reads as
+  // neither a ball nor a frame.
   const rim = [];
   for (let i = 0; i <= 180; i++) rim.push({ lat: 0, lon: -180 + i * 2 });
-  track(svg, rim, proj, { class: 'horizon-circle' });
+  track(svg, rim, proj, { class: 'horizon-circle' }, { class: 'horizon-circle behind' });
 
   for (let alt = -60; alt <= 60; alt += 30) if (alt) track(svg, parallel(alt), proj, { class: 'grat' });
   for (let az = 0; az < 360; az += 30) track(svg, meridian(az), proj, { class: 'grat' });
 
   // The observer's meridian: the great circle through N, the zenith and S.
-  track(svg, meridian(0), proj, { class: 'obs-meridian' });
-  track(svg, meridian(180), proj, { class: 'obs-meridian' });
+  track(svg, meridian(0), proj, { class: 'obs-meridian' }, { class: 'obs-meridian behind' });
+  track(svg, meridian(180), proj, { class: 'obs-meridian' }, { class: 'obs-meridian behind' });
 
   // The celestial equator, where declination is measured from.
   track(svg, d.equatorTrack.map((p) => ({ lat: p.H, lon: p.Az })), proj, { class: 'cel-equator-3d' });
 
   // --- the triangle -------------------------------------------------------
-  const side = (a, b, cls) => track(svg, greatCircle(a, b, 80), proj, { class: cls });
+  const side = (a, b, cls) =>
+    track(svg, greatCircle(a, b, 80), proj, { class: cls }, { class: `${cls} behind` });
   side(P, Z, 'tri-side phi');   // 90 - latitude
   side(P, X, 'tri-side dec');   // 90 - declination
   side(Z, X, 'tri-side zen');   // the zenith distance
@@ -99,23 +103,30 @@ function drawTriangle3D(svg, d, s) {
   // and nothing at all standing in its corners.
   markAngle(svg, proj, {
     V: P, A: Z, B: X, radiusDeg: 15, cls: 'time', label: 't', textCls: 'lha-text',
+    through: true,
   });
   markAngle(svg, proj, {
     V: Z, A: P, B: X, radiusDeg: 13, cls: 'az', label: 'Z', textCls: 'az-lbl',
+    through: true,
   });
 
   svg.append(el('circle', { cx: CX, cy: CY, r: R, class: 'globe-rim' }));
 
   // --- labels -------------------------------------------------------------
-  const mark = (p, label, cls) => {
+  const mark = (p, label, cls, extra = '') => {
     const q = proj(p.lat, p.lon);
-    if (!q.visible) return;
-    svg.append(el('circle', { cx: q.x, cy: q.y, r: 4.5, class: `mark ${cls}` }));
-    svg.append(text(q.x + 8, q.y - 6, label, { class: `lbl gk ${cls}-text` }));
+    const far = q.visible ? '' : ' behind';
+    svg.append(el('circle', {
+      cx: q.x, cy: q.y, r: 4.5, class: `mark ${cls}${extra}${far}`,
+    }));
+    svg.append(text(q.x + 8, q.y - 6, label, { class: `lbl gk ${cls}-text${far}` }));
   };
   mark(P, 'P', 'tri-p');
   mark(Z, 'Z', 'tri-z');
-  mark(X, 'X', 'tri-x');
+  // Hollow when the sun is under the horizon: the arithmetic still puts it
+  // there, but there is no sight to be taken and a filled disc is a promise
+  // the sky is not keeping.
+  mark(X, 'X', 'tri-x', H < 0 ? ' down' : '');
 
   // Beside the side, in two short lines -- see the note on the same job in
   // theorysphere.js, which this figure is the narrow-layout twin of.
@@ -137,13 +148,21 @@ function drawTriangle3D(svg, d, s) {
   const decFromPole = d.sky.solar.dec * (north ? 1 : -1);
   sideLabel(P, Z, north ? '90°−φ' : '90°+φ', fmtAngle(90 - Math.abs(lat)), 'phi-text');
   sideLabel(P, X, north ? '90°−δ' : '90°+δ', fmtAngle(90 - decFromPole), 'dec-text');
-  if (H > 0) sideLabel(Z, X, 'z', fmtAngle(90 - H), 'zen-text');
+  // Labelled whatever the sun is doing: below the horizon the zenith distance
+  // passes 90, which is a fact about the sight and not a reason to hide it.
+  sideLabel(Z, X, 'z', fmtAngle(90 - H), 'zen-text');
 
   // cardinal points on the horizon
   for (const [key, az] of [['sky.N', 0], ['sky.E', 90], ['sky.S', 180], ['sky.W', 270]]) {
     const q = proj(0, az);
     if (!q.visible) continue;
     svg.append(text(q.x, q.y + 11, t(key), { class: 'lbl tiny', 'text-anchor': 'middle' }));
+  }
+
+  if (H < 0) {
+    svg.append(text(W / 2, 16, t('fig.sunDown'), {
+      class: 'lbl tiny fig-warn', 'text-anchor': 'middle',
+    }));
   }
 
   svg.append(
@@ -297,15 +316,15 @@ function drawFlat(svg, d, s) {
     `Zn = ${fmtBearing(d.sky.Az)}`, 'az-lbl', 'az');
 
   // --- corners ------------------------------------------------------------
-  const corner = (p, name, sub, cls) => {
+  const corner = (p, name, sub, cls, extra = '') => {
     const q = outward(p, 19);
-    svg.append(el('circle', { cx: p.x, cy: p.y, r: 5, class: `mark ${cls}` }));
+    svg.append(el('circle', { cx: p.x, cy: p.y, r: 5, class: `mark ${cls}${extra}` }));
     svg.append(text(q.x, q.y, name, { class: `lbl gk ${cls}-text`, 'text-anchor': 'middle' }));
     svg.append(text(q.x, q.y + 13, sub, { class: 'lbl tiny muted', 'text-anchor': 'middle' }));
   };
   corner(pP, 'P', t('fig.pole'), 'tri-p');
   corner(pZ, 'Z', t('fig.zenith'), 'tri-z');
-  corner(pX, 'X', t('fig.sun'), 'tri-x');
+  corner(pX, 'X', t('fig.sun'), 'tri-x', d.sky.H < 0 ? ' down' : '');
 
   // --- side labels --------------------------------------------------------
   // Clicking a side shows the angle it is the complement of: PZ against the
@@ -332,10 +351,15 @@ function drawFlat(svg, d, s) {
   });
 
   // A figure with no interior is not a fault in the drawing, it is the next
-  // section, so the caption says which of the two you are looking at.
+  // section, so the caption says which of the two you are looking at -- and
+  // if the sun is under the horizon it says that instead, because this is the
+  // one figure of the three with no horizon drawn on it to see that against.
+  // A collapsed triangle wins: it is the more startling of the two, and the
+  // stage beside this figure is carrying the warning in words either way.
+  const down = d.sky.H < 0;
   svg.append(
-    text(FW / 2, FH - 9, t(line ? 'fig.flatCollapsed' : 'fig.flatNote'), {
-      class: 'lbl tiny muted', 'text-anchor': 'middle',
+    text(FW / 2, FH - 9, t(line ? 'fig.flatCollapsed' : (down ? 'fig.sunDown' : 'fig.flatNote')), {
+      class: `lbl tiny ${line || !down ? 'muted' : 'fig-warn'}`, 'text-anchor': 'middle',
     }),
   );
 }

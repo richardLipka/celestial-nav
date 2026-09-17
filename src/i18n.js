@@ -33,6 +33,8 @@ const dict = {
     'th.stage.pick': 'Angles to draw on the sphere',
     'th.stage.hint':
       'Click an angle here, or in any figure, to draw it on the sphere. Click it again and the sphere goes back to following the text.',
+    'th.sunDown':
+      '**The sun is below your horizon at this hour.** There is no sight to take: the altitude on the chips is the one the sun would have if the Earth were not in the way, and it is negative. Move the hour in the rail to bring it up.',
     'th.ang.phi': 'latitude',
     'th.ang.dec': 'declination',
     'th.ang.alt': 'altitude',
@@ -83,6 +85,7 @@ const dict = {
     'fig.sun': 'the sun',
     'fig.pzxNote': 'the sky, seen from outside',
     'fig.flatNote': 'the same triangle, flattened: the angles are true, the lengths of the sides are not',
+    'fig.sunDown': 'the sun is below the horizon — there is no sight to take',
     'fig.flatCollapsed': 'the sun is on your meridian — P, Z and X in one line, and no triangle at all',
     'fig.dragSphere': 'drag to turn the sphere',
     'fig.greenwich': 'Greenwich',
@@ -393,6 +396,8 @@ const dict = {
     'th.stage.pick': 'Úhly ke kreslení na sféře',
     'th.stage.hint':
       'Klepněte na úhel zde nebo v kterémkoli obrázku a vykreslí se na sféře. Dalším klepnutím se sféra vrátí k tomu, aby sledovala text.',
+    'th.sunDown':
+      '**Slunce je v tuto hodinu pod obzorem.** Není co měřit: výška na štítcích je ta, kterou by Slunce mělo, kdyby Země nestála v cestě, a je záporná. Posuňte hodinu v panelu, ať Slunce vyjde.',
     'th.ang.phi': 'šířka',
     'th.ang.dec': 'deklinace',
     'th.ang.alt': 'výška',
@@ -443,6 +448,7 @@ const dict = {
     'fig.sun': 'Slunce',
     'fig.pzxNote': 'obloha, viděná zvenčí',
     'fig.flatNote': 'týž trojúhelník naplocho: úhly jsou pravé, délky stran nikoli',
+    'fig.sunDown': 'Slunce je pod obzorem — není co měřit',
     'fig.flatCollapsed': 'Slunce je na vašem poledníku — P, Z a X v jedné přímce a žádný trojúhelník',
     'fig.dragSphere': 'tažením otočíte sférou',
     'fig.greenwich': 'Greenwich',

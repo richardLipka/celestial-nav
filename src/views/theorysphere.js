@@ -14,8 +14,7 @@ import {
 } from '../core/angles.js';
 import { greatCircle } from '../core/fix.js';
 import {
-  orthographic, angleArc, parallel, meridian, track, midVisible, markAngle,
-  besideMid,
+  orthographic, angleArc, parallel, meridian, track, midOf, markAngle, besideMid,
 } from './sphere.js';
 import { t } from '../i18n.js';
 
@@ -173,7 +172,7 @@ export function wantedPoints(view, ctx) {
 export function createTheorySphere(onRotate) {
   const svg = el('svg', {
     viewBox: `0 0 ${W} ${H}`,
-    class: 'fig-svg globe th-sphere',
+    class: 'fig-svg globe th-sphere glass',
     role: 'img',
     'aria-label': t('aria.theorySphere'),
   });
@@ -210,9 +209,13 @@ function draw(svg, d, s, view = {}) {
   // --- the frame ----------------------------------------------------------
   for (let a = -60; a <= 60; a += 30) if (a) track(svg, parallel(a), proj, { class: 'grat' });
   for (let a = 0; a < 360; a += 30) track(svg, meridian(a), proj, { class: 'grat' });
-  track(svg, parallel(0), proj, { class: 'horizon-circle' });
-  track(svg, meridian(0), proj, { class: 'obs-meridian' });
-  track(svg, meridian(180), proj, { class: 'obs-meridian' });
+  // The horizon and your own meridian carry on round the back: they are what
+  // the rest of the picture is placed against, and a horizon that stops at
+  // the limb leaves half the sun's day with nothing to be above or below.
+  // The graticule above does not -- drawn twice it is a wire ball.
+  track(svg, parallel(0), proj, { class: 'horizon-circle' }, { class: 'horizon-circle behind' });
+  track(svg, meridian(0), proj, { class: 'obs-meridian' }, { class: 'obs-meridian behind' });
+  track(svg, meridian(180), proj, { class: 'obs-meridian' }, { class: 'obs-meridian behind' });
   // Dotted, not dashed: the sun's own track for the day is dashed and the two
   // are the same colour, being the same kind of thing.
   track(svg, d.equatorTrack.map((p) => ({ lat: p.H, lon: p.Az })), proj, {
@@ -232,7 +235,8 @@ function draw(svg, d, s, view = {}) {
   // section is about the zenith distance alone, and a triangle there would be
   // three sections ahead of the argument.
   if (triangle) {
-    const side = (a, b, cls) => track(svg, greatCircle(a, b, 80), proj, { class: cls });
+    const side = (a, b, cls) =>
+      track(svg, greatCircle(a, b, 80), proj, { class: cls }, { class: `${cls} behind` });
     side(P, Z, 'tri-side phi');
     side(P, X, 'tri-side dec');
     side(Z, X, 'tri-side zen');
@@ -248,6 +252,7 @@ function draw(svg, d, s, view = {}) {
     if (focus !== 'lha') {
       markAngle(svg, proj, {
         V: P, A: Z, B: X, radiusDeg: 15, cls: 'time', label: 't', textCls: 'lha-text',
+        through: true,
       });
     }
     // The mark at Z is the angle Z of the triangle, which is not the bearing:
@@ -257,6 +262,7 @@ function draw(svg, d, s, view = {}) {
     if (focus !== 'az') {
       markAngle(svg, proj, {
         V: Z, A: P, B: X, radiusDeg: 13, cls: 'az', label: 'Z', textCls: 'az-lbl',
+        through: true,
       });
     }
   }
@@ -264,22 +270,30 @@ function draw(svg, d, s, view = {}) {
   // --- the one angle being asked about ------------------------------------
   const spec = focus ? focusSpec(focus, { lat, dec: d.sky.solar.dec, H: alt, lha: d.sky.lha, az }) : null;
   if (spec) {
-    for (const c of spec.context || []) track(svg, c, proj, { class: 'focus-ctx' });
-    track(svg, spec.arc, proj, { class: `focus-arc ${spec.cls}` });
+    for (const c of spec.context || []) {
+      track(svg, c, proj, { class: 'focus-ctx' }, { class: 'focus-ctx behind' });
+    }
+    track(svg, spec.arc, proj, { class: `focus-arc ${spec.cls}` },
+      { class: `focus-arc ${spec.cls} behind` });
   }
 
   svg.append(el('circle', { cx: CX, cy: CY, r: R, class: 'globe-rim' }));
 
   // --- corners ------------------------------------------------------------
-  const mark = (p, label, cls) => {
+  const mark = (p, label, cls, extra = '') => {
     const q = proj(p.lat, p.lon);
-    if (!q.visible) return;
-    svg.append(el('circle', { cx: q.x, cy: q.y, r: 4.5, class: `mark ${cls}` }));
-    svg.append(text(q.x + 8, q.y - 6, label, { class: `lbl gk ${cls}-text` }));
+    const far = q.visible ? '' : ' behind';
+    svg.append(el('circle', {
+      cx: q.x, cy: q.y, r: 4.5, class: `mark ${cls}${extra}${far}`,
+    }));
+    svg.append(text(q.x + 8, q.y - 6, label, { class: `lbl gk ${cls}-text${far}` }));
   };
   mark(P, 'P', 'tri-p');
   mark(Z, 'Z', 'tri-z');
-  mark(X, 'X', 'tri-x');
+  // A sun below the horizon is drawn hollow. It is where the arithmetic puts
+  // it -- the equations do not stop working at sunset -- but there is no
+  // sight to be taken, and a filled disc is a promise the sky is not keeping.
+  mark(X, 'X', 'tri-x', alt < 0 ? ' down' : '');
 
   // --- labels -------------------------------------------------------------
   // The sides carry their lengths only while nothing else is being pointed at:
@@ -310,7 +324,7 @@ function draw(svg, d, s, view = {}) {
   }
 
   if (spec) {
-    const q = midVisible(spec.arc, proj);
+    const q = midOf(spec.arc, proj, true);
     if (q) {
       // An angle mark sits right on its vertex, so its label is pushed away
       // from the vertex rather than simply upward, where it would land on it.
@@ -324,7 +338,7 @@ function draw(svg, d, s, view = {}) {
         ly = q.y + (dy / n) * 20 + 4;
       }
       svg.append(text(lx, ly, spec.label, {
-        class: `lbl mn ${spec.textCls}`, 'text-anchor': 'middle',
+        class: `lbl mn ${spec.textCls}${q.visible ? '' : ' behind'}`, 'text-anchor': 'middle',
       }));
     }
   }
@@ -333,6 +347,15 @@ function draw(svg, d, s, view = {}) {
     const q = proj(0, a);
     if (!q.visible) continue;
     svg.append(text(q.x, q.y + 11, t(key), { class: 'lbl tiny', 'text-anchor': 'middle' }));
+  }
+
+  // Said on the figure as well as beside it: a reader looking at the picture
+  // and wondering why the sun is under the horizon circle should not have to
+  // look anywhere else to find out that that is exactly what has happened.
+  if (alt < 0) {
+    svg.append(text(W / 2, 14, t('fig.sunDown'), {
+      class: 'lbl tiny fig-warn', 'text-anchor': 'middle',
+    }));
   }
 
   svg.append(text(W - 8, H - 8, t('fig.dragSphere'), { class: 'lbl tiny muted', 'text-anchor': 'end' }));

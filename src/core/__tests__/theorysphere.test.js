@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 
 import {
   orthographic, tangent, sphericalAngle, angleArc, along, parallel, meridian,
-  stereographic, flattenTriangle, fitBox, besideMid,
+  stereographic, flattenTriangle, fitBox, besideMid, limbRuns, midOf,
 } from '../../views/sphere.js';
 import {
   focusSpec, corners, FOCUS_KEYS, FOCUS_SYMBOL, SECTION_VIEW,
@@ -425,5 +425,81 @@ describe('where a label goes', () => {
   it('has somewhere to put a label for an arc that is one point long', () => {
     expect(besideMid([{ x: 4, y: 9 }], { x: 0, y: 0 }, 20)).toEqual({ x: 4, y: 9 });
     expect(besideMid([], { x: 0, y: 0 }, 20)).toBe(null);
+  });
+});
+
+
+// =========================================================================
+// The sphere as glass, and the sun when it is under the horizon.
+// =========================================================================
+
+describe('the sphere as glass', () => {
+  const proj = orthographic({ cx: 100, cy: 100, r: 50, centre: { lat: 0, lon: 0 } });
+  const circle = parallel(0, -180, 180, 2);
+
+  it('drops the far half of a line when the sphere is solid', () => {
+    const runs = limbRuns(circle, proj, false);
+    expect(runs.every((r) => r.near)).toBe(true);
+    const drawn = runs.reduce((n, r) => n + r.pts.length, 0);
+    const visible = circle.map((q) => proj(q.lat, q.lon)).filter((q) => q.visible).length;
+    expect(drawn).toBe(visible);
+  });
+
+  it('keeps both halves when it is glass, and joins them at the limb', () => {
+    const runs = limbRuns(circle, proj, true);
+    expect(runs.length).toBeGreaterThan(1);
+    for (let i = 1; i < runs.length; i++) {
+      // Near and far alternate: a run that did not change sides would not
+      // have been cut.
+      expect(runs[i].near).toBe(!runs[i - 1].near);
+      // The crossing belongs to both runs. Without that the near line and
+      // the far one leave a gap exactly where the eye expects them to meet.
+      const prev = runs[i - 1].pts;
+      expect(runs[i].pts[0]).toEqual(prev[prev.length - 1]);
+    }
+    // Nothing is lost, and the only points drawn twice are the crossings.
+    const drawn = runs.reduce((n, r) => n + r.pts.length, 0);
+    expect(drawn).toBe(circle.length + runs.length - 1);
+  });
+
+  it('has a middle for an arc that is wholly round the back, but only when asked', () => {
+    const back = [{ lat: 0, lon: 140 }, { lat: 0, lon: 160 }, { lat: 0, lon: 180 }];
+    expect(midOf(back, proj)).toBe(null);
+    const q = midOf(back, proj, true);
+    expect(q).not.toBe(null);
+    expect(q.visible).toBe(false);
+    // An arc that is partly in front gives its visible middle either way, so
+    // a label never drifts round the back while its arc is still in view.
+    const half = [{ lat: 0, lon: 0 }, { lat: 0, lon: 80 }, { lat: 0, lon: 140 }];
+    expect(midOf(half, proj, true).visible).toBe(true);
+  });
+});
+
+describe('the sun below the horizon', () => {
+  it('is one of the skies every figure is checked against', () => {
+    expect(skies.filter((c) => c.sky.H < 0).length).toBeGreaterThan(0);
+  });
+
+  it('is a zenith distance past ninety, and changes nothing else', () => {
+    for (const c of skies.filter((x) => x.sky.H < 0)) {
+      // That is the whole of what being below the horizon is. The triangle
+      // is still a triangle, the hour angle is still the angle at P, and the
+      // figures go on drawing it -- which is exactly why they have to say so.
+      expect(90 - c.sky.H, c.name).toBeGreaterThan(90);
+      const { fig } = flatFor(c);
+      expect(fig.angles[0], c.name).toBeCloseTo(Math.abs(c.sky.lha), 6);
+      expect(fig.angles[0] + fig.angles[1] + fig.angles[2] - 180, c.name).toBeGreaterThan(0);
+    }
+  });
+
+  it('is said in both languages, on the figure and beside it', () => {
+    for (const lang of ['en', 'cs']) {
+      expect(dictionaries[lang]['fig.sunDown'], lang).toBeTruthy();
+      const warn = dictionaries[lang]['th.sunDown'];
+      expect(warn, lang).toBeTruthy();
+      // The stage warning goes through the prose renderer, so its emphasis
+      // has to come in pairs or the reader is shown the asterisks.
+      expect(warn.replace(/\*\*[^*]+\*\*/g, ''), lang).not.toContain('*');
+    }
   });
 });

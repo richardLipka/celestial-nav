@@ -69,7 +69,11 @@ Everything that can be changed stays pinned in the rail on the left, and the
 celestial sphere stays pinned at the top right, where it follows what you are
 reading: reach the triangle and the triangle appears on it; click any angle,
 on a chip or in any figure, and that angle is drawn on the sphere where it
-actually lies — turning the sphere to face you if it was round the back.
+actually lies — turning the sphere to face you if it was round the back. The
+sphere is glass, so the far half of the triangle is still drawn, faint, and a
+corner behind the globe is still a corner. Wind the clock past sunset and the
+figures go on working, because the equations do — and say, in three places,
+that there is no longer a sight to take.
 
 1. **One measurement, one circle** — `z = 90° − Ho`, and why one sight buys a
    circle rather than a point.

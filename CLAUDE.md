@@ -12,7 +12,7 @@ lost). Five guided lessons walk a newcomer through all four.
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 218 tests
+npm test         # vitest, 224 tests
 npm run test:watch
 ```
 
@@ -302,6 +302,24 @@ curved. `flattenTriangle()` returns the corners, the sides, the three angles
 and the direction each side leaves each corner in; the drawing takes its arcs
 from that last one, so a mark and the number beside it cannot disagree.
 
+**The sphere is glass.** The far half of whatever the reader is being shown
+— the triangle, its angle marks, the focus arc, the corner marks, and the two
+frame lines everything else is placed against (the horizon and the observer's
+meridian) — is drawn as well, faint and dashed, rather than dropped at the
+limb. Half a sphere always faces away, and a triangle with a corner round the
+back is still a triangle. The graticule is **not** drawn through: every line
+of it twice is a wire ball, which reads as neither a ball nor a frame.
+`limbRuns()` does the cutting and is pure for that reason; the crossing point
+belongs to both runs, or a gap opens exactly where the two halves meet.
+
+**Below the horizon, say so.** Nothing in the derivations stops working at
+sunset — `horizon()` returns a negative altitude and every figure goes on
+drawing — which is precisely why all three of them, and the stage, have to
+say that there is no sight to take. The sun is drawn hollow (`.mark.down`),
+each figure carries `fig.sunDown` in the accent colour, the stage shows
+`th.sunDown` in words above the sphere, and the two chips that carry the
+strange number (a negative `H`, a `z` past 90) are marked with it.
+
 **The tab opens three hours before local apparent noon.** The clock is snapped
 to noon everywhere else, and at noon P, Z and X stand on one meridian: there
 is no triangle, every figure on the tab is a straight line, and the tab cannot
@@ -402,6 +420,11 @@ and krasajachtingu.cz's beginners' piece.
 - `LANGS` holds codes, not labels. Czech is `cs`, but the switch has to say
   **CZ** — `code.toUpperCase()` gave `CS`, which is not what a Czech reader
   looks for. `LANG_LABEL` keeps the two apart.
+- **A figure that goes on drawing past the edge of its own meaning has to
+  say so.** The equations do not stop at sunset and neither do the figures:
+  a sun nine degrees under the horizon is drawn where the arithmetic puts it,
+  with a filled disc that promises a sight the sky is not offering. Three
+  figures, the stage and two chips now say otherwise.
 - **A label written along a line is read as part of the line, not as a
   measurement of it.** The three sides of the triangle carried
   `90°−δ = 110° 15,9′` lying along the arc, and the question that came back was

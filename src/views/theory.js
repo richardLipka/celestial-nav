@@ -89,7 +89,16 @@ export function createTheory(onRotate, onCentre) {
     return { key, button: b, value };
   });
 
-  stage.append(head, sphere.node, chipBox, h('p', 'th-stage-hint', t('th.stage.hint')));
+  // Shown whenever the sun is under the horizon at the hour on the clock.
+  // Everything on this tab goes on working down there -- the equations know
+  // nothing about sunset -- and that is exactly why it has to be said: an
+  // altitude of minus nine degrees is arithmetic, not an observation.
+  const warn = h('p', 'th-warn');
+  warn.setAttribute('role', 'status');
+  warn.innerHTML = richText(t('th.sunDown'));
+  warn.hidden = true;
+
+  stage.append(head, warn, sphere.node, chipBox, h('p', 'th-stage-hint', t('th.stage.hint')));
 
   // --- the argument -------------------------------------------------------
   const subs = []; // { el, fn, empty }
@@ -157,10 +166,16 @@ export function createTheory(onRotate, onCentre) {
     if (!last) return;
     const v = view();
     sphere.draw(last.d, last.s, v);
+    // The two chips that go strange below the horizon are the two that are
+    // marked: a negative altitude and a zenith distance past ninety are the
+    // same fact said twice, and they are the numbers the warning is about.
+    const down = last.d.sky.H < 0;
+    warn.hidden = !down;
     for (const c of chips) {
       c.value.textContent = chipValue(c.key, last.d, last.s);
       c.button.setAttribute('aria-pressed', String(c.key === v.focus));
       c.button.classList.toggle('on', c.key === v.focus);
+      c.button.classList.toggle('warn', down && (c.key === 'alt' || c.key === 'zen'));
     }
   };
 

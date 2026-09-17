@@ -693,6 +693,16 @@ input[type='date']:focus-visible {
   color: var(--ink-3);
 }
 .th-stage-hint { margin: 0; font-size: 0.71rem; line-height: 1.45; color: var(--ink-3); }
+.th-warn {
+  grid-area: warn;
+  margin: 0;
+  padding: 6px 0 6px 10px;
+  border-left: 3px solid var(--accent);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.th-warn strong { color: var(--accent); font-weight: 600; }
 
 .th-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .th-chip {
@@ -731,6 +741,8 @@ input[type='date']:focus-visible {
 .th-chip.zen { color: var(--c-zen); }
 .th-chip.lha { color: var(--c-time); }
 .th-chip:hover { border-color: var(--rule-2); }
+.th-chip.warn { border-color: var(--accent); }
+.th-chip.warn .th-chip-val { color: var(--accent); }
 .th-chip.on {
   background: var(--paper);
   border-color: currentColor;
@@ -828,6 +840,22 @@ mjx-container svg { color: inherit; }
 .mark.tri-p { fill: var(--c-phi); }
 .mark.tri-z { fill: var(--c-zen); }
 .mark.tri-x { fill: var(--c-dec); }
+/* The sun below the horizon, drawn hollow. After .mark.tri-x on purpose: the
+   two have the same specificity, so this only wins by standing later. */
+.mark.down { fill: none; stroke: var(--accent); stroke-width: 2; }
+svg .fig-warn { fill: var(--accent); }
+
+/* The theory spheres are glass: a translucent sea, and the far half of
+   whatever the reader is being shown still drawn, faint and dashed. Half a
+   sphere always faces away, and a triangle with a corner round the back is
+   still a triangle. The graticule keeps its culling -- drawn twice it is a
+   wire ball, which reads as neither a ball nor a frame. */
+.glass .globe-sea { opacity: 0.55; }
+.behind { opacity: 0.3; stroke-dasharray: 3 4; }
+/* A dash pattern on a label would dash the halo it is painted under, and a
+   dashed dot is just a smaller dot. Both go faint instead. */
+svg circle.behind { stroke-dasharray: none; opacity: 0.4; }
+svg text.behind { stroke-dasharray: none; opacity: 0.5; }
 svg .tri-p-text { fill: var(--c-phi); }
 svg .tri-z-text { fill: var(--c-zen); }
 svg .tri-x-text { fill: var(--c-dec); }
@@ -886,7 +914,7 @@ svg .hit:hover path:not(.hit-line) { stroke: var(--accent); }
     order: -1;
     display: grid;
     grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
-    grid-template-areas: 'hd hd' 'sphere chips' 'sphere hint';
+    grid-template-areas: 'hd hd' 'sphere warn' 'sphere chips' 'sphere hint';
     column-gap: 14px;
     align-items: start;
   }
@@ -899,7 +927,7 @@ svg .hit:hover path:not(.hit-line) { stroke: var(--accent); }
 @media (max-width: 560px) {
   .th-stage {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'hd' 'sphere' 'chips' 'hint';
+    grid-template-areas: 'hd' 'warn' 'sphere' 'chips' 'hint';
   }
   .th-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
