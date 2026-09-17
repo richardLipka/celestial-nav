@@ -32,7 +32,7 @@ const dict = {
     'th.stage.sub': 'it follows what you are reading',
     'th.stage.pick': 'Angles to draw on the sphere',
     'th.stage.hint':
-      'Click an angle here, or in any figure, to draw it on the sphere. Click it again and the sphere goes back to following the text.',
+      'The sphere is your own sky seen from outside: the heavy circle is your horizon, **Z** is the point overhead, and **Pn** and **Ps** are the two celestial poles — the one above your horizon is the P of the triangle. The celestial equator and the meridian of Greenwich are named where they run. Click an angle here, or in any figure, to draw it on the sphere; click it again and the sphere goes back to following the text.',
     'th.sunDown':
       '**The sun is below your horizon at this hour.** There is no sight to take: the altitude on the chips is the one the sun would have if the Earth were not in the way, and it is negative. Move the hour in the rail to bring it up.',
     'th.ang.phi': 'latitude',
@@ -80,7 +80,9 @@ const dict = {
 
     'rail.sextantNoise': 'sextant reading error',
 
-    'fig.pole': 'elevated pole',
+    'fig.poleN': 'north celestial pole',
+    'fig.poleS': 'south celestial pole',
+    'fig.celEquator': 'celestial equator',
     'fig.zenith': 'your zenith',
     'fig.sun': 'the sun',
     'fig.pzxNote': 'the sky, seen from outside',
@@ -395,7 +397,7 @@ const dict = {
     'th.stage.sub': 'sleduje, co právě čtete',
     'th.stage.pick': 'Úhly ke kreslení na sféře',
     'th.stage.hint':
-      'Klepněte na úhel zde nebo v kterémkoli obrázku a vykreslí se na sféře. Dalším klepnutím se sféra vrátí k tomu, aby sledovala text.',
+      'Sféra je vaše vlastní obloha viděná zvenčí: silná kružnice je váš obzor, **Z** je bod přímo nad hlavou a **Pn** a **Ps** jsou oba nebeské póly — ten nad obzorem je P trojúhelníku. Nebeský rovník a poledník Greenwiche jsou popsány tam, kudy vedou. Klepněte na úhel zde nebo v kterémkoli obrázku a vykreslí se na sféře; dalším klepnutím se sféra vrátí k tomu, aby sledovala text.',
     'th.sunDown':
       '**Slunce je v tuto hodinu pod obzorem.** Není co měřit: výška na štítcích je ta, kterou by Slunce mělo, kdyby Země nestála v cestě, a je záporná. Posuňte hodinu v panelu, ať Slunce vyjde.',
     'th.ang.phi': 'šířka',
@@ -443,7 +445,9 @@ const dict = {
 
     'rail.sextantNoise': 'chyba odečtu sextantu',
 
-    'fig.pole': 'povýšený pól',
+    'fig.poleN': 'severní nebeský pól',
+    'fig.poleS': 'jižní nebeský pól',
+    'fig.celEquator': 'nebeský rovník',
     'fig.zenith': 'váš zenit',
     'fig.sun': 'Slunce',
     'fig.pzxNote': 'obloha, viděná zvenčí',

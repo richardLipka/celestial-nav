@@ -368,7 +368,7 @@ export function markAngle(target, proj, { V, A, B, radiusDeg, cls, label, textCl
   const dy = q.y - v.y;
   const n = Math.hypot(dx, dy) || 1;
   target.append(
-    text(q.x + (dx / n) * 15, q.y + (dy / n) * 15 + 4, label, {
+    text(q.x + (dx / n) * 17, q.y + (dy / n) * 17 + 4, label, {
       class: `lbl gk ${textCls}${q.visible ? '' : ' behind'}`,
       'text-anchor': 'middle',
     }),

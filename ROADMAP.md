@@ -7,7 +7,7 @@ What is built, what is not, and the order worth building it in.
 Working and tested: the computational core, all four tabs, the sight log and
 its two reductions, the first-person sextant, lunar distances, five guided
 lessons, Czech/English throughout, ten Czech towns and twelve world positions,
-seven scenarios, three passages. 229 tests, 12 200 lines, no build step.
+seven scenarios, three passages. 234 tests, 12 400 lines, no build step.
 
 The application demonstrates the thesis within one day, over a passage, through
 the instrument itself, and against the one method that could have beaten the

@@ -71,8 +71,11 @@ reading: reach the triangle and the triangle appears on it; click any angle,
 on a chip or in any figure, and that angle is drawn on the sphere where it
 actually lies — turning the sphere to face you if it was round the back. The
 sphere is glass, so the far half of the triangle is still drawn, faint, and a
-corner behind the globe is still a corner. Greenwich is on it too, as the hour
-circle of the prime meridian: the angle between that and your own meridian, at
+corner behind the globe is still a corner. Both celestial poles are marked —
+the elevated one as `P = Pn` or `P = Ps`, the other wherever it falls below
+your horizon — and the celestial equator is named where it runs, so there is a
+frame to place things in. Greenwich is on it too, as the hour circle of the
+prime meridian: the angle between that and your own meridian, at
 the pole, is your longitude, so moving the ship east or west is something to
 watch rather than a number that changes. Wind the clock past sunset and the
 figures go on working, because the equations do — and say, in three places,

@@ -8,7 +8,7 @@
 // asks for it by clicking. Every angle here is drawn where it actually is,
 // never approximated with a flat arc round a projected vertex.
 
-import { el, text, clear, runs } from '../svg.js';
+import { el, g, text, clear, runs } from '../svg.js';
 import {
   sind, cosd, asind, atan2d, norm180, norm360, fmtAngle, fmtBearing,
 } from '../core/angles.js';
@@ -44,12 +44,27 @@ export const SECTION_VIEW = {
 };
 
 /**
+ * The two celestial poles, in the observer's frame.
+ *
+ * The north one stands due north at the altitude of the latitude, the south
+ * one due south at minus it -- which is the whole of what latitude means, and
+ * is why one of the two is always below the horizon. Both are drawn: a
+ * reference frame you can only see half of is not one, and a single dot
+ * labelled "the pole" is exactly the thing that leaves a reader unsure which
+ * pole they are looking at.
+ */
+export const poles = (lat) => ({
+  north: { lat, lon: 0 },
+  south: { lat: -lat, lon: 180 },
+});
+
+/**
  * The three corners, in the observer's frame. P is the *elevated* pole -- the
  * one above this observer's horizon -- which is why its azimuth turns with the
  * hemisphere and its altitude is the latitude without its sign.
  */
 export const corners = (lat, H0, Az) => ({
-  P: { lat: Math.abs(lat), lon: lat >= 0 ? 0 : 180 },
+  P: lat >= 0 ? poles(lat).north : poles(lat).south,
   Z: { lat: 90, lon: 0 },
   X: { lat: H0, lon: Az },
 });
@@ -229,9 +244,8 @@ function draw(svg, d, s, view = {}) {
   track(svg, greenwich, proj, { class: 'prime-meridian' }, { class: 'prime-meridian behind' });
   // Dotted, not dashed: the sun's own track for the day is dashed and the two
   // are the same colour, being the same kind of thing.
-  track(svg, d.equatorTrack.map((p) => ({ lat: p.H, lon: p.Az })), proj, {
-    class: 'cel-equator',
-  });
+  const equator = d.equatorTrack.map((p) => ({ lat: p.H, lon: p.Az }));
+  track(svg, equator, proj, { class: 'cel-equator' }, { class: 'cel-equator behind' });
 
   // The sun's own road for the day. X slides along it as the clock moves, and
   // that is the point of having a clock on this tab at all.
@@ -290,16 +304,44 @@ function draw(svg, d, s, view = {}) {
 
   svg.append(el('circle', { cx: CX, cy: CY, r: R, class: 'globe-rim' }));
 
+  // Reserved here and filled at the very end. The frame's names are *placed*
+  // last, so that they can see everything else on the picture and dodge it,
+  // and *drawn* from here, so that they stay underneath it: the frame is
+  // background, and where the two want the same pixels it is the subject
+  // that has to be the readable one.
+  const frameNames = g();
+  svg.append(frameNames);
+
   // --- corners ------------------------------------------------------------
+  // The middle of the triangle on the page: a corner's name is pushed away
+  // from it, and the mark of the angle at that corner is drawn on the inside,
+  // so the two are on opposite sides of the dot instead of on top of it.
+  const inward = [P, Z, X].map((p) => proj(p.lat, p.lon)).reduce(
+    (acc, q, i, all) => ({ x: acc.x + q.x / all.length, y: acc.y + q.y / all.length }),
+    { x: 0, y: 0 },
+  );
   const mark = (p, label, cls, extra = '') => {
     const q = proj(p.lat, p.lon);
     const far = q.visible ? '' : ' behind';
     svg.append(el('circle', {
       cx: q.x, cy: q.y, r: 4.5, class: `mark ${cls}${extra}${far}`,
     }));
-    svg.append(text(q.x + 8, q.y - 6, label, { class: `lbl gk ${cls}-text${far}` }));
+    const dx = q.x - inward.x;
+    const dy = q.y - inward.y;
+    const n = Math.hypot(dx, dy) || 1;
+    svg.append(text(q.x + (dx / n) * 13, q.y + (dy / n) * 13 + 4, label, {
+      class: `lbl gk ${cls}-text${far}`, 'text-anchor': 'middle',
+    }));
   };
-  mark(P, 'P', 'tri-p');
+  // Both celestial poles, always. The elevated one is the triangle's P, and
+  // says so while the triangle is on screen; the other is drawn wherever it
+  // falls, which is below the horizon by the same angle as the first is
+  // above it. Without the pair, "P" is a dot the reader has to take on trust,
+  // and there is nothing on the picture to say which way round the sky is.
+  const { north: Pn, south: Ps } = poles(lat);
+  const north = lat >= 0;
+  mark(north ? Pn : Ps, triangle ? `P = P${north ? 'n' : 's'}` : `P${north ? 'n' : 's'}`, 'tri-p');
+  mark(north ? Ps : Pn, `P${north ? 's' : 'n'}`, 'pole-off');
   mark(Z, 'Z', 'tri-z');
   // A sun below the horizon is drawn hollow. It is where the arithmetic puts
   // it -- the equations do not stop working at sunset -- but there is no
@@ -314,17 +356,12 @@ function draw(svg, d, s, view = {}) {
   if (triangle && !spec) {
     const north = lat >= 0;
     const decFromPole = d.sky.solar.dec * (north ? 1 : -1);
-    // The middle of the triangle on the page, to push each label away from.
-    const away = [P, Z, X].map((p) => proj(p.lat, p.lon)).reduce(
-      (acc, q, i, all) => ({ x: acc.x + q.x / all.length, y: acc.y + q.y / all.length }),
-      { x: 0, y: 0 },
-    );
     // Two short lines rather than one long one. Written out as
     // "90°−δ = 110° 15,9′" the label is nearly half the width of the sphere,
     // and no amount of moving it keeps that clear of the lines it crosses.
     const sideLabel = (a, b, main, val, cls) => {
       const pts = greatCircle(a, b, 40).map((p) => proj(p.lat, p.lon)).filter((q) => q.visible);
-      const q = besideMid(pts, away, 16);
+      const q = besideMid(pts, inward, 16);
       if (!q) return;
       svg.append(text(q.x, q.y, main, { class: `lbl mn ${cls}`, 'text-anchor': 'middle' }));
       svg.append(text(q.x, q.y + 12, val, { class: 'lbl tiny muted', 'text-anchor': 'middle' }));
@@ -354,16 +391,6 @@ function draw(svg, d, s, view = {}) {
     }
   }
 
-  {
-    const vis = greenwich.map((p) => proj(p.lat, p.lon)).filter((q) => q.visible);
-    const q = besideMid(vis, { x: CX, y: CY }, 13);
-    if (q) {
-      svg.append(text(q.x, q.y, t('fig.greenwich'), {
-        class: 'lbl tiny lha-text', 'text-anchor': 'middle',
-      }));
-    }
-  }
-
   for (const [key, a] of [['sky.N', 0], ['sky.E', 90], ['sky.S', 180], ['sky.W', 270]]) {
     const q = proj(0, a);
     if (!q.visible) continue;
@@ -381,4 +408,39 @@ function draw(svg, d, s, view = {}) {
 
   svg.append(text(W - 8, H - 8, t('fig.dragSphere'), { class: 'lbl tiny muted', 'text-anchor': 'end' }));
   svg.append(text(8, H - 8, t('fig.pzxNote'), { class: 'lbl tiny muted' }));
+
+  // Greenwich and the celestial equator carry their names. Between them, the
+  // two poles and the horizon, everything on the picture can be placed.
+  //
+  // An arc is long and a label is short, so rather than always taking the
+  // middle of it, try a few places along it and keep the one that lands on
+  // the least. The measure is a box, not a distance: "celestial equator" is
+  // six times as wide as it is tall, and a rule that treated it as a dot
+  // would call it clear while it sat across another label.
+  const name = (pts, key, cls) => {
+    const vis = pts.map((p) => proj(p.lat, p.lon)).filter((q) => q.visible);
+    if (vis.length < 2) return;
+    const taken = [...svg.querySelectorAll('text')].map((n) => ({
+      x: +n.getAttribute('x'), y: +n.getAttribute('y'),
+    }));
+    const clash = (q) =>
+      taken.filter((p) => Math.abs(p.x - q.x) < 58 && Math.abs(p.y - q.y) < 11).length;
+    let best = null;
+    for (const f of [0.5, 0.34, 0.66, 0.2, 0.8, 0.1, 0.9]) {
+      const i = Math.round(f * (vis.length - 1));
+      const q = besideMid(vis.slice(Math.max(0, i - 1), i + 2), { x: CX, y: CY }, 15);
+      if (!q) continue;
+      const n = clash(q);
+      if (!best || n < best.n) best = { q, n };
+      if (n === 0) break;
+    }
+    if (best) {
+      frameNames.append(text(best.q.x, best.q.y, t(key), {
+        class: `lbl tiny ${cls}`, 'text-anchor': 'middle',
+      }));
+    }
+  };
+  name(greenwich, 'fig.greenwich', 'lha-text');
+  name(equator, 'fig.celEquator', 'dec-text');
+
 }

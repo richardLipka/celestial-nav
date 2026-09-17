@@ -12,7 +12,7 @@ lost). Five guided lessons walk a newcomer through all four.
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 229 tests
+npm test         # vitest, 234 tests
 npm run test:watch
 ```
 
@@ -307,6 +307,22 @@ curved. `flattenTriangle()` returns the corners, the sides, the three angles
 and the direction each side leaves each corner in; the drawing takes its arcs
 from that last one, so a mark and the number beside it cannot disagree.
 
+**Both celestial poles are marked, and the frame is named.** The sphere is
+the observer's *horizon* frame — altitude for latitude, azimuth for longitude
+— and the equatorial frame is drawn inside it: the north pole at altitude φ
+due north, the south pole at −φ due south (`poles()`), the celestial equator,
+and Greenwich. The elevated pole is labelled **P = Pn** or **P = Ps**, which
+is the identity a reader cannot otherwise get at, and the other pole is drawn
+where it falls, below the horizon, in a quieter hand. One dot labelled "the
+pole" is exactly what left a reader unsure which pole they were looking at.
+
+The frame is verified rather than asserted: `theorysphere.test.js` checks that
+the poles sit where the latitude says at *any* hour angle, that the conversion
+is its own inverse (the two frames are one rotation, so going out and back is
+the same function twice), and that the celestial equator rises due east and
+sets due west from every latitude. The sun itself is checked against
+`astronomy-engine` in `core.test.js`, and the corner X is that sun.
+
 **Greenwich is drawn on it.** A point over Greenwich has, by the definition
 of the thing, a Greenwich hour angle of zero, so its *local* hour angle is the
 observer's longitude — and `hourCircle()` puts that half great circle, pole to
@@ -440,6 +456,16 @@ and krasajachtingu.cz's beginners' piece.
 - `LANGS` holds codes, not labels. Czech is `cs`, but the switch has to say
   **CZ** — `code.toUpperCase()` gave `CS`, which is not what a Czech reader
   looks for. `LANG_LABEL` keeps the two apart.
+- **A frame label has to give way to the subject's.** "celestial equator" is
+  ninety units of a 372-unit picture and it landed across the zenith distance.
+  The frame's names are now *placed* last, so they can see everything else and
+  try a few spots along their own arc, and *drawn* first, into a `<g>` reserved
+  early, so they stay underneath. Position and z-order are separate problems
+  and SVG only gives you one knob for both.
+- **A corner's name and the angle at that corner want the same pixels.** The
+  angle mark is drawn on the inside of the triangle, so the corner's name is
+  pushed to the outside — away from the centroid — rather than at a fixed
+  offset that was right for one arrangement and wrong for the rest.
 - **A control that resets the thing it is supposed to change, changes
   nothing.** Dragging the longitude also snapped the clock to the new local
   apparent noon, so the hour angle stayed at zero, the sun stayed on the

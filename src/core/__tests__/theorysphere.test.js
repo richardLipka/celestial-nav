@@ -5,7 +5,7 @@ import {
   stereographic, flattenTriangle, fitBox, besideMid, limbRuns, midOf,
 } from '../../views/sphere.js';
 import {
-  focusSpec, corners, FOCUS_KEYS, FOCUS_SYMBOL, SECTION_VIEW,
+  focusSpec, corners, poles, FOCUS_KEYS, FOCUS_SYMBOL, SECTION_VIEW,
 } from '../../views/theorysphere.js';
 import { theory } from '../../theory.js';
 import { dictionaries } from '../../i18n.js';
@@ -557,6 +557,95 @@ describe('the hour circle of the prime meridian', () => {
       const q = altAz(c.lat, c.sky.solar.dec, c.sky.lha);
       expect(q.H, `${c.name} altitude`).toBeCloseTo(c.sky.H, 9);
       expect(q.Az, `${c.name} azimuth`).toBeCloseTo(c.sky.Az, 9);
+    }
+  });
+});
+
+
+// =========================================================================
+// The frame the sphere is drawn in.
+//
+// Everything on the picture is placed by one conversion, so what is worth
+// pinning is that conversion and the landmarks it puts on the sky. The sun
+// itself is checked against astronomy-engine, over ten thousand sights, in
+// core.test.js; these are the claims the *drawing* makes on top of that.
+// =========================================================================
+
+describe('the frame the sphere is drawn in', () => {
+  it('is the observer’s own sky: altitude for latitude, azimuth for longitude', () => {
+    for (const c of skies) {
+      const { X, Z } = corners(c.lat, c.sky.H, c.sky.Az);
+      // The link from the oracle to the picture: the sun goes on it at the
+      // altitude and the bearing the almanac and the clock put it at.
+      expect(X.lat, c.name).toBe(c.sky.H);
+      expect(X.lon, c.name).toBe(c.sky.Az);
+      // And the pole of the frame is the zenith, which is what makes the
+      // frame's equator the horizon.
+      expect(Z).toEqual({ lat: 90, lon: 0 });
+    }
+  });
+
+  it('puts the two celestial poles where the latitude says, and nowhere else', () => {
+    for (let lat = -80; lat <= 80; lat += 5) {
+      const { north, south } = poles(lat);
+      expect(north.lon, `lat ${lat}`).toBe(0);     // due north
+      expect(south.lon, `lat ${lat}`).toBe(180);   // due south
+      expect(north.lat, `lat ${lat}`).toBeCloseTo(lat, 12);
+      expect(south.lat, `lat ${lat}`).toBeCloseTo(-lat, 12);
+      // A pole is the one point of the sky the hour does not move, so the
+      // conversion has to agree at any hour angle whatever.
+      for (const t of [0, 37, -122, 180]) {
+        const n = altAz(lat, 90, t);
+        const sth = altAz(lat, -90, t);
+        expect(n.H, `lat ${lat}, t ${t}`).toBeCloseTo(lat, 9);
+        expect(Math.abs(norm180(n.Az)), `lat ${lat}, t ${t}`).toBeCloseTo(0, 9);
+        expect(sth.H, `lat ${lat}, t ${t}`).toBeCloseTo(-lat, 9);
+        expect(Math.abs(norm180(sth.Az)), `lat ${lat}, t ${t}`).toBeCloseTo(180, 9);
+      }
+    }
+  });
+
+  it('gives the triangle the pole above the horizon, and draws the other below', () => {
+    for (const c of skies) {
+      const { P } = corners(c.lat, c.sky.H, c.sky.Az);
+      const { north, south } = poles(c.lat);
+      expect(P, c.name).toEqual(c.lat >= 0 ? north : south);
+      const other = c.lat >= 0 ? south : north;
+      expect(P.lat, c.name).toBeGreaterThanOrEqual(0);
+      expect(other.lat, c.name).toBeLessThanOrEqual(0);
+      // One is as far above the horizon as the other is below it.
+      expect(P.lat + other.lat, c.name).toBeCloseTo(0, 12);
+    }
+  });
+
+  it('is one rotation, so the conversion is its own inverse', () => {
+    // Declination and hour angle to altitude and azimuth, and back, is the
+    // same function twice. That is not a coincidence to rely on quietly: it
+    // is what says the equatorial frame drawn inside the horizon frame --
+    // both poles, the equator, Greenwich -- is the same sky as the sun on it.
+    for (const c of skies) {
+      const back = altAz(c.lat, c.sky.H, c.sky.Az);
+      expect(back.H, `${c.name} declination`).toBeCloseTo(c.sky.solar.dec, 9);
+      expect(norm180(back.Az - c.sky.lha), `${c.name} hour angle`).toBeCloseTo(0, 9);
+    }
+  });
+
+  it('brings the celestial equator up due east and down due west, everywhere', () => {
+    for (let lat = -80; lat <= 80; lat += 5) {
+      // Six hours either side of the meridian, a body of no declination is on
+      // the horizon, and at the east and west points of it, from the equator
+      // to the edge of the arctic alike.
+      const rise = altAz(lat, 0, -90);
+      const set = altAz(lat, 0, 90);
+      expect(rise.H, `lat ${lat}`).toBeCloseTo(0, 9);
+      expect(set.H, `lat ${lat}`).toBeCloseTo(0, 9);
+      expect(rise.Az, `lat ${lat}`).toBeCloseTo(90, 9);
+      expect(set.Az, `lat ${lat}`).toBeCloseTo(270, 9);
+      // And on the meridian it stands at the complement of the latitude, on
+      // the side of the zenith away from the elevated pole.
+      const noon = altAz(lat, 0, 0);
+      expect(noon.H, `lat ${lat}`).toBeCloseTo(90 - Math.abs(lat), 9);
+      if (lat !== 0) expect(noon.Az, `lat ${lat}`).toBeCloseTo(lat > 0 ? 180 : 0, 9);
     }
   });
 });

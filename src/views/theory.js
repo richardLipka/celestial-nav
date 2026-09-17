@@ -98,7 +98,12 @@ export function createTheory(onRotate, onCentre) {
   warn.innerHTML = richText(t('th.sunDown'));
   warn.hidden = true;
 
-  stage.append(head, warn, sphere.node, chipBox, h('p', 'th-stage-hint', t('th.stage.hint')));
+  // The legend for the sphere, and how to work it. Through the prose renderer
+  // because it leans on the names of the marks it is explaining.
+  const hint = h('p', 'th-stage-hint');
+  hint.innerHTML = richText(t('th.stage.hint'));
+
+  stage.append(head, warn, sphere.node, chipBox, hint);
 
   // --- the argument -------------------------------------------------------
   const subs = []; // { el, fn, empty }

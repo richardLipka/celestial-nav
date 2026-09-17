@@ -9,7 +9,7 @@ import { hourCircle } from '../core/horizon.js';
 import {
   orthographic, parallel, meridian, flattenTriangle, track, markAngle, besideMid,
 } from './sphere.js';
-import { corners } from './theorysphere.js';
+import { corners, poles } from './theorysphere.js';
 import { t } from '../i18n.js';
 
 // =========================================================================
@@ -88,8 +88,10 @@ function drawTriangle3D(svg, d, s) {
   const greenwich = hourCircle(lat, norm180(s.lon)).map((p) => ({ lat: p.H, lon: p.Az }));
   track(svg, greenwich, proj, { class: 'prime-meridian' }, { class: 'prime-meridian behind' });
 
-  // The celestial equator, where declination is measured from.
-  track(svg, d.equatorTrack.map((p) => ({ lat: p.H, lon: p.Az })), proj, { class: 'cel-equator-3d' });
+  // The celestial equator, where declination is measured from. Part of the
+  // frame, so it goes round the back with the rest of the frame.
+  const equator = d.equatorTrack.map((p) => ({ lat: p.H, lon: p.Az }));
+  track(svg, equator, proj, { class: 'cel-equator-3d' }, { class: 'cel-equator-3d behind' });
 
   // --- the triangle -------------------------------------------------------
   const side = (a, b, cls) =>
@@ -118,16 +120,39 @@ function drawTriangle3D(svg, d, s) {
 
   svg.append(el('circle', { cx: CX, cy: CY, r: R, class: 'globe-rim' }));
 
+  // Reserved here and filled at the very end. The frame's names are *placed*
+  // last, so that they can see everything else on the picture and dodge it,
+  // and *drawn* from here, so that they stay underneath it: the frame is
+  // background, and where the two want the same pixels it is the subject
+  // that has to be the readable one.
+  const frameNames = g();
+  svg.append(frameNames);
+
   // --- labels -------------------------------------------------------------
+  // The middle of the triangle on the page: a corner's name is pushed away
+  // from it, and the mark of the angle at that corner is drawn on the inside,
+  // so the two are on opposite sides of the dot instead of on top of it.
+  const inward = [P, Z, X].map((p) => proj(p.lat, p.lon)).reduce(
+    (acc, q, i, all) => ({ x: acc.x + q.x / all.length, y: acc.y + q.y / all.length }),
+    { x: 0, y: 0 },
+  );
   const mark = (p, label, cls, extra = '') => {
     const q = proj(p.lat, p.lon);
     const far = q.visible ? '' : ' behind';
     svg.append(el('circle', {
       cx: q.x, cy: q.y, r: 4.5, class: `mark ${cls}${extra}${far}`,
     }));
-    svg.append(text(q.x + 8, q.y - 6, label, { class: `lbl gk ${cls}-text${far}` }));
+    const dx = q.x - inward.x;
+    const dy = q.y - inward.y;
+    const n = Math.hypot(dx, dy) || 1;
+    svg.append(text(q.x + (dx / n) * 13, q.y + (dy / n) * 13 + 4, label, {
+      class: `lbl gk ${cls}-text${far}`, 'text-anchor': 'middle',
+    }));
   };
-  mark(P, 'P', 'tri-p');
+  // Both celestial poles -- see the note on the same job in theorysphere.js.
+  const { north: Pn, south: Ps } = poles(lat);
+  mark(north ? Pn : Ps, `P = P${north ? 'n' : 's'}`, 'tri-p');
+  mark(north ? Ps : Pn, `P${north ? 's' : 'n'}`, 'pole-off');
   mark(Z, 'Z', 'tri-z');
   // Hollow when the sun is under the horizon: the arithmetic still puts it
   // there, but there is no sight to be taken and a filled disc is a promise
@@ -136,13 +161,9 @@ function drawTriangle3D(svg, d, s) {
 
   // Beside the side, in two short lines -- see the note on the same job in
   // theorysphere.js, which this figure is the narrow-layout twin of.
-  const away = [P, Z, X].map((p) => proj(p.lat, p.lon)).reduce(
-    (acc, q, i, all) => ({ x: acc.x + q.x / all.length, y: acc.y + q.y / all.length }),
-    { x: 0, y: 0 },
-  );
   const sideLabel = (a, b, main, val, cls) => {
     const pts = greatCircle(a, b, 40).map((p) => proj(p.lat, p.lon)).filter((q) => q.visible);
-    const q = besideMid(pts, away, 16);
+    const q = besideMid(pts, inward, 16);
     if (!q) return;
     svg.append(text(q.x, q.y, main, { class: `lbl mn ${cls}`, 'text-anchor': 'middle' }));
     svg.append(text(q.x, q.y + 12, val, { class: 'lbl tiny muted', 'text-anchor': 'middle' }));
@@ -157,16 +178,6 @@ function drawTriangle3D(svg, d, s) {
   // Labelled whatever the sun is doing: below the horizon the zenith distance
   // passes 90, which is a fact about the sight and not a reason to hide it.
   sideLabel(Z, X, 'z', fmtAngle(90 - H), 'zen-text');
-
-  {
-    const vis = greenwich.map((p) => proj(p.lat, p.lon)).filter((q) => q.visible);
-    const q = besideMid(vis, { x: CX, y: CY }, 13);
-    if (q) {
-      svg.append(text(q.x, q.y, t('fig.greenwich'), {
-        class: 'lbl tiny lha-text', 'text-anchor': 'middle',
-      }));
-    }
-  }
 
   // cardinal points on the horizon
   for (const [key, az] of [['sky.N', 0], ['sky.E', 90], ['sky.S', 180], ['sky.W', 270]]) {
@@ -185,6 +196,40 @@ function drawTriangle3D(svg, d, s) {
     text(W - 10, H3 - 8, t('fig.dragSphere'), { class: 'lbl tiny muted', 'text-anchor': 'end' }),
   );
   svg.append(text(10, H3 - 8, t('fig.pzxNote'), { class: 'lbl tiny muted' }));
+
+  // Greenwich and the celestial equator carry their names. Between them, the
+  // two poles and the horizon, everything on the picture can be placed.
+  //
+  // An arc is long and a label is short, so rather than always taking the
+  // middle of it, try a few places along it and keep the one that lands on
+  // the least. The measure is a box, not a distance: "celestial equator" is
+  // six times as wide as it is tall, and a rule that treated it as a dot
+  // would call it clear while it sat across another label.
+  const name = (pts, key, cls) => {
+    const vis = pts.map((p) => proj(p.lat, p.lon)).filter((q) => q.visible);
+    if (vis.length < 2) return;
+    const taken = [...svg.querySelectorAll('text')].map((n) => ({
+      x: +n.getAttribute('x'), y: +n.getAttribute('y'),
+    }));
+    const clash = (q) =>
+      taken.filter((p) => Math.abs(p.x - q.x) < 58 && Math.abs(p.y - q.y) < 11).length;
+    let best = null;
+    for (const f of [0.5, 0.34, 0.66, 0.2, 0.8, 0.1, 0.9]) {
+      const i = Math.round(f * (vis.length - 1));
+      const q = besideMid(vis.slice(Math.max(0, i - 1), i + 2), { x: CX, y: CY }, 15);
+      if (!q) continue;
+      const n = clash(q);
+      if (!best || n < best.n) best = { q, n };
+      if (n === 0) break;
+    }
+    if (best) {
+      frameNames.append(text(best.q.x, best.q.y, t(key), {
+        class: `lbl tiny ${cls}`, 'text-anchor': 'middle',
+      }));
+    }
+  };
+  name(greenwich, 'fig.greenwich', 'lha-text');
+  name(equator, 'fig.celEquator', 'dec-text');
 }
 
 // =========================================================================
@@ -338,7 +383,7 @@ function drawFlat(svg, d, s) {
     svg.append(text(q.x, q.y, name, { class: `lbl gk ${cls}-text`, 'text-anchor': 'middle' }));
     svg.append(text(q.x, q.y + 13, sub, { class: 'lbl tiny muted', 'text-anchor': 'middle' }));
   };
-  corner(pP, 'P', t('fig.pole'), 'tri-p');
+  corner(pP, 'P', t(s.lat >= 0 ? 'fig.poleN' : 'fig.poleS'), 'tri-p');
   corner(pZ, 'Z', t('fig.zenith'), 'tri-z');
   corner(pX, 'X', t('fig.sun'), 'tri-x', d.sky.H < 0 ? ' down' : '');
 

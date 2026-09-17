@@ -838,6 +838,11 @@ mjx-container svg { color: inherit; }
 .tri-side.zen { stroke: var(--c-zen); }
 .tri-alt { stroke: var(--c-alt); stroke-width: 2.6; stroke-linecap: round; fill: none; }
 .mark.tri-p { fill: var(--c-phi); }
+/* The celestial pole that is not the elevated one. Drawn, because a frame
+   with one pole in it is not a frame, but quietly: it is a landmark and not
+   a corner of anything. */
+.mark.pole-off { fill: none; stroke: var(--ink-3); stroke-width: 1.6; }
+svg .pole-off-text { fill: var(--ink-3); }
 .mark.tri-z { fill: var(--c-zen); }
 .mark.tri-x { fill: var(--c-dec); }
 /* The sun below the horizon, drawn hollow. After .mark.tri-x on purpose: the
@@ -863,6 +868,11 @@ svg .phi-text { fill: var(--c-phi); }
 svg .az-lbl { fill: var(--c-alt); }
 .ang-time { stroke: var(--c-time); fill: none; }
 .ang-az { stroke: var(--c-alt); fill: none; }
+/* On the theory spheres the sun's own track for the day is dashed and in the
+   declination colour, so Greenwich cannot also be simply dashed: it is the
+   surveyor's dash-dot instead, which is what a meridian is drawn with. */
+.glass .prime-meridian { stroke-dasharray: 8 3 2 3; }
+
 /* An angle of the triangle, drawn on the sphere itself. Lighter than the
    sides it springs from and lighter than a focus: it is there to say that an
    angle lives at this corner, not to be the thing being read. */
