@@ -10,9 +10,10 @@
 
 import { el, text, clear, runs } from '../svg.js';
 import {
-  sind, cosd, asind, atan2d, norm360, fmtAngle, fmtBearing,
+  sind, cosd, asind, atan2d, norm180, norm360, fmtAngle, fmtBearing,
 } from '../core/angles.js';
 import { greatCircle } from '../core/fix.js';
+import { hourCircle } from '../core/horizon.js';
 import {
   orthographic, angleArc, parallel, meridian, track, midOf, markAngle, besideMid,
 } from './sphere.js';
@@ -216,6 +217,16 @@ function draw(svg, d, s, view = {}) {
   track(svg, parallel(0), proj, { class: 'horizon-circle' }, { class: 'horizon-circle behind' });
   track(svg, meridian(0), proj, { class: 'obs-meridian' }, { class: 'obs-meridian behind' });
   track(svg, meridian(180), proj, { class: 'obs-meridian' }, { class: 'obs-meridian behind' });
+
+  // Greenwich, on the sky: the hour circle of the prime meridian, which is
+  // where the sun stands at Greenwich apparent noon. The angle between it and
+  // your own meridian, at the pole, *is* your longitude -- so without it the
+  // longitude slider moves a number and nothing else, and with it the whole
+  // frame swings. Dashed and in the colour of the hour, like the prime
+  // meridian on the Earth globe, because it is the same human convention and
+  // not a physical fact.
+  const greenwich = hourCircle(lat, norm180(s.lon)).map((p) => ({ lat: p.H, lon: p.Az }));
+  track(svg, greenwich, proj, { class: 'prime-meridian' }, { class: 'prime-meridian behind' });
   // Dotted, not dashed: the sun's own track for the day is dashed and the two
   // are the same colour, being the same kind of thing.
   track(svg, d.equatorTrack.map((p) => ({ lat: p.H, lon: p.Az })), proj, {
@@ -339,6 +350,16 @@ function draw(svg, d, s, view = {}) {
       }
       svg.append(text(lx, ly, spec.label, {
         class: `lbl mn ${spec.textCls}${q.visible ? '' : ' behind'}`, 'text-anchor': 'middle',
+      }));
+    }
+  }
+
+  {
+    const vis = greenwich.map((p) => proj(p.lat, p.lon)).filter((q) => q.visible);
+    const q = besideMid(vis, { x: CX, y: CY }, 13);
+    if (q) {
+      svg.append(text(q.x, q.y, t('fig.greenwich'), {
+        class: 'lbl tiny lha-text', 'text-anchor': 'middle',
       }));
     }
   }

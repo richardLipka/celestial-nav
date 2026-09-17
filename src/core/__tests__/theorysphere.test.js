@@ -9,9 +9,9 @@ import {
 } from '../../views/theorysphere.js';
 import { theory } from '../../theory.js';
 import { dictionaries } from '../../i18n.js';
-import { horizon, culmination } from '../horizon.js';
+import { horizon, culmination, altAz, hourCircle } from '../horizon.js';
 import { angularDistance } from '../fix.js';
-import { sind, cosd, setDecimalSeparator } from '../angles.js';
+import { sind, cosd, norm180, setDecimalSeparator } from '../angles.js';
 
 beforeAll(() => setDecimalSeparator('.'));
 afterAll(() => setDecimalSeparator('.'));
@@ -500,6 +500,63 @@ describe('the sun below the horizon', () => {
       // The stage warning goes through the prose renderer, so its emphasis
       // has to come in pairs or the reader is shown the asterisks.
       expect(warn.replace(/\*\*[^*]+\*\*/g, ''), lang).not.toContain('*');
+    }
+  });
+});
+
+
+// =========================================================================
+// Greenwich, drawn on the observer's own sky.
+// =========================================================================
+
+describe('the hour circle of the prime meridian', () => {
+  it('runs from one celestial pole to the other', () => {
+    for (const c of skies) {
+      const { P } = corners(c.lat, c.sky.H, c.sky.Az);
+      const arc = hourCircle(c.lat, norm180(c.lon), 36);
+      // Ends at declination -90 and +90: the two poles, whichever of them is
+      // the elevated one. Its altitude is the latitude without its sign, and
+      // that is the end that matches P.
+      const ends = [arc[0], arc[arc.length - 1]].map((q) => ({ lat: q.H, lon: q.Az }));
+      const near = ends.map((e) => angularDistance(e, P));
+      expect(Math.min(...near), c.name).toBeLessThan(1e-6);
+      // Loose at the far end on purpose: an angular distance is an acos, and
+      // an acos next to 180 degrees has no precision left to give.
+      expect(Math.max(...near), c.name).toBeCloseTo(180, 5);
+    }
+  });
+
+  it('stands at the angle from your own meridian that your longitude is', () => {
+    // This is the whole reason it is drawn. Moving the longitude slider used
+    // to move a number and nothing on the picture; the angle between these
+    // two lines, at the pole, *is* the longitude, and now it swings.
+    for (const c of skies) {
+      const { P, Z } = corners(c.lat, c.sky.H, c.sky.Az);
+      const t = norm180(c.lon);
+      const arc = hourCircle(c.lat, t, 36);
+      const onEquator = { lat: arc[18].H, lon: arc[18].Az }; // declination zero
+      expect(sphericalAngle(P, Z, onEquator), c.name).toBeCloseTo(Math.abs(t), 5);
+    }
+  });
+
+  it('is where the sun would stand at Greenwich apparent noon', () => {
+    // A body over Greenwich has, by the definition of the thing, a Greenwich
+    // hour angle of zero -- so its local hour angle is the longitude itself.
+    for (const c of skies) {
+      const here = altAz(c.lat, c.sky.solar.dec, norm180(c.lon));
+      // Put the sun's own declination on that hour circle and it lands on it.
+      const arc = hourCircle(c.lat, norm180(c.lon), 180);
+      const nearest = Math.min(...arc.map((q) =>
+        angularDistance({ lat: q.H, lon: q.Az }, { lat: here.H, lon: here.Az })));
+      expect(nearest, c.name).toBeLessThan(1);
+    }
+  });
+
+  it('is the conversion the sun already uses, with a different declination', () => {
+    for (const c of skies) {
+      const q = altAz(c.lat, c.sky.solar.dec, c.sky.lha);
+      expect(q.H, `${c.name} altitude`).toBeCloseTo(c.sky.H, 9);
+      expect(q.Az, `${c.name} azimuth`).toBeCloseTo(c.sky.Az, 9);
     }
   });
 });

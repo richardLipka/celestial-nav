@@ -5,6 +5,7 @@
 import { el, g, text, polyline, polygon, clear, arc, onCircle, arrowhead } from '../svg.js';
 import { sind, cosd, norm180, fmtAngle, fmtBearing } from '../core/angles.js';
 import { greatCircle } from '../core/fix.js';
+import { hourCircle } from '../core/horizon.js';
 import {
   orthographic, parallel, meridian, flattenTriangle, track, markAngle, besideMid,
 } from './sphere.js';
@@ -82,6 +83,11 @@ function drawTriangle3D(svg, d, s) {
   track(svg, meridian(0), proj, { class: 'obs-meridian' }, { class: 'obs-meridian behind' });
   track(svg, meridian(180), proj, { class: 'obs-meridian' }, { class: 'obs-meridian behind' });
 
+  // And Greenwich's -- see the note on the same line in theorysphere.js,
+  // which this figure is the narrow-layout twin of.
+  const greenwich = hourCircle(lat, norm180(s.lon)).map((p) => ({ lat: p.H, lon: p.Az }));
+  track(svg, greenwich, proj, { class: 'prime-meridian' }, { class: 'prime-meridian behind' });
+
   // The celestial equator, where declination is measured from.
   track(svg, d.equatorTrack.map((p) => ({ lat: p.H, lon: p.Az })), proj, { class: 'cel-equator-3d' });
 
@@ -151,6 +157,16 @@ function drawTriangle3D(svg, d, s) {
   // Labelled whatever the sun is doing: below the horizon the zenith distance
   // passes 90, which is a fact about the sight and not a reason to hide it.
   sideLabel(Z, X, 'z', fmtAngle(90 - H), 'zen-text');
+
+  {
+    const vis = greenwich.map((p) => proj(p.lat, p.lon)).filter((q) => q.visible);
+    const q = besideMid(vis, { x: CX, y: CY }, 13);
+    if (q) {
+      svg.append(text(q.x, q.y, t('fig.greenwich'), {
+        class: 'lbl tiny lha-text', 'text-anchor': 'middle',
+      }));
+    }
+  }
 
   // cardinal points on the horizon
   for (const [key, az] of [['sky.N', 0], ['sky.E', 90], ['sky.S', 180], ['sky.W', 270]]) {

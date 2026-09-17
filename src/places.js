@@ -88,10 +88,13 @@ export const findPlace = (lat, lon) =>
   places.find((p) => Math.abs(p.lat - lat) < 0.005 && Math.abs(p.lon - lon) < 0.005);
 
 export function applyPlace(p) {
+  // The hour on the clock is left alone: it is UTC, it means the same thing
+  // everywhere, and a reader who has set it to watch something happen does
+  // not want it snapped back for having moved the ship. A scenario is a
+  // different matter -- that is a whole setting, clock included.
   return {
     lat: p.lat,
     lon: p.lon,
-    secondOfDay: null, // snap to local apparent noon at the new place
     globeCenter: { lat: Math.max(-60, Math.min(60, p.lat)), lon: p.lon + 18 },
   };
 }

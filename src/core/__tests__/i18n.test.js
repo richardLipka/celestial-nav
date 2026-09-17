@@ -151,6 +151,17 @@ describe('places', () => {
     expect(findPlace(41.2, 3.4)).toBeUndefined();
   });
 
+  it('moves the ship without touching the clock', () => {
+    // It used to snap the clock to the new local apparent noon, which had the
+    // side effect of making the longitude control do nothing anybody could
+    // see: the sun sat on the meridian at every longitude. That is the one
+    // thing about longitude that is always true and the last thing this
+    // program should demonstrate by accident.
+    for (const p of places) {
+      expect(applyPlace(p), p.id).not.toHaveProperty('secondOfDay');
+    }
+  });
+
   it('gives zero no hemisphere, in either language', () => {
     // The equator is not north and the prime meridian is not east.
     for (const lang of LANGS) {

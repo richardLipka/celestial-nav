@@ -12,7 +12,7 @@ lost). Five guided lessons walk a newcomer through all four.
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 224 tests
+npm test         # vitest, 229 tests
 npm run test:watch
 ```
 
@@ -35,6 +35,11 @@ which runs `derive(state)` once and hands the result to every subscriber. A
 view is a `create*()` returning `{ node, update(derived, state) }`. Views never
 reach back into the store except through the action functions it exports
 (`addSight`, `matchSight`, `removeSight`, `clearSights`).
+
+`altAz(lat, dec, lha)` in `core/horizon.js` is the one alt-az conversion in
+the program — `horizon()`, `celestialEquator()` and `hourCircle()` are all one
+call to it — and it carries the latitude's sign, so it needs no telling which
+hemisphere it is in.
 
 `core/` must stay free of DOM and of any notion of language. Formatting that
 needs a language lives in `ui/format.js`.
@@ -302,6 +307,21 @@ curved. `flattenTriangle()` returns the corners, the sides, the three angles
 and the direction each side leaves each corner in; the drawing takes its arcs
 from that last one, so a mark and the number beside it cannot disagree.
 
+**Greenwich is drawn on it.** A point over Greenwich has, by the definition
+of the thing, a Greenwich hour angle of zero, so its *local* hour angle is the
+observer's longitude — and `hourCircle()` puts that half great circle, pole to
+pole, beside the observer's own meridian. The angle between the two, at the
+pole, **is** the longitude. Without it the longitude control moved a number
+and nothing on the picture, which is the next point.
+
+**Moving the ship does not touch the clock.** The latitude and longitude
+sliders and the place list used to set `secondOfDay: null`, snapping the clock
+to the new local apparent noon — with the effect that the sun sat on the
+meridian at *every* longitude and the longitude control changed nothing you
+could see. That is the one thing about longitude that is always true and the
+last thing this program should demonstrate by accident. A **scenario** still
+sets the clock, because a scenario is a whole setting.
+
 **The sphere is glass.** The far half of whatever the reader is being shown
 — the triangle, its angle marks, the focus arc, the corner marks, and the two
 frame lines everything else is placed against (the horizon and the observer's
@@ -420,6 +440,11 @@ and krasajachtingu.cz's beginners' piece.
 - `LANGS` holds codes, not labels. Czech is `cs`, but the switch has to say
   **CZ** — `code.toUpperCase()` gave `CS`, which is not what a Czech reader
   looks for. `LANG_LABEL` keeps the two apart.
+- **A control that resets the thing it is supposed to change, changes
+  nothing.** Dragging the longitude also snapped the clock to the new local
+  apparent noon, so the hour angle stayed at zero, the sun stayed on the
+  meridian, and the picture was identical at every longitude on Earth. It took
+  a reader asking why the longitude slider did nothing.
 - **A figure that goes on drawing past the edge of its own meaning has to
   say so.** The equations do not stop at sunset and neither do the figures:
   a sun nine degrees under the horizon is drawn where the arithmetic puts it,

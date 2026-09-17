@@ -13,16 +13,45 @@ import { atHours, MS_HOUR } from './time.js';
 export function horizon(lat, lon, date) {
   const s = solar(date);
   const lha = norm180(s.gha + lon);
-
-  const H = asind(sind(lat) * sind(s.dec) + cosd(lat) * cosd(s.dec) * cosd(lha));
-  const Az = norm360(
-    atan2d(
-      -cosd(s.dec) * sind(lha),
-      sind(s.dec) * cosd(lat) - cosd(s.dec) * sind(lat) * cosd(lha),
-    ),
-  );
-
+  const { H, Az } = altAz(lat, s.dec, lha);
   return { H, Az, lha, z: 90 - H, solar: s };
+}
+
+/**
+ * Where a body of this declination and this hour angle stands in this
+ * observer's sky. Everything on the theory tab is one call to this or
+ * another, and it lives here so that there is only ever one of it.
+ *
+ * Works from either hemisphere with the latitude carrying its own sign: at
+ * 34 S a body on the meridian with zero declination bears north, and this
+ * says so without being told which half of the world it is in.
+ */
+export function altAz(lat, dec, lha) {
+  return {
+    H: asind(sind(lat) * sind(dec) + cosd(lat) * cosd(dec) * cosd(lha)),
+    Az: norm360(
+      atan2d(
+        -cosd(dec) * sind(lha),
+        sind(dec) * cosd(lat) - cosd(dec) * sind(lat) * cosd(lha),
+      ),
+    ),
+  };
+}
+
+/**
+ * An hour circle in this observer's sky: the half great circle of one fixed
+ * hour angle, running from one celestial pole to the other.
+ *
+ * Greenwich's own is the one at the hour angle of the observer's longitude --
+ * a point over Greenwich has, by the definition of the thing, a Greenwich
+ * hour angle of zero, so its *local* hour angle is the longitude itself. Draw
+ * it beside the observer's own meridian and the angle between the two, at the
+ * pole, is the longitude, which is otherwise a number with nothing to see.
+ */
+export function hourCircle(lat, lha, steps = 72) {
+  const out = [];
+  for (let i = 0; i <= steps; i++) out.push(altAz(lat, -90 + (i * 180) / steps, lha));
+  return out;
 }
 
 /**
@@ -128,11 +157,6 @@ export function diurnalArc(date, lat, lon, steps = 288) {
  */
 export function celestialEquator(lat, steps = 180) {
   const out = [];
-  for (let i = 0; i <= steps; i++) {
-    const lha = -180 + (i * 360) / steps;
-    const H = asind(cosd(lat) * cosd(lha));
-    const Az = norm360(atan2d(-sind(lha), -sind(lat) * cosd(lha)));
-    out.push({ H, Az });
-  }
+  for (let i = 0; i <= steps; i++) out.push(altAz(lat, 0, -180 + (i * 360) / steps));
   return out;
 }

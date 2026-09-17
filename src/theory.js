@@ -19,6 +19,12 @@ export const tex = (s) =>
     .replace(/ /g, '\\,');
 
 const A = (deg) => tex(fmtAngle(deg));
+/**
+ * The same, bracketed when it is negative, for an angle standing immediately
+ * after an operator. Below the horizon the altitude goes negative and
+ * "90° − −09° 31,8′" is arithmetic nobody should have to read twice.
+ */
+const AB = (deg) => (deg < 0 ? `(${A(deg)})` : A(deg));
 const N = (v, p = 1) => tex(fmtNumber(v, p));
 
 /** A longitude in the form the rest of the application uses, safe for maths mode. */
@@ -59,7 +65,7 @@ export const theory = [
         // Not fmtNm here: its thousands separator would come through tex() as
         // a decimal comma, and bare letters in maths mode set italic.
         fn: (d) =>
-          `z = 90^\\circ - ${A(d.sight.Ho)} = ${A(d.z)} = ${Math.round(degToNm(d.z))}\\,\\text{nm}`,
+          `z = 90^\\circ - ${AB(d.sight.Ho)} = ${A(d.z)} = ${Math.round(degToNm(d.z))}\\,\\text{nm}`,
       },
       {
         k: 'p',

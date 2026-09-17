@@ -101,13 +101,18 @@ export function createRail(store) {
 
   refs.latVal = h('output', 'rail-value phi');
   refs.lonVal = h('output', 'rail-value phi');
+  // Moving the ship does not touch the clock. It used to snap it back to the
+  // new local apparent noon, which had the effect of making the longitude
+  // slider do nothing you could see: the sun sat on the meridian at every
+  // longitude, which is the one thing about longitude that is always true and
+  // the last thing this program wants to demonstrate by accident.
   refs.lat = slider('lat', {
     min: -75, max: 75, step: 0.25, value: state.lat,
-    onInput: (v) => set({ lat: v, secondOfDay: null }),
+    onInput: (v) => set({ lat: v }),
   });
   refs.lon = slider('lon', {
     min: -180, max: 180, step: 0.25, value: state.lon,
-    onInput: (v) => set({ lon: v, secondOfDay: null }),
+    onInput: (v) => set({ lon: v }),
   });
   const dateIn = document.createElement('input');
   dateIn.type = 'date';
