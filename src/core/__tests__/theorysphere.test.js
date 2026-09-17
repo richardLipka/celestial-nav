@@ -10,6 +10,7 @@ import {
 import { theory } from '../../theory.js';
 import { dictionaries } from '../../i18n.js';
 import { horizon, culmination, altAz, hourCircle } from '../horizon.js';
+import { subsolar } from '../sun.js';
 import { angularDistance } from '../fix.js';
 import { sind, cosd, norm180, setDecimalSeparator } from '../angles.js';
 
@@ -647,5 +648,78 @@ describe('the frame the sphere is drawn in', () => {
       expect(noon.H, `lat ${lat}`).toBeCloseTo(90 - Math.abs(lat), 9);
       if (lat !== 0) expect(noon.Az, `lat ${lat}`).toBeCloseTo(lat > 0 ? 180 : 0, 9);
     }
+  });
+});
+
+
+// =========================================================================
+// The Earth, drawn on the sky.
+//
+// A place and the point of the sky straight above it are the same direction,
+// and that correspondence is what lets the world's coastlines be drawn on the
+// celestial sphere. If it is off by anything at all the map slides away from
+// the sun that is standing over it, so these are the checks that matter.
+// =========================================================================
+
+/** A geographic point, as the theory sphere draws it. See theorysphere.js. */
+const toSky = (obsLat, obsLon, lat, lon) => {
+  const q = altAz(obsLat, lat, norm180(obsLon - lon));
+  return { H: q.H, Az: q.Az };
+};
+
+describe('the Earth drawn on the celestial sphere', () => {
+  it('lands the sun exactly over the place it is shining straight down on', () => {
+    // The thesis of the first section, as a test of the drawing: X is at the
+    // sun's altitude and bearing, and the coast under it is the coast under
+    // the sun. If these two ever parted, the map would be a decoration.
+    for (const c of skies) {
+      const gp = subsolar(new Date(c.at));
+      const q = toSky(c.lat, c.lon, gp.lat, gp.lon);
+      expect(q.H, `${c.name} altitude`).toBeCloseTo(c.sky.H, 9);
+      expect(norm180(q.Az - c.sky.Az), `${c.name} bearing`).toBeCloseTo(0, 9);
+    }
+  });
+
+  it('puts the observer’s own position at the zenith', () => {
+    for (const c of skies) {
+      // Where else could it be? The zenith is defined as the point above you.
+      expect(toSky(c.lat, c.lon, c.lat, c.lon).H, c.name).toBeCloseTo(90, 5);
+    }
+  });
+
+  it('puts the Earth’s poles on the celestial poles', () => {
+    for (const c of skies) {
+      const { north, south } = poles(c.lat);
+      const n = toSky(c.lat, c.lon, 90, 0);
+      const sth = toSky(c.lat, c.lon, -90, 0);
+      expect(n.H, `${c.name} north`).toBeCloseTo(north.lat, 9);
+      expect(Math.abs(norm180(n.Az - north.lon)), `${c.name} north`).toBeCloseTo(0, 9);
+      expect(sth.H, `${c.name} south`).toBeCloseTo(south.lat, 9);
+      expect(Math.abs(norm180(sth.Az - south.lon)), `${c.name} south`).toBeCloseTo(0, 9);
+    }
+  });
+
+  it('lays the meridian of Greenwich along the hour circle already drawn for it', () => {
+    for (const c of skies) {
+      for (const lat of [-70, -20, 0, 35, 80]) {
+        const q = toSky(c.lat, c.lon, lat, 0);
+        // Back out of the horizon frame: the hour angle has to be the
+        // longitude, which is what the Greenwich line on the sphere is.
+        const back = altAz(c.lat, q.H, q.Az);
+        expect(norm180(back.Az - norm180(c.lon)), `${c.name} at ${lat}`).toBeCloseTo(0, 8);
+      }
+    }
+  });
+
+  it('turns the Earth under the sky, at fifteen degrees to the hour', () => {
+    // The same place an hour later stands an hour of hour angle further west.
+    // This is the only thing the map moves with, and it is the thing the
+    // whole program is about.
+    const [c] = skies;
+    const a = toSky(c.lat, c.lon, 40, -74);
+    const b = toSky(c.lat, c.lon + 15, 40, -74);
+    const ha = altAz(c.lat, a.H, a.Az).Az;
+    const hb = altAz(c.lat, b.H, b.Az).Az;
+    expect(norm180(hb - ha)).toBeCloseTo(15, 8);
   });
 });

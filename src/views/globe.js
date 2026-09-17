@@ -6,11 +6,12 @@
 // helper, which handles the graticule, the great circles and the circle of
 // equal altitude identically.
 
-import { el, g, text, polyline, polygon, clear } from '../svg.js';
+import { el, text, polygon, clear } from '../svg.js';
 import { sind, cosd, norm180, fmtAngle } from '../core/angles.js';
 import { t } from '../i18n.js';
 import { fLat, fLon } from '../ui/format.js';
 import { angularDistance, greatCircle, destination, lineOfPosition } from '../core/fix.js';
+import { orthographic, track, parallel, meridian, drawLand } from './sphere.js';
 
 const W = 424;
 const H = 412;
@@ -18,48 +19,10 @@ const CX = 212;
 const CY = 194;
 const R = 150;
 
-function projector(center) {
-  const la0 = center.lat;
-  const lo0 = center.lon;
-  return (lat, lon) => {
-    const dl = lon - lo0;
-    const x = cosd(lat) * sind(dl);
-    const y = cosd(la0) * sind(lat) - sind(la0) * cosd(lat) * cosd(dl);
-    const z = sind(la0) * sind(lat) + cosd(la0) * cosd(lat) * cosd(dl);
-    return { x: CX + R * x, y: CY - R * y, z, visible: z >= 0 };
-  };
-}
-
-function visibleRuns(points, proj) {
-  const out = [];
-  let cur = null;
-  for (const p of points) {
-    const q = proj(p.lat, p.lon);
-    if (q.visible) {
-      if (!cur) out.push((cur = []));
-      cur.push(q);
-    } else cur = null;
-  }
-  return out;
-}
-
-function track(svg, points, proj, attrs) {
-  for (const run of visibleRuns(points, proj)) {
-    if (run.length > 1) svg.append(polyline(run, attrs));
-  }
-}
-
-const meridian = (lon, step = 2) => {
-  const p = [];
-  for (let lat = -90; lat <= 90; lat += step) p.push({ lat, lon });
-  return p;
-};
-
-const parallel = (lat, step = 3) => {
-  const p = [];
-  for (let lon = -180; lon <= 180; lon += step) p.push({ lat, lon });
-  return p;
-};
+// The projection, the clipping at the limb and the graticule are the same
+// here as on the theory tab's spheres, and come from the same place. This
+// panel is the Earth and that one is the sky, but a sphere is a sphere.
+const projector = (centre) => orthographic({ cx: CX, cy: CY, r: R, centre });
 
 /**
  * The night hemisphere.
@@ -155,14 +118,23 @@ function draw(svg, d, s) {
     if (lat === 0) continue;
     track(svg, parallel(lat), proj, { class: 'grat' });
   }
-  track(svg, parallel(0), proj, { class: 'grat equator' });
 
-  // The prime meridian is the one line on this globe that is a human
-  // convention rather than a physical fact, so it is drawn as one.
-  track(svg, meridian(0), proj, { class: 'prime-meridian' });
+  // The coastlines, when asked for: an overview, to say what part of the
+  // world the sight is being taken in.
+  if (s.show.map) drawLand(svg, proj, null, { class: 'coast' });
+
+  // The reference frame, when asked for: the equator, the two poles, and the
+  // prime meridian -- the one line on this globe that is a human convention
+  // rather than a physical fact, and drawn as one.
+  if (s.show.frame) {
+    track(svg, parallel(0), proj, { class: 'grat equator' });
+    track(svg, meridian(0), proj, { class: 'prime-meridian' });
+  }
 
   // --- the GP's parallel of declination -----------------------------------
-  track(svg, parallel(gp.lat, 2), proj, { class: 'dec-parallel' });
+  // A finer step than the graticule: this parallel is being read, not just
+  // placed. The shared parallel() takes its step last, after the span.
+  track(svg, parallel(gp.lat, -180, 180, 2), proj, { class: 'dec-parallel' });
 
   // --- local hour angle, as the wedge between two meridians ---------------
   track(svg, meridian(obs.lon), proj, { class: 'obs-meridian' });
@@ -226,6 +198,12 @@ function draw(svg, d, s) {
     mark(svg, pGpa, 'gp-assumed', apart > 18 ? t('globe.gpAssumed') : '', 5);
   }
   mark(svg, proj(obs.lat, obs.lon), 'observer', t('globe.you'), 4.5);
+  // The poles go with the frame, and are marked the way the theory tab marks
+  // the celestial poles they stand under.
+  if (s.show.frame) {
+    mark(svg, proj(90, 0), 'pole-off', 'Pn', 3.5);
+    mark(svg, proj(-90, 0), 'pole-off', 'Ps', 3.5);
+  }
 
   // --- readout ------------------------------------------------------------
   const rows = [

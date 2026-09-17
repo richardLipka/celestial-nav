@@ -5,9 +5,10 @@
 import { el, g, text, polyline, polygon, clear, arc, onCircle, arrowhead } from '../svg.js';
 import { sind, cosd, norm180, fmtAngle, fmtBearing } from '../core/angles.js';
 import { greatCircle } from '../core/fix.js';
-import { hourCircle } from '../core/horizon.js';
+import { altAz, hourCircle } from '../core/horizon.js';
 import {
   orthographic, parallel, meridian, flattenTriangle, track, markAngle, besideMid,
+  drawLand,
 } from './sphere.js';
 import { corners, poles } from './theorysphere.js';
 import { t } from '../i18n.js';
@@ -57,6 +58,7 @@ export function createTriangle3D(onRotate) {
 function drawTriangle3D(svg, d, s) {
   clear(svg);
   const lat = s.lat;
+  const frame = s.show.frame;
   const { H, Az } = d.sky;
   const north = lat >= 0;
 
@@ -86,12 +88,31 @@ function drawTriangle3D(svg, d, s) {
   // And Greenwich's -- see the note on the same line in theorysphere.js,
   // which this figure is the narrow-layout twin of.
   const greenwich = hourCircle(lat, norm180(s.lon)).map((p) => ({ lat: p.H, lon: p.Az }));
-  track(svg, greenwich, proj, { class: 'prime-meridian' }, { class: 'prime-meridian behind' });
+  if (frame) {
+    track(svg, greenwich, proj, { class: 'prime-meridian' }, { class: 'prime-meridian behind' });
+  }
+
+
+  // Every place on Earth has one direction of the sky straight above it, and
+  // that correspondence is the whole of this program: it is why the sun's X
+  // lands exactly over the spot the sun is shining straight down on. So the
+  // world's coastlines can be drawn on the celestial sphere, each coast at
+  // its own zenith -- and the observer's own position is the zenith itself.
+  //
+  // A place at longitude lo has its zenith at Greenwich hour angle -lo, so
+  // its hour angle from this observer is their longitude minus its own.
+  const toSky = (la, lo) => {
+    const q = altAz(lat, la, norm180(s.lon - lo));
+    return { lat: q.H, lon: q.Az };
+  };
+  if (s.show.map) drawLand(svg, proj, toSky, { class: 'coast' }, { class: 'coast behind' });
 
   // The celestial equator, where declination is measured from. Part of the
   // frame, so it goes round the back with the rest of the frame.
   const equator = d.equatorTrack.map((p) => ({ lat: p.H, lon: p.Az }));
-  track(svg, equator, proj, { class: 'cel-equator-3d' }, { class: 'cel-equator-3d behind' });
+  if (frame) {
+    track(svg, equator, proj, { class: 'cel-equator-3d' }, { class: 'cel-equator-3d behind' });
+  }
 
   // --- the triangle -------------------------------------------------------
   const side = (a, b, cls) =>
@@ -151,8 +172,8 @@ function drawTriangle3D(svg, d, s) {
   };
   // Both celestial poles -- see the note on the same job in theorysphere.js.
   const { north: Pn, south: Ps } = poles(lat);
-  mark(north ? Pn : Ps, `P = P${north ? 'n' : 's'}`, 'tri-p');
-  mark(north ? Ps : Pn, `P${north ? 's' : 'n'}`, 'pole-off');
+  mark(north ? Pn : Ps, frame ? `P = P${north ? 'n' : 's'}` : 'P', 'tri-p');
+  if (frame) mark(north ? Ps : Pn, `P${north ? 's' : 'n'}`, 'pole-off');
   mark(Z, 'Z', 'tri-z');
   // Hollow when the sun is under the horizon: the arithmetic still puts it
   // there, but there is no sight to be taken and a filled disc is a promise
@@ -195,7 +216,9 @@ function drawTriangle3D(svg, d, s) {
   svg.append(
     text(W - 10, H3 - 8, t('fig.dragSphere'), { class: 'lbl tiny muted', 'text-anchor': 'end' }),
   );
-  svg.append(text(10, H3 - 8, t('fig.pzxNote'), { class: 'lbl tiny muted' }));
+  svg.append(text(10, H3 - 8, t(s.show.map ? 'fig.skyOverEarth' : 'fig.pzxNote'), {
+    class: 'lbl tiny muted',
+  }));
 
   // Greenwich and the celestial equator carry their names. Between them, the
   // two poles and the horizon, everything on the picture can be placed.
@@ -228,8 +251,10 @@ function drawTriangle3D(svg, d, s) {
       }));
     }
   };
-  name(greenwich, 'fig.greenwich', 'lha-text');
-  name(equator, 'fig.celEquator', 'dec-text');
+  if (frame) {
+    name(greenwich, 'fig.greenwich', 'lha-text');
+    name(equator, 'fig.celEquator', 'dec-text');
+  }
 }
 
 // =========================================================================

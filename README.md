@@ -74,8 +74,10 @@ sphere is glass, so the far half of the triangle is still drawn, faint, and a
 corner behind the globe is still a corner. Both celestial poles are marked —
 the elevated one as `P = Pn` or `P = Ps`, the other wherever it falls below
 your horizon — and the celestial equator is named where it runs, so there is a
-frame to place things in. Greenwich is on it too, as the hour circle of the
-prime meridian: the angle between that and your own meridian, at
+frame to place things in, and a switch puts the world's coastlines on it as
+well — each coast drawn at its own zenith, so the sun's X sits over the very
+spot it is shining straight down on. Greenwich is on it too, as the hour circle
+of the prime meridian: the angle between that and your own meridian, at
 the pole, is your longitude, so moving the ship east or west is something to
 watch rather than a number that changes. Wind the clock past sunset and the
 figures go on working, because the equations do — and say, in three places,
@@ -227,6 +229,7 @@ src/core/          pure functions, no DOM, no language, fully tested
   sights.js        observing and reducing a log, kept strictly apart
 
 src/state/store.js one state object, one derive step, one notification
+src/worldmap.js    Natural Earth 1:110m coastlines, public domain, simplified
 src/theory.js      the theory tab as data, bilingual, with live substitutions
 src/i18n.js        every user-visible string, Czech and English
 src/places.js      Czech towns and a spread of world positions
@@ -242,7 +245,7 @@ src/views/
   theory.js        the theory tab: the argument, the stage, MathJax handling
   theoryfig.js     the 3D triangle, the flat triangle, the hour-angle wedge
   theorysphere.js  the sphere the theory tab keeps on screen, and its angles
-  sphere.js        two projections and the spherical geometry those two share
+  sphere.js        two projections, the spherical geometry, the coastlines
 
 src/ui/rail.js     the controls, which are the state and nothing else
 src/ui/format.js   the formatters that need to know the language

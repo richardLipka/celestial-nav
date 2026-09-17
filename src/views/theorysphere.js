@@ -13,9 +13,10 @@ import {
   sind, cosd, asind, atan2d, norm180, norm360, fmtAngle, fmtBearing,
 } from '../core/angles.js';
 import { greatCircle } from '../core/fix.js';
-import { hourCircle } from '../core/horizon.js';
+import { altAz, hourCircle } from '../core/horizon.js';
 import {
   orthographic, angleArc, parallel, meridian, track, midOf, markAngle, besideMid,
+  drawLand,
 } from './sphere.js';
 import { t } from '../i18n.js';
 
@@ -214,6 +215,10 @@ export function createTheorySphere(onRotate) {
 function draw(svg, d, s, view = {}) {
   clear(svg);
   const { triangle = false, focus = null } = view;
+  // The reference frame -- both poles, the celestial equator, Greenwich --
+  // goes on and off in one piece. The elevated pole stays either way: the
+  // text names it on every page, and it is a corner of the triangle.
+  const frame = s.show.frame;
   const lat = s.lat;
   const alt = d.sky.H;
   const az = d.sky.Az;
@@ -241,11 +246,30 @@ function draw(svg, d, s, view = {}) {
   // meridian on the Earth globe, because it is the same human convention and
   // not a physical fact.
   const greenwich = hourCircle(lat, norm180(s.lon)).map((p) => ({ lat: p.H, lon: p.Az }));
-  track(svg, greenwich, proj, { class: 'prime-meridian' }, { class: 'prime-meridian behind' });
+  if (frame) {
+    track(svg, greenwich, proj, { class: 'prime-meridian' }, { class: 'prime-meridian behind' });
+  }
   // Dotted, not dashed: the sun's own track for the day is dashed and the two
   // are the same colour, being the same kind of thing.
+
+  // Every place on Earth has one direction of the sky straight above it, and
+  // that correspondence is the whole of this program: it is why the sun's X
+  // lands exactly over the spot the sun is shining straight down on. So the
+  // world's coastlines can be drawn on the celestial sphere, each coast at
+  // its own zenith -- and the observer's own position is the zenith itself.
+  //
+  // A place at longitude lo has its zenith at Greenwich hour angle -lo, so
+  // its hour angle from this observer is their longitude minus its own.
+  const toSky = (la, lo) => {
+    const q = altAz(lat, la, norm180(s.lon - lo));
+    return { lat: q.H, lon: q.Az };
+  };
+  if (s.show.map) drawLand(svg, proj, toSky, { class: 'coast' }, { class: 'coast behind' });
+
   const equator = d.equatorTrack.map((p) => ({ lat: p.H, lon: p.Az }));
-  track(svg, equator, proj, { class: 'cel-equator' }, { class: 'cel-equator behind' });
+  if (frame) {
+    track(svg, equator, proj, { class: 'cel-equator' }, { class: 'cel-equator behind' });
+  }
 
   // The sun's own road for the day. X slides along it as the clock moves, and
   // that is the point of having a clock on this tab at all.
@@ -340,8 +364,9 @@ function draw(svg, d, s, view = {}) {
   // and there is nothing on the picture to say which way round the sky is.
   const { north: Pn, south: Ps } = poles(lat);
   const north = lat >= 0;
-  mark(north ? Pn : Ps, triangle ? `P = P${north ? 'n' : 's'}` : `P${north ? 'n' : 's'}`, 'tri-p');
-  mark(north ? Ps : Pn, `P${north ? 's' : 'n'}`, 'pole-off');
+  const sym = `P${north ? 'n' : 's'}`;
+  mark(north ? Pn : Ps, frame ? (triangle ? `P = ${sym}` : sym) : 'P', 'tri-p');
+  if (frame) mark(north ? Ps : Pn, `P${north ? 's' : 'n'}`, 'pole-off');
   mark(Z, 'Z', 'tri-z');
   // A sun below the horizon is drawn hollow. It is where the arithmetic puts
   // it -- the equations do not stop working at sunset -- but there is no
@@ -407,7 +432,9 @@ function draw(svg, d, s, view = {}) {
   }
 
   svg.append(text(W - 8, H - 8, t('fig.dragSphere'), { class: 'lbl tiny muted', 'text-anchor': 'end' }));
-  svg.append(text(8, H - 8, t('fig.pzxNote'), { class: 'lbl tiny muted' }));
+  svg.append(text(8, H - 8, t(s.show.map ? 'fig.skyOverEarth' : 'fig.pzxNote'), {
+    class: 'lbl tiny muted',
+  }));
 
   // Greenwich and the celestial equator carry their names. Between them, the
   // two poles and the horizon, everything on the picture can be placed.
@@ -440,7 +467,9 @@ function draw(svg, d, s, view = {}) {
       }));
     }
   };
-  name(greenwich, 'fig.greenwich', 'lha-text');
-  name(equator, 'fig.celEquator', 'dec-text');
+  if (frame) {
+    name(greenwich, 'fig.greenwich', 'lha-text');
+    name(equator, 'fig.celEquator', 'dec-text');
+  }
 
 }

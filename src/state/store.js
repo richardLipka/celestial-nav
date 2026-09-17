@@ -57,7 +57,14 @@ export const state = {
     carryChronometer: true,
     seed: 7,
   },
-  show: { cop: true, lop: true, cross: true, equator: true, night: true, belowHorizon: true },
+  // `map` is the world's coastlines and `frame` is the equator, the two
+  // poles and Greenwich; both apply to every sphere in the program. The map
+  // starts off because it is an aid, not part of the argument; the frame
+  // starts on because without it a sphere has nothing to be placed against.
+  show: {
+    map: false, frame: true,
+    cop: true, lop: true, cross: true, equator: true, night: true, belowHorizon: true,
+  },
   scenario: 'jamaica',
 };
 

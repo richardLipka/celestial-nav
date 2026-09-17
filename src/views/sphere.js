@@ -15,6 +15,7 @@
 import { sind, cosd, asind, atan2d, clamp, R2D } from '../core/angles.js';
 import { greatCircle } from '../core/fix.js';
 import { polyline, text } from '../svg.js';
+import { LAND } from '../worldmap.js';
 
 const toVec = (lat, lon) => [cosd(lat) * cosd(lon), cosd(lat) * sind(lon), sind(lat)];
 const toLL = ([x, y, z]) => ({ lat: asind(z), lon: atan2d(y, x) });
@@ -345,6 +346,30 @@ export function besideMid(pts, away, k = 18) {
     ny = -ny;
   }
   return { x: m.x + nx * k, y: m.y + ny * k };
+}
+
+/**
+ * The world's coastlines, drawn in whatever frame this sphere works in.
+ *
+ * `toFrame` takes a geographic point and gives back the point of the frame it
+ * belongs at. For the Earth globe that is the identity. For the celestial
+ * sphere it is *the zenith of* -- the direction in the sky straight above
+ * that place -- which is the correspondence the whole of this program rests
+ * on, and which lands the sun's X exactly over the spot it is shining
+ * straight down on.
+ *
+ * Outlines, not fills. A ring that crosses the limb would have to be closed
+ * along the limb's own arc to fill correctly, and getting that wrong paints
+ * land over sea. A coastline is the boundary between the two, which is all an
+ * overview of continent and ocean needs to be.
+ */
+export function drawLand(target, proj, toFrame, attrs, behind = null) {
+  for (const ring of LAND) {
+    // The rings are [lon, lat], the order GeoJSON uses; everything else here
+    // is the other way round, and this loop is where the two meet.
+    track(target, ring.map(([lon, lat]) => (toFrame ? toFrame(lat, lon) : { lat, lon })),
+      proj, attrs, behind);
+  }
 }
 
 /**

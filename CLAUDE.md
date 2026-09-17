@@ -12,7 +12,7 @@ lost). Five guided lessons walk a newcomer through all four.
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 234 tests
+npm test         # vitest, 246 tests
 npm run test:watch
 ```
 
@@ -40,6 +40,42 @@ reach back into the store except through the action functions it exports
 the program — `horizon()`, `celestialEquator()` and `hourCircle()` are all one
 call to it — and it carries the latitude's sign, so it needs no telling which
 hemisphere it is in.
+
+## One sphere, drawn three times
+
+`views/sphere.js` is the sphere: the orthographic projection with its back-face
+test, `limbRuns()` to cut a curve at the limb, `track()` to draw it, the
+spherical angle marks, the conformal flattening, and `drawLand()`. The theory
+tab's stage sphere, its narrow-layout twin, and the simulation's Earth globe
+all come out of it — the first two are the **sky** and the third is the
+**Earth**, but a sphere is a sphere, and `globe.js` kept a private copy of the
+projection and the clipper until they were the same code.
+
+**`src/worldmap.js`** is Natural Earth 1:110m land, public domain, simplified
+to a third of a degree and rounded to a tenth of one: 68 rings, about 1 600
+points, 22 KB, no build step. Coastlines are drawn as **outlines, not fills** —
+a ring that crosses the limb would have to be closed along the limb's own arc
+to fill correctly, and getting that wrong paints land over sea.
+
+`drawLand()` takes a `toFrame`, which is what lets the same coastlines go on
+both spheres. On the Earth globe it is the identity. On the celestial sphere it
+is **the zenith of**: a place at longitude λ′ has its zenith at Greenwich hour
+angle −λ′, so from an observer at λ it stands at hour angle λ − λ′. That is the
+correspondence the whole program rests on, and it means the sun's X lands
+exactly over the spot it is shining straight down on — checked to 1e-14 in
+`theorysphere.test.js`, along with the observer's own place landing at the
+zenith and the Earth's poles landing on the celestial ones.
+
+Two switches, in `state.show`, honoured by all three drawings:
+
+- **`map`** — the coastlines. Off by default: an aid, not part of the argument.
+- **`frame`** — the equator, both poles and Greenwich, in one piece. On by
+  default: without it a sphere has nothing to be placed against. The *elevated*
+  pole stays either way, because the theory names it on every page and it is a
+  corner of the triangle; with the frame off its label drops to plain `P`.
+
+The stylesheet shows those two, and only those two, in the overlay group on the
+theory tab.
 
 `core/` must stay free of DOM and of any notion of language. Formatting that
 needs a language lives in `ui/format.js`.
@@ -486,6 +522,17 @@ and krasajachtingu.cz's beginners' piece.
   every label lands on it and on the next one along. `drawFlat` sees the
   collapse in the spherical excess and lays the corner names down one side of
   the line and everything else down the other.
+- **A flat point-in-polygon test cannot answer for Antarctica.** That ring
+  encircles a pole, so in a longitude/latitude plane it is a band 360 degrees
+  wide and "inside" has no meaning — the test said the south pole was at sea.
+  `worldmap.test.js` sums the signed angles the ring subtends *on the sphere*
+  instead, which is a ring like any other there. Land comes out at −2π and
+  open water at zero; the sign matters, because |2π| is also what the far side
+  of the world gives.
+- **A shared helper's arguments are not the same as the one it replaced.**
+  `globe.js` called `parallel(gp.lat, 2)` meaning a step of two degrees, and
+  the shared `parallel(lat, from, to, step)` read that 2 as the *start*
+  longitude — a parallel that began east of Greenwich and stopped at 180.
 - Reading error is drawn with `Math.random()`, so any test comparing the two
   longitude methods on one run is flaky — equal altitudes loses outright now
   and then. Compare medians over tens of runs, which is the honest claim anyway.
@@ -568,6 +615,9 @@ prose is worth pinning too.
   that the arithmetic on screen actually works out at the precision it is
   shown to. A line whose numbers are each right and which still does not add
   up is worse than no line at all.
+- `worldmap.test.js` — the coastlines, asked about thirty-two places whose
+  answer is not in doubt: eighteen well inland, fourteen well out to sea, and
+  both poles. A map is an assertion about where the land is.
 - `lunars.test.js` — the moon, the precise sun and delta T against
   `astronomy-engine`; the clearing proved by round trip; the thirty-to-one
   amplification measured rather than asserted; and the claim that a lunar gives

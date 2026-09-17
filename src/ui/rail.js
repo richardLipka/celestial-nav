@@ -231,8 +231,12 @@ export function createRail(store) {
   const gShow = group(t('rail.overlays'), 'rail-g-show');
   refs.show = {};
   const showBox = h('div', 'rail-checks');
-  for (const k of ['cop', 'lop', 'cross', 'equator', 'night', 'belowHorizon']) {
+  // `map` and `frame` first: they are the two that apply to every sphere in
+  // the program, and they are the only two this group offers on the theory
+  // tab, which the stylesheet picks out by these classes.
+  for (const k of ['map', 'frame', 'cop', 'lop', 'cross', 'equator', 'night', 'belowHorizon']) {
     const c = check(`show-${k}`, t(`show.${k}`), state.show[k], (v) => setIn('show', { [k]: v }));
+    c.row.classList.add(`show-${k}`);
     refs.show[k] = c.input;
     showBox.append(c.row);
   }

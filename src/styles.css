@@ -441,8 +441,10 @@ svg .gauge-note { fill: var(--c-time); }
 .body.on-theory .rail { gap: 12px; padding: 12px; }
 .body.on-theory .rail-group { gap: 7px; }
 .body.on-theory .rail-g-time { display: flex; }
-.body.on-theory .rail-g-sextant,
-.body.on-theory .rail-g-show { display: none; }
+.body.on-theory .rail-g-sextant { display: none; }
+/* The overlay group stays on the theory tab, but only the two switches that
+   mean anything to a sphere: the coastlines and the reference frame. */
+.body.on-theory .rail-g-show .rail-checks > *:not(.show-map):not(.show-frame) { display: none; }
 /* The blurbs under the two pickers are prose, and prose is what this tab has
    in the column beside it. The controls themselves stay. */
 .body.on-theory .rail-note { display: none; }
@@ -876,6 +878,12 @@ svg .az-lbl { fill: var(--c-alt); }
 /* An angle of the triangle, drawn on the sphere itself. Lighter than the
    sides it springs from and lighter than a focus: it is there to say that an
    angle lives at this corner, not to be the thing being read. */
+/* The coastlines: an overview, drawn as quietly as a line can be and still
+   be a line. On the celestial sphere they are the Earth seen through the one
+   correspondence this whole program rests on -- a place, and the point of the
+   sky directly above it. */
+.coast { fill: none; stroke: var(--ink-3); stroke-width: 0.8; stroke-linejoin: round; opacity: 0.6; }
+
 .tri-ang { fill: none; stroke-width: 2; stroke-linecap: round; }
 .tri-ang.time { stroke: var(--c-time); }
 .tri-ang.az { stroke: var(--c-alt); }

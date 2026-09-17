@@ -86,6 +86,7 @@ const dict = {
     'fig.zenith': 'your zenith',
     'fig.sun': 'the sun',
     'fig.pzxNote': 'the sky, seen from outside',
+    'fig.skyOverEarth': 'the sky from outside, each coast drawn at its own zenith',
     'fig.flatNote': 'the same triangle, flattened: the angles are true, the lengths of the sides are not',
     'fig.sunDown': 'the sun is below the horizon — there is no sight to take',
     'fig.flatCollapsed': 'the sun is on your meridian — P, Z and X in one line, and no triangle at all',
@@ -283,6 +284,8 @@ const dict = {
     'rail.eyeVal': '{m} m — dip {d}′',
     'rail.customPlace': '— custom position —',
 
+    'show.map': 'the continents',
+    'show.frame': 'equator, poles and Greenwich',
     'show.cross': 'two sights, crossed',
     'show.cop': 'circle of equal altitude',
     'show.lop': 'line of position',
@@ -451,6 +454,7 @@ const dict = {
     'fig.zenith': 'váš zenit',
     'fig.sun': 'Slunce',
     'fig.pzxNote': 'obloha, viděná zvenčí',
+    'fig.skyOverEarth': 'obloha zvenčí, každé pobřeží ve svém zenitu',
     'fig.flatNote': 'týž trojúhelník naplocho: úhly jsou pravé, délky stran nikoli',
     'fig.sunDown': 'Slunce je pod obzorem — není co měřit',
     'fig.flatCollapsed': 'Slunce je na vašem poledníku — P, Z a X v jedné přímce a žádný trojúhelník',
@@ -648,6 +652,8 @@ const dict = {
     'rail.eyeVal': '{m} m — deprese {d}′',
     'rail.customPlace': '— vlastní poloha —',
 
+    'show.map': 'pevniny',
+    'show.frame': 'rovník, póly a Greenwich',
     'show.cross': 'dvě měření, zkřížená',
     'show.cop': 'kružnice stejné výšky',
     'show.lop': 'poziční linie',
