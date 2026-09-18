@@ -263,6 +263,9 @@ svg .observer-text { fill: var(--ink); }
 .earth-axis { stroke: var(--rule-2); stroke-width: 1; stroke-dasharray: 2 3; }
 .equator-line { stroke: var(--rule-2); stroke-width: 1.1; stroke-dasharray: 5 4; }
 .zenith-ray { stroke: var(--c-phi); stroke-width: 1.3; stroke-dasharray: 4 3; }
+/* The direction to the celestial pole, leaving the ship parallel to the
+   Earth's axis, and dashed the same way the axis itself is. */
+.pole-ray { stroke: var(--c-phi); stroke-width: 1.2; stroke-dasharray: 2 3; }
 .horizon-line { stroke: var(--ink); stroke-width: 1.7; }
 .sun-ray { stroke: var(--c-dec); stroke-width: 1.5; }
 
@@ -706,7 +709,38 @@ input[type='date']:focus-visible {
 }
 .th-warn strong { color: var(--accent); font-weight: 600; }
 
-.th-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.th-chips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  /* What every chip's popup is positioned against. Hanging one off the chip
+     itself would put it outside the stage, which scrolls, and clip it. */
+  position: relative;
+}
+.th-tip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 7px);
+  z-index: 3;
+  padding: 8px 10px;
+  border: 1px solid var(--rule-2);
+  border-radius: 4px;
+  background: var(--paper);
+  box-shadow: 0 3px 12px rgb(0 0 0 / 0.16);
+  font-family: inherit;
+  font-size: 0.73rem;
+  font-style: normal;
+  line-height: 1.5;
+  color: var(--ink-2);
+  text-align: left;
+  white-space: normal;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+.th-chip:hover .th-tip,
+.th-chip:focus-visible .th-tip { opacity: 1; }
 .th-chip {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -819,6 +853,10 @@ input[type='date']:focus-visible {
   padding: 10px;
   max-width: 520px;
 }
+/* A figure that carries a whole argument rather than a single angle. Wider
+   than the rest, but it still shrinks: it is one drawing, not three, so
+   there is nothing in it that stops making sense on a narrow screen. */
+.th-fig.big { max-width: 700px; }
 .th-fig.wide { max-width: 760px; overflow-x: auto; }
 /* Three panels side by side stop being readable much below this, so on a
    narrow screen the figure scrolls in its own box rather than shrinking. */

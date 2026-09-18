@@ -12,7 +12,7 @@ lost). Five guided lessons walk a newcomer through all four.
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 247 tests
+npm test         # vitest, 248 tests
 npm run test:watch
 ```
 
@@ -73,6 +73,26 @@ Two switches, in `state.show`, honoured by all three drawings:
   default: without it a sphere has nothing to be placed against. The *elevated*
   pole stays either way, because the theory names it on every page and it is a
   corner of the triangle; with the frame off its label drops to plain `P`.
+
+**Every angle explains itself.** The six chips on the stage each carry a
+popup — `th.tip.*`, one sentence saying what the angle is and why it is worth
+having — and every clickable angle in every figure carries the same words as
+an SVG `<title>`. The popup is positioned against `.th-chips`, not against the
+chip: the stage is a scrolling box, and anything hung off the side of a chip
+is clipped by it. It stays at `opacity: 0` rather than `display: none` so that
+`aria-describedby` can still reach it.
+
+**The latitude figure is a cut through the Earth, and says so.** It could be
+read as a picture of the sky, which is fatal in a figure whose whole argument
+is about where the observer is standing. It now names the Earth inside its own
+disc, marks the ship, captions itself, and carries the three directions the
+theory names: **Z** overhead, **X** the sun — a disc out in space at the end
+of the rays rather than a dot on the rim — and **P**, on a dashed ray leaving
+the ship parallel to the Earth's axis, which is the Polaris paragraph drawn.
+The layout is checked at every latitude the slider reaches, not just the one
+it opens on: at 75° the ship is nearly at the top of the globe and the rays
+leaving it have almost nowhere to go, so the pole ray measures its room before
+it takes it and the zenith's name sits on the inward side of its letter.
 
 **The switches live over the drawing they change, not in the rail.**
 `ui/toggles.js` builds a row of icon buttons — hand-drawn like every figure

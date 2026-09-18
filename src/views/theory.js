@@ -83,10 +83,18 @@ export function createTheory(onRotate, onCentre, showRow = null) {
     b.dataset.focus = key;
     b.setAttribute('aria-pressed', 'false');
     const value = h('i', 'th-chip-val');
+    // What the angle is, in words, over the chips rather than beside them:
+    // the stage is a scrolling box and anything hung off the side of a chip
+    // would be clipped by it. Kept at zero opacity rather than display:none
+    // so that `aria-describedby` can still reach it.
+    const tip = h('span', 'th-tip', t(`th.tip.${key}`));
+    tip.id = `th-tip-${key}`;
+    b.setAttribute('aria-describedby', tip.id);
     b.append(
       h('b', null, FOCUS_SYMBOL[key]),
       h('span', 'th-chip-name', t(`th.ang.${key}`)),
       value,
+      tip,
     );
     chipBox.append(b);
     return { key, button: b, value };
@@ -146,7 +154,7 @@ export function createTheory(onRotate, onCentre, showRow = null) {
           // The sphere in the triangle section is the same drawing the stage
           // carries, so it is hidden wherever the stage is on screen anyway
           // and kept for the narrow layout, where the stage is not sticky.
-          const f = h('figure', `th-fig ${b.wide ? 'wide' : ''} ${b.id === 'pzx3d' ? 'on-stage' : ''}`);
+          const f = h('figure', `th-fig ${b.wide ? 'wide' : ''} ${b.big ? 'big' : ''} ${b.id === 'pzx3d' ? 'on-stage' : ''}`);
           f.append(fig.node);
           body.append(f);
         }

@@ -245,6 +245,20 @@ describe('the sphere and the text it follows', () => {
       }
     }
   });
+
+  it('explains every angle in words, in both languages', () => {
+    // Each chip on the stage carries a popup, and every angle in every figure
+    // carries the same words as a tooltip. A Greek letter with a number
+    // beside it and no explanation anywhere is exactly what a reader meeting
+    // navigation for the first time gets stuck on.
+    for (const key of FOCUS_KEYS) {
+      for (const lang of ['en', 'cs']) {
+        const tip = dictionaries[lang][`th.tip.${key}`];
+        expect(tip, `${lang} ${key}`).toBeTruthy();
+        expect(tip.length, `${lang} ${key} is a sentence, not a word`).toBeGreaterThan(50);
+      }
+    }
+  });
 });
 
 

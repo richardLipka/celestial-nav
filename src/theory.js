@@ -159,8 +159,8 @@ export const theory = [
       {
         k: 'p',
         text: {
-          en: 'Wait until the sun crosses your meridian. Then \\(t = 0\\), \\(\\cos t = 1\\), and the equation collapses onto a cosine of a difference:',
-          cs: 'Počkejte, až Slunce projde vaším poledníkem. Pak je \\(t = 0\\), \\(\\cos t = 1\\) a rovnice se sesype na kosinus rozdílu:',
+          en: 'Wait until the sun crosses your meridian. Then \\(t = 0\\), \\(\\cos t = 1\\), and the equation simplifies to a cosine of a difference:',
+          cs: 'Počkejte, až Slunce projde vaším poledníkem. Pak je \\(t = 0\\), \\(\\cos t = 1\\) a rovnice se zjednoduší na kosinus rozdílu:',
         },
       },
       {
@@ -187,7 +187,7 @@ export const theory = [
           cs: 'Geometricky trojúhelník zmizel. P, Z i X leží na jedné hlavní kružnici — na vašem poledníku — takže sférický trojúhelník se zvrhne v úsečku a sférická trigonometrie se scvrkne na sčítání.',
         },
       },
-      { k: 'fig', id: 'meridian' },
+      { k: 'fig', id: 'meridian', big: true },
       {
         k: 'sub',
         fn: (d, s) => {

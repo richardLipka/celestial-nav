@@ -35,6 +35,18 @@ const dict = {
       'The sphere is your own sky seen from outside: the heavy circle is your horizon, **Z** is the point overhead, and **Pn** and **Ps** are the two celestial poles — the one above your horizon is the P of the triangle. The celestial equator and the meridian of Greenwich are named where they run. Click an angle here, or in any figure, to draw it on the sphere; click it again and the sphere goes back to following the text.',
     'th.sunDown':
       '**The sun is below your horizon at this hour.** There is no sight to take: the altitude on the chips is the one the sun would have if the Earth were not in the way, and it is negative. Move the hour in the rail to bring it up.',
+    'th.tip.phi':
+      'Your latitude — how far north or south of the equator you are. A noon sight gives it, and needs no clock to do so.',
+    'th.tip.dec':
+      'The sun’s declination — the latitude of the one place on Earth it is standing straight over. The almanac gives it from the date alone.',
+    'th.tip.alt':
+      'The altitude — the angle from the horizon up to the sun. This is what the sextant measures, once index error, dip and refraction have been taken off.',
+    'th.tip.zen':
+      'The zenith distance — from straight overhead down to the sun, which is 90° minus the altitude. It is also your distance from the place the sun stands over: one degree is sixty sea miles.',
+    'th.tip.lha':
+      'The local hour angle — how far the sun has turned past your own meridian. Fifteen degrees to the hour, which is what makes it a measure of time.',
+    'th.tip.az':
+      'The azimuth — the sun’s bearing, counted from north right round through east. A line of position is laid off at right angles to it.',
     'th.ang.phi': 'latitude',
     'th.ang.dec': 'declination',
     'th.ang.alt': 'altitude',
@@ -193,6 +205,9 @@ const dict = {
     'mer.S': 'S',
     'mer.equatorPlane': 'equatorial plane',
     'mer.zenith': 'zenith',
+    'mer.earth': 'the Earth',
+    'mer.toPole': 'celestial pole',
+    'mer.section': 'a cut through the Earth on your own meridian, north at the top — not a picture of the sky',
     'mer.noClock': 'no clock appears here',
     'mer.atLan': 'at LAN {t} UTC',
 
@@ -403,6 +418,18 @@ const dict = {
       'Sféra je vaše vlastní obloha viděná zvenčí: silná kružnice je váš obzor, **Z** je bod přímo nad hlavou a **Pn** a **Ps** jsou oba nebeské póly — ten nad obzorem je P trojúhelníku. Nebeský rovník a poledník Greenwiche jsou popsány tam, kudy vedou. Klepněte na úhel zde nebo v kterémkoli obrázku a vykreslí se na sféře; dalším klepnutím se sféra vrátí k tomu, aby sledovala text.',
     'th.sunDown':
       '**Slunce je v tuto hodinu pod obzorem.** Není co měřit: výška na štítcích je ta, kterou by Slunce mělo, kdyby Země nestála v cestě, a je záporná. Posuňte hodinu v panelu, ať Slunce vyjde.',
+    'th.tip.phi':
+      'Vaše zeměpisná šířka — jak daleko jste na sever nebo na jih od rovníku. Polední měření ji dá a nepotřebuje k tomu žádné hodiny.',
+    'th.tip.dec':
+      'Deklinace Slunce — zeměpisná šířka jediného místa na Zemi, nad kterým právě stojí. Almanach ji dá ze samotného data.',
+    'th.tip.alt':
+      'Výška — úhel od obzoru nahoru ke Slunci. To měří sextant, jakmile se odečte indexová chyba, deprese obzoru a refrakce.',
+    'th.tip.zen':
+      'Zenitová vzdálenost — od bodu přímo nad hlavou dolů ke Slunci, tedy 90° minus výška. Je to zároveň vaše vzdálenost od místa, nad kterým Slunce stojí: jeden stupeň je šedesát námořních mil.',
+    'th.tip.lha':
+      'Místní hodinový úhel — jak daleko se Slunce otočilo za váš poledník. Patnáct stupňů za hodinu, a proto je to míra času.',
+    'th.tip.az':
+      'Azimut — náměr Slunce, počítaný od severu dokola přes východ. Poziční linie se nanáší kolmo na něj.',
     'th.ang.phi': 'šířka',
     'th.ang.dec': 'deklinace',
     'th.ang.alt': 'výška',
@@ -561,6 +588,9 @@ const dict = {
     'mer.S': 'J',
     'mer.equatorPlane': 'rovina rovníku',
     'mer.zenith': 'zenit',
+    'mer.earth': 'Země',
+    'mer.toPole': 'nebeský pól',
+    'mer.section': 'řez Zemí vaším vlastním poledníkem, sever nahoře — není to obrázek oblohy',
     'mer.noClock': 'žádné hodiny se tu neobjeví',
     'mer.atLan': 'v pravé poledne {t} UTC',
 

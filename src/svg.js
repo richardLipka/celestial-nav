@@ -92,6 +92,17 @@ export function arrowhead(x, y, deg, size = 6, attrs = {}) {
   });
 }
 
+/**
+ * A tooltip for whatever it is appended to. SVG has no `title` attribute --
+ * the element is the mechanism -- and it is what lets an angle in a figure
+ * explain itself on hover without any script at all.
+ */
+export function title(s) {
+  const n = el('title');
+  n.textContent = s;
+  return n;
+}
+
 export function clear(node) {
   while (node.firstChild) node.removeChild(node.firstChild);
 }

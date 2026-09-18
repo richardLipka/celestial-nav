@@ -2,7 +2,9 @@
 // derived state as the simulation, so the angles on the page are the angles of
 // the sight currently on the timeline.
 
-import { el, g, text, polyline, polygon, clear, arc, onCircle, arrowhead } from '../svg.js';
+import {
+  el, g, text, title, polyline, polygon, clear, arc, onCircle, arrowhead,
+} from '../svg.js';
 import { sind, cosd, norm180, fmtAngle, fmtBearing } from '../core/angles.js';
 import { greatCircle } from '../core/fix.js';
 import { altAz, hourCircle } from '../core/horizon.js';
@@ -386,6 +388,8 @@ function drawFlat(svg, d, s) {
     const y = clampY(ly) + (!line && sind(bisect) < -0.6 ? 11 : 0);
     svg.append(
       g({ class: 'hit', 'data-focus': focus }, [
+        // The `title` has to be the group's first child to be its tooltip.
+        title(t(`th.tip.${focus}`)),
         arc(v.x, v.y, r, a1, a1 + sweep, { class: 'hit-line' }),
         arc(v.x, v.y, r, a1, a1 + sweep, { class: cls, 'stroke-width': 2.4 }),
         text(clampX(lx), y, label, { class: `lbl mn ${textCls}`, 'text-anchor': anchor }),
@@ -430,6 +434,7 @@ function drawFlat(svg, d, s) {
     const q = { x: clampX(raw.x), y: clampY(raw.y) };
     svg.append(
       g({ class: 'hit', 'data-focus': sides[i].focus }, [
+        title(t(`th.tip.${sides[i].focus}`)),
         text(q.x, q.y - 4, sides[i].main, { class: `lbl mn ${sides[i].cls}-text`, 'text-anchor': 'middle' }),
         text(q.x, q.y + 9, sides[i].val, { class: 'lbl tiny muted', 'text-anchor': 'middle' }),
       ]),
@@ -526,6 +531,7 @@ function drawHourAngle(svg, d, s) {
   // navigational triangle, so it is the one the main sphere can show.
   svg.append(
     g({ class: 'hit', 'data-focus': 'lha' }, [
+      title(t('th.tip.lha')),
       arc(PCX, PCY, 72, oAng, sAng, { class: 'hit-line' }),
       arc(PCX, PCY, 72, oAng, sAng, { class: 'ang-lha' }),
       lbl(84, oAng, sAng, `t ${fmtAngle(Math.abs(lha))}`, 'lha-text'),
