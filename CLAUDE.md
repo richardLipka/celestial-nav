@@ -12,7 +12,7 @@ lost). Five guided lessons walk a newcomer through all four.
 
 ```bash
 npm start        # static server on http://localhost:5173
-npm test         # vitest, 246 tests
+npm test         # vitest, 247 tests
 npm run test:watch
 ```
 
@@ -74,8 +74,15 @@ Two switches, in `state.show`, honoured by all three drawings:
   pole stays either way, because the theory names it on every page and it is a
   corner of the triangle; with the frame off its label drops to plain `P`.
 
-The stylesheet shows those two, and only those two, in the overlay group on the
-theory tab.
+**The switches live over the drawing they change, not in the rail.**
+`ui/toggles.js` builds a row of icon buttons — hand-drawn like every figure
+here, seventeen pixels square, `currentColor` so the button's own state
+colours them — and `app.js` hangs one in the globe panel's header (`map`,
+`frame`, `night`, `cop`, `lop`, `cross`) and one in the theory stage's
+(`map`, `frame`). Both read the same `state.show`, so they agree by
+construction. The rail keeps only what the **sky** panel draws, `equator` and
+`belowHorizon`, and `worldmap.test.js` fails if a switch is added to `show`
+without a picture of itself.
 
 `core/` must stay free of DOM and of any notion of language. Formatting that
 needs a language lives in `ui/format.js`.
@@ -529,6 +536,10 @@ and krasajachtingu.cz's beginners' piece.
   instead, which is a ring like any other there. Land comes out at −2π and
   open water at zero; the sign matters, because |2π| is also what the far side
   of the world gives.
+- **A setting three panels away from the picture it changes is a setting
+  nobody finds.** Six of the eight overlay switches were in the rail, below a
+  scroll, while the globe they governed sat at the top of the page. They are
+  icons over the globe now, and the rail keeps only the sky panel's two.
 - **A shared helper's arguments are not the same as the one it replaced.**
   `globe.js` called `parallel(gp.lat, 2)` meaning a step of two degrees, and
   the shared `parallel(lat, from, to, step)` read that 2 as the *start*

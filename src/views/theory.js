@@ -53,7 +53,7 @@ function chipValue(key, d, s) {
   }
 }
 
-export function createTheory(onRotate, onCentre) {
+export function createTheory(onRotate, onCentre, showRow = null) {
   const node = h('div', 'theory');
   const main = h('div', 'th-main');
   const stage = h('aside', 'th-stage');
@@ -70,6 +70,9 @@ export function createTheory(onRotate, onCentre) {
   // --- the stage ----------------------------------------------------------
   const head = h('div', 'th-stage-hd');
   head.append(h('h2', null, t('th.stage.title')), h('span', 'th-stage-sub', t('th.stage.sub')));
+  // What the sphere may draw, over the sphere. Built by app.js, which owns
+  // the store; this tab only decides where it goes.
+  if (showRow) head.append(showRow);
 
   const chipBox = h('div', 'th-chips');
   chipBox.setAttribute('role', 'group');

@@ -441,10 +441,10 @@ svg .gauge-note { fill: var(--c-time); }
 .body.on-theory .rail { gap: 12px; padding: 12px; }
 .body.on-theory .rail-group { gap: 7px; }
 .body.on-theory .rail-g-time { display: flex; }
-.body.on-theory .rail-g-sextant { display: none; }
-/* The overlay group stays on the theory tab, but only the two switches that
-   mean anything to a sphere: the coastlines and the reference frame. */
-.body.on-theory .rail-g-show .rail-checks > *:not(.show-map):not(.show-frame) { display: none; }
+/* What is left of the overlay group belongs to the sky panel, which the
+   theory tab does not have. */
+.body.on-theory .rail-g-sextant,
+.body.on-theory .rail-g-show { display: none; }
 /* The blurbs under the two pickers are prose, and prose is what this tab has
    in the column beside it. The controls themselves stay. */
 .body.on-theory .rail-note { display: none; }
@@ -1064,6 +1064,31 @@ svg .voy-dest-text { fill: var(--c-alt); }
 }
 
 /* --- the sextant ---------------------------------------------------------- */
+
+/* A row of icon switches for one drawing, in that drawing's own header. */
+.sw-row { display: flex; gap: 4px; margin-left: auto; align-self: center; }
+.sw {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  border: 1px solid var(--rule-2);
+  border-radius: 3px;
+  background: none;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+.sw svg { display: block; width: 17px; height: 17px; }
+.sw:hover { color: var(--ink); }
+.sw[aria-pressed='true'] { color: var(--accent); border-color: var(--accent); }
+.sw:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* Big enough for a finger on a phone. The header wraps the row onto its own
+   line there, which is where the room comes from. */
+@media (max-width: 560px) {
+  .sw { width: 34px; height: 34px; }
+  .sw svg { width: 21px; height: 21px; }
+}
 
 .sub-tabs { display: flex; margin-left: auto; }
 .sub-tabs-btn {

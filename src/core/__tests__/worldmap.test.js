@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { LAND, LAND_SIZE } from '../../worldmap.js';
 import { state } from '../../state/store.js';
 import { dictionaries, LANGS } from '../../i18n.js';
+import { ICON_KEYS } from '../../ui/toggles.js';
 
 // =========================================================================
 // The coastlines.
@@ -171,6 +172,22 @@ describe('the two switches', () => {
     for (const lang of LANGS) {
       expect(dictionaries[lang]['show.map'], lang).toBeTruthy();
       expect(dictionaries[lang]['show.frame'], lang).toBeTruthy();
+    }
+  });
+
+  it('has a picture of itself for every switch that sits over a drawing', () => {
+    // The two left in the rail are the sky panel's. Everything else is drawn
+    // on a sphere, and every one of those is an icon in that sphere's own
+    // header -- so a new one added to `show` without an icon fails here
+    // rather than quietly going missing from the page.
+    const railOnly = ['equator', 'belowHorizon'];
+    const keys = Object.keys(state.show);
+    expect([...ICON_KEYS].sort())
+      .toEqual(keys.filter((k) => !railOnly.includes(k)).sort());
+    for (const k of keys) {
+      for (const lang of LANGS) {
+        expect(dictionaries[lang][`show.${k}`], `${lang} ${k}`).toBeTruthy();
+      }
     }
   });
 });

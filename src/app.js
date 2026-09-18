@@ -6,6 +6,7 @@ import { createWorkup } from './views/workup.js';
 import { createTimeline } from './views/timeline.js';
 import { createSightLog } from './views/sightlog.js';
 import { createTheory } from './views/theory.js';
+import { createToggles } from './ui/toggles.js';
 import { createVoyage } from './views/voyage.js';
 import { createLunars } from './views/lunars.js';
 import { createLessonBar, createLessonPicker } from './views/lessonbar.js';
@@ -13,7 +14,9 @@ import { createRail } from './ui/rail.js';
 import { byId, applyScenario } from './scenarios.js';
 import { t, getLang, setLang, LANGS, LANG_LABEL } from './i18n.js';
 
-const { state, set, subscribe, render, addSight, matchSight, removeSight, clearSights } = store;
+const {
+  state, set, setIn, subscribe, render, addSight, matchSight, removeSight, clearSights,
+} = store;
 
 const h = (tag, cls, txt) => {
   const n = document.createElement(tag);
@@ -102,7 +105,14 @@ function mount() {
   // back, which needs an absolute centre rather than the drag's increments.
   const centreTheory = (lat, lon) =>
     set({ theoryView: { lat: Math.max(-85, Math.min(85, lat)), lon } });
-  const theory = createTheory(rotateGlobe('theoryView'), centreTheory);
+  // What each drawing can show, over the drawing itself. The globe carries
+  // its own six; the theory tab's sphere carries the two that mean anything
+  // to a sphere with no ship on it.
+  const flip = (k, v) => setIn('show', { [k]: v });
+  const globeShow = createToggles(['map', 'frame', 'night', 'cop', 'lop', 'cross'], flip);
+  const sphereShow = createToggles(['map', 'frame'], flip);
+
+  const theory = createTheory(rotateGlobe('theoryView'), centreTheory, sphereShow.node);
   const voyage = createVoyage(store);
   const lunars = createLunars(store);
   const rail = createRail(store);
@@ -155,7 +165,7 @@ function mount() {
   const sim = h('main', 'grid');
   sim.append(
     panel(t('panel.sky'), t('panel.sky.sub'), [sky.node, sextant.node], 'p-sky', skyTabs.node),
-    panel(t('panel.earth'), t('panel.earth.sub'), globe.node, 'p-globe'),
+    panel(t('panel.earth'), t('panel.earth.sub'), globe.node, 'p-globe', globeShow.node),
     panel(t('panel.log'), t('panel.log.sub'), log.node, 'p-log'),
     panel(t('panel.workup'), t('panel.workup.sub'), workup.node, 'p-workup'),
     timeline.node,
@@ -248,6 +258,8 @@ function mount() {
     lunars.update(d, s);
     lunarTimeline.update(d, s);
     rail.update(d, s);
+    globeShow.update(s);
+    sphereShow.update(s);
     lessonBar.update(d, s);
     lessonPicker.update(d, s);
   });
